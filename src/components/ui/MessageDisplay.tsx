@@ -7,46 +7,57 @@ interface MessageDisplayProps {
 }
 
 const MessageDisplay: React.FC<MessageDisplayProps> = ({ message, type }) => {
-  const [visible, setVisible] = useState(true);
-  
+  const [visible, setVisible] = useState(false);
+  const [exiting, setExiting] = useState(false);
+
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setVisible(false);
-    }, 5000);
-    
-    return () => clearTimeout(timer);
-  }, [message]);
+    if (message) {
+      setVisible(true);
+      setExiting(false);
+      const timer = setTimeout(() => {
+        setExiting(true);
+        setTimeout(() => setVisible(false), 300); // Corresponds to animation duration
+      }, 4700); // Start fade out before 5s to complete by 5s
+      return () => clearTimeout(timer);
+    }
+  }, [message, type]); // Re-trigger on new message or type change
+
+  const baseClasses = "fixed top-5 left-1/2 transform -translate-x-1/2 z-[100] w-auto max-w-md px-5 py-3.5 rounded-xl shadow-2xl flex items-center space-x-3 transition-all duration-300 ease-out";
   
-  const bgColor = type === 'success' 
-    ? 'bg-green-50 dark:bg-green-900/30' 
-    : 'bg-red-50 dark:bg-red-900/30';
-    
-  const textColor = type === 'success' 
-    ? 'text-green-800 dark:text-green-200' 
-    : 'text-red-800 dark:text-red-200';
-    
-  const iconColor = type === 'success' 
-    ? 'text-green-500 dark:text-green-400' 
-    : 'text-red-500 dark:text-red-400';
-  
-  if (!visible) return null;
-  
+  let typeClasses = '';
+  let IconComponent = AlertCircle;
+
+  if (type === 'success') {
+    typeClasses = 'bg-emerald-500 border border-emerald-600/50 text-white dark:bg-emerald-600 dark:border-emerald-700/50';
+    IconComponent = CheckCircle;
+  } else { // error
+    typeClasses = 'bg-red-500 border border-red-600/50 text-white dark:bg-red-600 dark:border-red-700/50';
+    IconComponent = AlertCircle;
+  }
+
+  const animationClass = exiting ? 'opacity-0 -translate-y-full' : 'opacity-100 translate-y-0';
+
+  if (!visible && !exiting) return null; // Don't render if not visible and not in process of exiting
+  if (!message) return null; // Don't render if no message
+
   return (
-    <div className="fixed top-6 left-1/2 transform -translate-x-1/2 z-50 animate-fade-down">
-      <div className={`${bgColor} ${textColor} px-4 py-3 rounded-lg shadow-lg flex items-center max-w-md`}>
-        {type === 'success' ? (
-          <CheckCircle className={`${iconColor} h-5 w-5 mr-3 flex-shrink-0`} />
-        ) : (
-          <AlertCircle className={`${iconColor} h-5 w-5 mr-3 flex-shrink-0`} />
-        )}
-        <div className="flex-1">{message}</div>
-        <button
-          onClick={() => setVisible(false)}
-          className="ml-3 text-gray-400 hover:text-gray-500 dark:text-gray-500 dark:hover:text-gray-400"
-        >
-          <X className="h-5 w-5" />
-        </button>
-      </div>
+    <div 
+      role="alert"
+      aria-live={type === 'error' ? "assertive" : "polite"}
+      className={`${baseClasses} ${typeClasses} ${animationClass}`}
+    >
+      <IconComponent className="h-6 w-6 flex-shrink-0 opacity-90" />
+      <div className="flex-1 text-sm font-medium leading-snug">{message}</div>
+      <button
+        onClick={() => {
+          setExiting(true);
+          setTimeout(() => setVisible(false), 300);
+        }}
+        className="ml-auto -mr-1 p-1 rounded-full hover:bg-black/10 dark:hover:bg-white/10 transition-colors text-current opacity-70 hover:opacity-100"
+        aria-label="Dismiss message"
+      >
+        <X className="h-5 w-5" />
+      </button>
     </div>
   );
 };

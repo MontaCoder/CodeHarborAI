@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, RefreshCw } from 'lucide-react';
+import { ArrowLeft, RefreshCw, Sun, Moon } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 import FileSelector from './FileSelector';
 import OutputPanel from './OutputPanel';
@@ -7,6 +7,7 @@ import OptionsPanel from './OptionsPanel';
 import PresetManager from './PresetManager';
 import StatsPanel from './StatsPanel';
 import MessageDisplay from './ui/MessageDisplay';
+import Button from './ui/Button';
 
 const MainApp: React.FC = () => {
   const { toggleTheme, theme } = useTheme();
@@ -141,38 +142,35 @@ const MainApp: React.FC = () => {
 
   return (
     <div className="min-h-screen flex flex-col">
-      <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-4 flex justify-between items-center sticky top-0 z-10 shadow-sm">
+      <header className="backdrop-blur-md bg-white/80 dark:bg-slate-900/80 border-b border-slate-200 dark:border-slate-700/50 px-4 sm:px-8 py-3 flex justify-between items-center sticky top-0 z-20 shadow-md">
         <div className="flex items-center space-x-4">
           <button 
             onClick={() => window.location.reload()}
-            className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300 transition-colors duration-200"
+            className="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800/60 text-slate-500 dark:text-slate-400 transition-colors duration-150"
             title="Return to landing page"
           >
             <ArrowLeft className="h-5 w-5" />
           </button>
-          <h1 className="text-xl font-bold text-gray-800 dark:text-white flex items-center">
-            <span className="bg-gradient-to-r from-emerald-500 to-blue-500 bg-clip-text text-transparent">SourcePrompt</span>
+          <img src="/codeharborai_logo.svg" alt="CodeHarborAI Logo" className="h-7 w-7" />
+          <h1 className="text-xl font-bold flex items-center">
+            <span className="bg-gradient-to-r from-emerald-500 to-sky-500 bg-clip-text text-transparent tracking-tight">CodeHarborAI</span>
           </h1>
         </div>
         <div className="flex items-center space-x-3">
           {folderHandle && (
-            <span className="text-sm text-gray-600 dark:text-gray-400 hidden md:inline-block">
+            <span className="text-sm text-slate-500 dark:text-slate-400 hidden md:inline-block truncate max-w-xs">
               Selected: {folderHandle.name}
             </span>
           )}
           <button
             onClick={toggleTheme}
-            className="p-2 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors duration-200"
+            className="p-2 rounded-full text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/60 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-50 dark:focus-visible:ring-offset-slate-900 transition-colors duration-150"
             aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
           >
             {theme === 'dark' ? (
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
-              </svg>
+              <Sun className="h-5 w-5" />
             ) : (
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
-              </svg>
+              <Moon className="h-5 w-5" />
             )}
           </button>
         </div>
@@ -182,61 +180,67 @@ const MainApp: React.FC = () => {
         <MessageDisplay message={message.text} type={message.type} />
       )}
 
-      <main className="flex-1 max-w-7xl mx-auto w-full p-4 md:p-6">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="md:col-span-2 space-y-6">
-            <FileSelector 
-              onFolderSelected={handleFolderSelected}
-              onFilesSelected={handleFilesSelected}
-              onSelectFile={handleSelectFile}
-              onSelectAll={handleSelectAll}
-              selectedFiles={selectedFiles}
-              isLoading={isLoading}
-            />
+      <main className="flex-1 max-w-7xl mx-auto w-full p-4 md:p-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="md:col-span-2 space-y-8">
+            <div className="bg-white/90 dark:bg-slate-900/80 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-700/50 p-6 md:p-8 backdrop-blur-md">
+              <FileSelector 
+                onFolderSelected={handleFolderSelected}
+                onFilesSelected={handleFilesSelected}
+                onSelectFile={handleSelectFile}
+                onSelectAll={handleSelectAll}
+                selectedFiles={selectedFiles}
+                isLoading={isLoading}
+              />
+            </div>
             
-            <div className="sticky bottom-6 flex justify-center">
-              <button
+            <div className="sticky bottom-6 flex justify-center z-10">
+              <Button
                 onClick={handleCombine}
                 disabled={selectedFiles.size === 0 || isLoading}
-                className="bg-gradient-to-r from-emerald-500 to-blue-500 hover:from-emerald-600 hover:to-blue-600 text-white font-bold py-3 px-8 rounded-lg shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none disabled:hover:shadow-lg"
+                primary
+                className="px-8 py-3 text-base shadow-xl hover:shadow-emerald-400/50 dark:hover:shadow-emerald-600/50 transform hover:scale-105 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-white dark:focus-visible:ring-offset-slate-900"
               >
                 {isLoading ? (
-                  <div className="flex items-center space-x-2">
+                  <div className="flex items-center space-x-2.5">
                     <RefreshCw className="h-5 w-5 animate-spin" />
                     <span>Processing...</span>
                   </div>
                 ) : (
                   <span>Combine Selected Files</span>
                 )}
-              </button>
+              </Button>
             </div>
             
             {showOutput && (
-              <OutputPanel output={output} />
+              <div className="bg-white/90 dark:bg-slate-900/80 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-700/50 p-6 md:p-8 backdrop-blur-md mt-8">
+                <OutputPanel output={output} />
+              </div>
             )}
           </div>
           
-          <div className="space-y-6">
-            <StatsPanel 
-              totalSize={totalSize} 
-              totalLines={totalLines} 
-            />
-            
-            <OptionsPanel 
-              options={options}
-              onChange={handleOptionChange}
-            />
-            
-            <PresetManager
-              folderHandle={folderHandle}
-              selectedFiles={selectedFiles}
-              options={options}
-              onLoadPreset={(files, opts) => {
-                setSelectedFiles(new Set(files));
-                setOptions(opts);
-              }}
-              showMessage={showMessage}
-            />
+          <div className="space-y-8">
+            <div className="bg-white/90 dark:bg-slate-900/80 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-700/50 p-6 md:p-8 backdrop-blur-md">
+              <StatsPanel totalSize={totalSize} totalLines={totalLines} />
+            </div>
+            <div className="bg-white/90 dark:bg-slate-900/80 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-700/50 p-6 md:p-8 backdrop-blur-md">
+              <OptionsPanel 
+                options={options} 
+                onChange={handleOptionChange}
+              />
+            </div>
+            <div className="bg-white/90 dark:bg-slate-900/80 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-700/50 p-6 md:p-8 backdrop-blur-md">
+              <PresetManager
+                folderHandle={folderHandle}
+                selectedFiles={selectedFiles}
+                options={options}
+                onLoadPreset={(files, opts) => {
+                  setSelectedFiles(new Set(files));
+                  setOptions(opts);
+                }}
+                showMessage={showMessage}
+              />
+            </div>
           </div>
         </div>
       </main>

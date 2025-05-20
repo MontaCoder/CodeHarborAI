@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Copy, Download, CheckCircle } from 'lucide-react';
+import { Copy, Download, CheckCircle, FileText as FileTextIcon } from 'lucide-react';
 import Button from './ui/Button';
 
 interface OutputPanelProps {
@@ -8,74 +8,81 @@ interface OutputPanelProps {
 
 const OutputPanel: React.FC<OutputPanelProps> = ({ output }) => {
   const [copied, setCopied] = useState(false);
+  const [downloaded, setDownloaded] = useState(false);
   
   const handleCopy = async () => {
     try {
       await navigator.clipboard.writeText(output);
       setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
+      setTimeout(() => setCopied(false), 2500);
     } catch (err) {
       console.error('Failed to copy text:', err);
     }
   };
   
   const handleDownload = () => {
-    const blob = new Blob([output], { type: 'text/plain' });
+    const blob = new Blob([output], { type: 'text/plain;charset=utf-8' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'combined_files.txt';
+    a.download = 'CodeHarborAI_Output.txt';
+    document.body.appendChild(a);
     a.click();
+    document.body.removeChild(a);
     URL.revokeObjectURL(url);
+    setDownloaded(true);
+    setTimeout(() => setDownloaded(false), 2500);
   };
   
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow border border-gray-200 dark:border-gray-700 overflow-hidden animate-fade-in">
-      <div className="border-b border-gray-200 dark:border-gray-700 p-4">
-        <h2 className="text-lg font-medium text-gray-900 dark:text-white flex items-center">
-          <svg className="w-5 h-5 mr-2 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-          </svg>
-          Combined Output
-        </h2>
+    <div className="animate-fade-in space-y-5">
+      <div className="flex items-center">
+        <FileTextIcon className="w-5 h-5 mr-2.5 text-emerald-500 dark:text-emerald-400" />
+        <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-100">Generated Prompt Output</h2>
       </div>
       
-      <div className="p-4">
-        <div className="relative">
+      <div className="space-y-4">
+        <div className="relative group">
           <textarea
             value={output}
             readOnly
-            className="w-full h-96 p-3 border border-gray-300 dark:border-gray-600 rounded-md bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 font-mono text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+            className="w-full h-[24rem] min-h-[16rem] p-4 border-0 ring-1 ring-inset ring-slate-300 dark:ring-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800/60 text-slate-800 dark:text-slate-100 font-mono text-sm focus:ring-2 focus:ring-inset focus:ring-emerald-500 transition-all duration-150 resize-y shadow-sm"
+            aria-label="Combined output text"
           />
           
-          <div className="absolute top-2 right-2 flex space-x-2">
+          <div className="absolute top-2.5 right-2.5 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
             <button 
               onClick={handleCopy}
-              className={`p-1.5 rounded-md ${copied 
-                ? 'bg-green-100 text-green-600 dark:bg-green-900 dark:text-green-400' 
-                : 'bg-gray-100 text-gray-600 dark:bg-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-500'}`}
-              title="Copy to clipboard"
+              className={`p-2 rounded-md flex items-center justify-center transition-all duration-150 ease-in-out active:scale-95
+                ${copied 
+                  ? 'bg-emerald-500 text-white dark:bg-emerald-600' 
+                  : 'bg-slate-200 text-slate-600 hover:bg-slate-300 dark:bg-slate-700 dark:text-slate-300 dark:hover:bg-slate-600'}`}
+              title={copied ? "Copied!" : "Copy to clipboard"}
+              aria-live="polite"
             >
               {copied ? <CheckCircle className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
             </button>
           </div>
         </div>
         
-        <div className="mt-4 flex space-x-3">
+        <div className="flex flex-col sm:flex-row gap-3 pt-1">
           <Button
             onClick={handleDownload}
-            icon={<Download className="h-4 w-4" />}
+            icon={downloaded ? <CheckCircle className="h-4 w-4" /> : <Download className="h-4 w-4" />}
             primary
+            className="w-full sm:w-auto text-sm px-5 py-2.5 shadow-md hover:shadow-lg"
           >
-            Download as Text
+            {downloaded ? 'Downloaded!' : 'Download as .txt'}
           </Button>
           
           <Button
             onClick={handleCopy}
             icon={copied ? <CheckCircle className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
             secondary
+            className="w-full sm:w-auto text-sm px-5 py-2.5 shadow-md hover:shadow-lg"
+            aria-live="polite"
           >
-            {copied ? 'Copied!' : 'Copy to Clipboard'}
+            {copied ? 'Copied to Clipboard!' : 'Copy to Clipboard'}
           </Button>
         </div>
       </div>

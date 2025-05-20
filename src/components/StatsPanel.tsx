@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { BarChart2, AlertTriangle } from 'lucide-react';
+import { BarChart2, AlertTriangle, CheckSquare } from 'lucide-react';
 
 interface StatsPanelProps {
   totalSize: number;
@@ -10,12 +10,13 @@ const StatsPanel: React.FC<StatsPanelProps> = ({ totalSize, totalLines }) => {
   const [warning, setWarning] = useState<string>('');
   
   useEffect(() => {
-    if ((totalSize / 1024) > 500) {
-      setWarning("Warning: probably too large to fit in Claude 3.5 Sonnet context window!");
-    } else if ((totalSize / 1024) > 200) {
-      setWarning("Warning: probably too large to fit in GPT-4o or o1 context window!");
+    const sizeKB = totalSize / 1024;
+    if (sizeKB > 500) {
+      setWarning("Context Alert: Exceeds typical capacity for Claude Sonnet 3.5 (est. >500KB).");
+    } else if (sizeKB > 150) { // Adjusted threshold for GPT-4o/Opus (est. ~128k-200k tokens)
+      setWarning("Context Alert: May approach capacity for models like GPT-4o/Opus (est. >150KB).");
     } else {
-      setWarning("");
+      setWarning('');
     }
   }, [totalSize]);
   
@@ -23,46 +24,61 @@ const StatsPanel: React.FC<StatsPanelProps> = ({ totalSize, totalLines }) => {
     return num.toLocaleString();
   };
   
+  const sizeKB = totalSize / 1024;
+  let progressPercentage = Math.min(100, (sizeKB / 500) * 100); // Max out at 500KB for progress bar visual
+  let progressBarColor = 'bg-emerald-500';
+  if (sizeKB > 500) {
+    progressBarColor = 'bg-red-500';
+  } else if (sizeKB > 150) {
+    progressBarColor = 'bg-yellow-500';
+  }
+
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow border border-gray-200 dark:border-gray-700 overflow-hidden animate-fade-in">
-      <div className="border-b border-gray-200 dark:border-gray-700 p-4">
-        <h2 className="text-lg font-medium text-gray-900 dark:text-white flex items-center">
-          <BarChart2 className="w-5 h-5 mr-2 text-indigo-500" />
-          Stats
-        </h2>
+    <div className="animate-fade-in space-y-5">
+      <div className="flex items-center">
+        <BarChart2 className="w-5 h-5 mr-2.5 text-indigo-500 dark:text-indigo-400" />
+        <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-100">Performance Stats</h2>
       </div>
       
-      <div className="p-4 space-y-3">
-        <div className="flex justify-between items-center">
-          <span className="text-sm text-gray-600 dark:text-gray-400">Total size:</span>
-          <span className="text-md font-medium text-gray-800 dark:text-gray-200">
-            {(totalSize / 1024).toFixed(2)} KB
+      <div className="space-y-4">
+        <div className="flex justify-between items-baseline">
+          <span className="text-sm text-slate-600 dark:text-slate-400">Total Size:</span>
+          <span className="text-xl font-bold text-slate-800 dark:text-slate-100">
+            {sizeKB.toFixed(2)} KB
           </span>
         </div>
         
-        <div className="flex justify-between items-center">
-          <span className="text-sm text-gray-600 dark:text-gray-400">Total lines:</span>
-          <span className="text-md font-medium text-gray-800 dark:text-gray-200">
+        <div className="flex justify-between items-baseline">
+          <span className="text-sm text-slate-600 dark:text-slate-400">Total Lines:</span>
+          <span className="text-xl font-bold text-slate-800 dark:text-slate-100">
             {formatNumber(totalLines)}
           </span>
         </div>
         
-        <div className="w-full bg-gray-100 dark:bg-gray-700 rounded-full h-2.5 mt-2">
-          <div 
-            className={`h-2.5 rounded-full ${
-              (totalSize / 1024) > 500 ? 'bg-red-500' :
-              (totalSize / 1024) > 200 ? 'bg-yellow-500' :
-              'bg-emerald-500'
-            }`}
-            style={{ width: `${Math.min(100, ((totalSize / 1024) / 5))}%` }}
-          ></div>
+        <div className="pt-1">
+          <div className="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-3 relative overflow-hidden">
+            <div 
+              className={`absolute top-0 left-0 h-full rounded-full transition-all duration-500 ease-out ${progressBarColor}`}
+              style={{ width: `${progressPercentage}%` }}
+              role="progressbar"
+              aria-valuenow={sizeKB}
+              aria-valuemin={0}
+              aria-valuemax={500} // Corresponds to 100% on the bar
+            ></div>
+          </div>
         </div>
         
         {warning && (
-          <div className="mt-3 flex items-start space-x-2 text-sm text-red-600 dark:text-red-400">
-            <AlertTriangle className="w-4 h-4 flex-shrink-0 mt-0.5" />
-            <span>{warning}</span>
+          <div className="mt-2 flex items-start space-x-2.5 text-sm text-red-600 dark:text-red-400 p-3 rounded-md bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-500/30">
+            <AlertTriangle className="w-4 h-4 flex-shrink-0 mt-0.5 text-red-500 dark:text-red-400" />
+            <span className="leading-snug">{warning}</span>
           </div>
+        )}
+        {!warning && totalSize > 0 && (
+            <div className="mt-2 flex items-start space-x-2.5 text-sm text-emerald-700 dark:text-emerald-300 p-3 rounded-md bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-500/30">
+                <CheckSquare className="w-4 h-4 flex-shrink-0 mt-0.5 text-emerald-600 dark:text-emerald-400" />
+                <span className="leading-snug">Context size looks good for most models.</span>
+            </div>
         )}
       </div>
     </div>

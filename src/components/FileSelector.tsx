@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { FolderOpen, RefreshCw, Filter, X, CheckSquare } from 'lucide-react';
+import { FolderOpen, RefreshCw, Filter, X, CheckSquare, ChevronDown } from 'lucide-react';
 import Button from './ui/Button';
 import FileTree from './FileTree';
 
@@ -203,96 +203,113 @@ const FileSelector: React.FC<FileSelectorProps> = ({
   }, [filterText, fileHandles]);
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow border border-gray-200 dark:border-gray-700 overflow-hidden animate-fade-in">
-      <div className="border-b border-gray-200 dark:border-gray-700 p-4">
-        <div className="flex flex-wrap gap-4 items-center">
-          <Button 
-            icon={<FolderOpen className="h-4 w-4" />}
-            onClick={handleFolderSelect}
-            disabled={isProcessing || isLoading}
-            primary
-          >
-            Select Folder
-          </Button>
-          
-          {folderHandle && (
-            <Button
-              icon={<RefreshCw className={`h-4 w-4 ${isProcessing ? 'animate-spin' : ''}`} />}
-              onClick={handleRefresh}
-              disabled={isProcessing || isLoading}
-              secondary
-            >
-              Refresh Folder
-            </Button>
-          )}
-          
-          {folderHandle && (
-            <span className="text-sm text-gray-600 dark:text-gray-400">
-              {folderHandle.name} {gitignoreStatus && `(${gitignoreStatus})`}
-            </span>
-          )}
-        </div>
+    <div className="animate-fade-in space-y-6">
+      <div className="flex flex-col sm:flex-row flex-wrap gap-3 items-center">
+        <Button 
+          icon={<FolderOpen className="h-4 w-4" />}
+          onClick={handleFolderSelect}
+          disabled={isProcessing || isLoading}
+          primary
+          className="w-full sm:w-auto text-sm px-4 py-2 shadow-md hover:shadow-lg"
+        >
+          Select Project Folder
+        </Button>
         
         {folderHandle && (
-          <div className="mt-4">
-            <div className="flex space-x-2">
-              <div className="relative flex-1">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Filter className="h-4 w-4 text-gray-400" />
-                </div>
-                <input
-                  type="text"
-                  placeholder="Filter by file/folder name..."
-                  value={filterText}
-                  onChange={handleFilterChange}
-                  className="pl-10 w-full py-2 px-4 border border-gray-300 dark:border-gray-600 rounded-md bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-emerald-500 dark:focus:ring-emerald-600 focus:border-transparent transition-colors duration-200"
-                  disabled={isProcessing || isLoading}
-                />
-                {filterText && (
-                  <button 
-                    onClick={handleClearFilter}
-                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-500 dark:hover:text-gray-300"
-                  >
-                    <X className="h-4 w-4" />
-                  </button>
-                )}
-              </div>
-              <Button
-                icon={<CheckSquare className="h-4 w-4" />}
-                onClick={handleSelectAll}
-                disabled={isProcessing || isLoading || fileHandles.length === 0}
-                secondary
-              >
-                Toggle All
-              </Button>
-            </div>
-            
-            <div className="mt-3 flex flex-wrap gap-2">
-              <div className="text-sm font-medium text-gray-700 dark:text-gray-300">File Type Filters:</div>
-              {Object.entries(fileTypeFilters).map(([name, extensions]) => (
-                <button
-                  key={name}
-                  onClick={() => applyFileTypeFilter(extensions)}
-                  disabled={isProcessing || isLoading}
-                  className="text-xs px-2 py-1 rounded bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 transition-colors duration-200 disabled:opacity-50"
-                >
-                  {name}
-                </button>
-              ))}
-            </div>
-          </div>
+          <Button
+            icon={<RefreshCw className={`h-4 w-4 ${isProcessing ? 'animate-spin' : ''}`} />}
+            onClick={handleRefresh}
+            disabled={isProcessing || isLoading}
+            secondary
+            className="w-full sm:w-auto text-sm px-4 py-2"
+          >
+            Refresh Folder
+          </Button>
+        )}
+        
+        {folderHandle && (
+          <span className="text-sm text-slate-600 dark:text-slate-400 flex-1 min-w-0 truncate">
+            <strong className="font-medium text-slate-700 dark:text-slate-300">Project:</strong> {folderHandle.name} 
+            {gitignoreStatus && <span className="text-xs ml-1 p-1 rounded-md bg-slate-100 dark:bg-slate-700">({gitignoreStatus})</span>}
+          </span>
         )}
       </div>
       
       {folderHandle && (
-        <div className={`p-4 ${isProcessing ? 'opacity-50' : ''}`}>
-          <FileTree
-            files={fileHandles}
-            selectedFiles={selectedFiles}
-            onSelectFile={onSelectFile}
-            filterText={filterText}
-            disabled={isProcessing || isLoading}
-          />
+        <div className="space-y-4">
+          <div className="flex flex-col sm:flex-row gap-3 items-center">
+            <div className="relative flex-grow w-full sm:w-auto">
+              <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                <Filter className="h-4 w-4 text-slate-400 dark:text-slate-500" />
+              </div>
+              <input
+                type="text"
+                placeholder="Filter files (e.g., utils, .ts, /components/)"
+                value={filterText}
+                onChange={handleFilterChange}
+                className="pl-10 pr-10 w-full py-2.5 px-4 border-0 ring-1 ring-inset ring-slate-300 dark:ring-slate-700 rounded-lg bg-white dark:bg-slate-800/50 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-inset focus:ring-emerald-500 transition-all duration-150 text-sm placeholder-slate-400 dark:placeholder-slate-500 shadow-sm"
+                disabled={isProcessing || isLoading}
+              />
+              {filterText && (
+                <button 
+                  onClick={handleClearFilter} 
+                  className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300 transition-colors"
+                  aria-label="Clear filter"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              )}
+            </div>
+            <Button
+              icon={<CheckSquare className="h-4 w-4" />}
+              onClick={handleSelectAll}
+              disabled={isProcessing || isLoading || filteredPaths.length === 0}
+              secondary
+              className="w-full sm:w-auto text-sm px-4 py-2.5 whitespace-nowrap"
+            >
+              {filteredPaths.every(path => selectedFiles.has(path)) && filteredPaths.length > 0 ? 'Deselect Filtered' : 'Select Filtered'}
+            </Button>
+          </div>
+
+          <div className="flex flex-wrap gap-2 items-center">
+            <span className="text-sm font-medium text-slate-700 dark:text-slate-300 mr-2">Quick Filters:</span>
+            {Object.entries(fileTypeFilters).slice(0, 5).map(([typeName, extensions]) => (
+              <button 
+                key={typeName}
+                onClick={() => applyFileTypeFilter(extensions)}
+                disabled={isProcessing || isLoading}
+                className="px-3 py-1 text-xs font-medium rounded-full transition-colors duration-150 
+                          bg-slate-100 text-slate-700 hover:bg-emerald-100 hover:text-emerald-700 
+                          dark:bg-slate-700/80 dark:text-slate-200 dark:hover:bg-emerald-500/30 dark:hover:text-emerald-300
+                          focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
+              >
+                {typeName}
+              </button>
+            ))}
+            {Object.keys(fileTypeFilters).length > 5 && (
+              <Button secondary className="text-xs px-3 py-1"> <ChevronDown className="h-3 w-3 mr-1" /> More</Button>
+            )}
+          </div>
+
+          {isProcessing ? (
+            <div className="text-center py-10">
+              <RefreshCw className="h-8 w-8 text-emerald-500 animate-spin mx-auto mb-3" />
+              <p className="text-slate-600 dark:text-slate-400">Scanning folder...</p>
+            </div>
+          ) : fileHandles.length > 0 ? (
+            <FileTree 
+              files={fileHandles}
+              filterText={filterText}
+              selectedFiles={selectedFiles}
+              onSelectFile={onSelectFile}
+              isLoading={isLoading}
+              filteredPaths={filteredPaths}
+            />
+          ) : folderHandle ? (
+            <p className="text-center text-slate-500 dark:text-slate-400 py-10">No text files found in the selected folder or matching filters.</p>
+          ) : (
+            <p className="text-center text-slate-500 dark:text-slate-400 py-10">Select a project folder to view files.</p>
+          )}
         </div>
       )}
     </div>
