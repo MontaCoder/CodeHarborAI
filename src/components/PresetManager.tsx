@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, memo } from 'react';
 import { Save, FolderOpen, Trash2, Upload, Download, AlertTriangle as AlertTriangleIcon } from 'lucide-react';
 import Button from './ui/Button';
 
@@ -13,7 +13,14 @@ interface PresetManagerProps {
     removeComments: boolean;
     minifyOutput: boolean;
   };
-  onLoadPreset: (files: string[], options: any) => void;
+  onLoadPreset: (files: string[], options: {
+    includePreamble: boolean;
+    preambleText: string;
+    includeGoal: boolean;
+    goalText: string;
+    removeComments: boolean;
+    minifyOutput: boolean;
+  }) => void;
   showMessage: (message: string, type: 'error' | 'success') => void;
 }
 
@@ -29,7 +36,7 @@ interface Preset {
   };
 }
 
-const PresetManager: React.FC<PresetManagerProps> = ({
+const PresetManager: React.FC<PresetManagerProps> = memo(({
   folderHandle,
   selectedFiles,
   options,
@@ -51,7 +58,7 @@ const PresetManager: React.FC<PresetManagerProps> = ({
         showMessage('Error loading presets from storage.', 'error');
       }
     }
-  }, []);
+  }, [showMessage]);
   
   const savePreset = () => {
     if (!presetName.trim()) {
@@ -150,7 +157,7 @@ const PresetManager: React.FC<PresetManagerProps> = ({
           } else {
             showMessage('Invalid preset file format.', 'error');
           }
-        } catch (error) {
+        } catch {
           showMessage('Failed to parse preset file. Ensure it is valid JSON.', 'error');
         }
       }
@@ -282,6 +289,6 @@ const PresetManager: React.FC<PresetManagerProps> = ({
       </div>
     </div>
   );
-};
+});
 
 export default PresetManager;

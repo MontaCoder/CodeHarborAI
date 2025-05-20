@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, memo } from 'react';
 import { FolderOpen, RefreshCw, Filter, X, CheckSquare, ChevronDown } from 'lucide-react';
 import Button from './ui/Button';
 import FileTree from './FileTree';
@@ -105,7 +105,7 @@ const FileSelector: React.FC<FileSelectorProps> = ({
     const files: Array<{handle: FileSystemFileHandle, path: string, size: number, lines: number}> = [];
     
     const scanRecursive = async (dirHandle: FileSystemDirectoryHandle, currentPath = '') => {
-      // @ts-ignore File System Access API may not be fully typed in all environments
+      // @ts-expect-error File System Access API may not be fully typed in all environments
       for await (const entry of dirHandle.values()) {
         const entryPath = currentPath ? `${currentPath}/${entry.name}` : entry.name;
         
@@ -135,7 +135,7 @@ const FileSelector: React.FC<FileSelectorProps> = ({
 
   const handleFolderSelect = async () => {
     try {
-      // @ts-ignore File System Access API may not be fully typed in all environments
+      // @ts-expect-error File System Access API may not be fully typed in all environments
       const handle = await window.showDirectoryPicker();
       setFolderHandle(handle);
       onFolderSelected(handle);
@@ -319,4 +319,4 @@ const FileSelector: React.FC<FileSelectorProps> = ({
   );
 };
 
-export default FileSelector;
+export default memo(FileSelector);

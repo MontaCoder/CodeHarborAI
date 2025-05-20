@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, memo } from 'react';
 import { BarChart2, AlertTriangle, CheckSquare } from 'lucide-react';
 
 interface StatsPanelProps {
@@ -6,7 +6,7 @@ interface StatsPanelProps {
   totalLines: number;
 }
 
-const StatsPanel: React.FC<StatsPanelProps> = ({ totalSize, totalLines }) => {
+const StatsPanel: React.FC<StatsPanelProps> = memo(({ totalSize, totalLines }) => {
   const [warning, setWarning] = useState<string>('');
   
   useEffect(() => {
@@ -25,7 +25,7 @@ const StatsPanel: React.FC<StatsPanelProps> = ({ totalSize, totalLines }) => {
   };
   
   const sizeKB = totalSize / 1024;
-  let progressPercentage = Math.min(100, (sizeKB / 500) * 100); // Max out at 500KB for progress bar visual
+  const progressPercentage = Math.min(100, (sizeKB / 500) * 100); // Max out at 500KB for progress bar visual
   let progressBarColor = 'bg-emerald-500';
   if (sizeKB > 500) {
     progressBarColor = 'bg-red-500';
@@ -83,6 +83,6 @@ const StatsPanel: React.FC<StatsPanelProps> = ({ totalSize, totalLines }) => {
       </div>
     </div>
   );
-};
+});
 
 export default StatsPanel;

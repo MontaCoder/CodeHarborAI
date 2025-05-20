@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback, memo } from 'react';
 import { Copy, Download, CheckCircle, FileText as FileTextIcon } from 'lucide-react';
 import Button from './ui/Button';
 
@@ -6,11 +6,11 @@ interface OutputPanelProps {
   output: string;
 }
 
-const OutputPanel: React.FC<OutputPanelProps> = ({ output }) => {
+const OutputPanel: React.FC<OutputPanelProps> = memo(({ output }) => {
   const [copied, setCopied] = useState(false);
   const [downloaded, setDownloaded] = useState(false);
   
-  const handleCopy = async () => {
+  const handleCopy = useCallback(async () => {
     try {
       await navigator.clipboard.writeText(output);
       setCopied(true);
@@ -18,9 +18,9 @@ const OutputPanel: React.FC<OutputPanelProps> = ({ output }) => {
     } catch (err) {
       console.error('Failed to copy text:', err);
     }
-  };
+  }, [output]);
   
-  const handleDownload = () => {
+  const handleDownload = useCallback(() => {
     const blob = new Blob([output], { type: 'text/plain;charset=utf-8' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -32,7 +32,7 @@ const OutputPanel: React.FC<OutputPanelProps> = ({ output }) => {
     URL.revokeObjectURL(url);
     setDownloaded(true);
     setTimeout(() => setDownloaded(false), 2500);
-  };
+  }, [output]);
   
   return (
     <div className="animate-fade-in space-y-5">
@@ -88,6 +88,6 @@ const OutputPanel: React.FC<OutputPanelProps> = ({ output }) => {
       </div>
     </div>
   );
-};
+});
 
 export default OutputPanel;

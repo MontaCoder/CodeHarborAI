@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+/* eslint-disable react-refresh/only-export-components */
+import React, { createContext, useContext, useEffect, useState, ReactNode, useMemo } from 'react';
 
 type Theme = 'light' | 'dark';
 
@@ -48,8 +49,13 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
     setTheme(prevTheme => (prevTheme === 'dark' ? 'light' : 'dark'));
   };
   
+  const contextValue = useMemo(() => ({
+    theme,
+    toggleTheme,
+  }), [theme]);
+
   return (
-    <ThemeContext.Provider value={{ theme, toggleTheme }}>
+    <ThemeContext.Provider value={contextValue}>
       {children}
     </ThemeContext.Provider>
   );

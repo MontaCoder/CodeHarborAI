@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { ArrowLeft, RefreshCw, Sun, Moon } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 import FileSelector from './FileSelector';
@@ -30,30 +30,27 @@ const MainApp: React.FC = () => {
   });
 
   useEffect(() => {
-    // Calculate total size and lines whenever selected files change
-    let size = 0;
-    let lines = 0;
-    
-    fileHandles.forEach(file => {
+    const { size, lines } = fileHandles.reduce((acc, file) => {
       if (selectedFiles.has(file.path)) {
-        size += file.size;
-        lines += file.lines;
+        acc.size += file.size;
+        acc.lines += file.lines;
       }
-    });
+      return acc;
+    }, { size: 0, lines: 0 });
     
     setTotalSize(size);
     setTotalLines(lines);
   }, [selectedFiles, fileHandles]);
 
-  const handleFilesSelected = (files: Array<{handle: FileSystemFileHandle, path: string, size: number, lines: number}>) => {
+  const handleFilesSelected = useCallback((files: Array<{handle: FileSystemFileHandle, path: string, size: number, lines: number}>) => {
     setFileHandles(files);
-  };
+  }, []);
 
-  const handleFolderSelected = (handle: FileSystemDirectoryHandle) => {
+  const handleFolderSelected = useCallback((handle: FileSystemDirectoryHandle) => {
     setFolderHandle(handle);
-  };
+  }, []);
 
-  const handleSelectFile = (path: string, selected: boolean) => {
+  const handleSelectFile = useCallback((path: string, selected: boolean) => {
     setSelectedFiles(prev => {
       const newSet = new Set(prev);
       if (selected) {
@@ -63,18 +60,18 @@ const MainApp: React.FC = () => {
       }
       return newSet;
     });
-  };
+  }, []);
 
-  const handleSelectAll = (paths: string[]) => {
+  const handleSelectAll = useCallback((paths: string[]) => {
     setSelectedFiles(new Set(paths));
-  };
+  }, []);
 
-  const showMessage = (text: string, type: 'error' | 'success') => {
+  const showMessage = useCallback((text: string, type: 'error' | 'success') => {
     setMessage({ text, type });
     setTimeout(() => setMessage(null), 5000);
-  };
+  }, []);
 
-  const handleCombine = async () => {
+  const handleCombine = useCallback(async () => {
     if (selectedFiles.size === 0) {
       showMessage('Please select at least one file', 'error');
       return;
@@ -131,14 +128,14 @@ const MainApp: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [selectedFiles, fileHandles, options, showMessage, totalSize, totalLines]);
 
-  const handleOptionChange = (key: string, value: any) => {
+  const handleOptionChange = useCallback((key: string, value: string | boolean) => {
     setOptions(prev => ({
       ...prev,
       [key]: value
     }));
-  };
+  }, []);
 
   return (
     <div className="min-h-screen flex flex-col">
