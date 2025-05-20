@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { FolderOpen, RefreshCw, Filter, X, CheckSquare, ChevronDown } from 'lucide-react';
 import Button from './ui/Button';
 import FileTree from './FileTree';
@@ -105,6 +105,7 @@ const FileSelector: React.FC<FileSelectorProps> = ({
     const files: Array<{handle: FileSystemFileHandle, path: string, size: number, lines: number}> = [];
     
     const scanRecursive = async (dirHandle: FileSystemDirectoryHandle, currentPath = '') => {
+      // @ts-ignore File System Access API may not be fully typed in all environments
       for await (const entry of dirHandle.values()) {
         const entryPath = currentPath ? `${currentPath}/${entry.name}` : entry.name;
         
@@ -134,12 +135,14 @@ const FileSelector: React.FC<FileSelectorProps> = ({
 
   const handleFolderSelect = async () => {
     try {
+      // @ts-ignore File System Access API may not be fully typed in all environments
       const handle = await window.showDirectoryPicker();
       setFolderHandle(handle);
       onFolderSelected(handle);
       await scanFolder(handle);
     } catch (err) {
       console.error('Error selecting folder:', err);
+      onFilesSelected([]);
     }
   };
 
@@ -287,7 +290,7 @@ const FileSelector: React.FC<FileSelectorProps> = ({
               </button>
             ))}
             {Object.keys(fileTypeFilters).length > 5 && (
-              <Button secondary className="text-xs px-3 py-1"> <ChevronDown className="h-3 w-3 mr-1" /> More</Button>
+              <Button secondary className="text-xs px-3 py-1" onClick={() => { /* TODO: Implement more filters dropdown */ }}> <ChevronDown className="h-3 w-3 mr-1" /> More</Button>
             )}
           </div>
 

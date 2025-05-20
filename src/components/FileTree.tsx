@@ -144,7 +144,7 @@ const FileTree: React.FC<FileTreeProps> = ({
     });
   };
   
-  const renderNode = (node: TreeNode, depth = 0): JSX.Element | null => {
+  const renderNode = (node: TreeNode, depth = 0): React.ReactElement | null => {
     if (!node || (filterText.trim() !== '' && !filteredPaths.some(p => p.startsWith(node.path)) && node.path !== '') || isLoading) {
         // If there's a filter and the node itself nor any of its children are in filteredPaths, don't render (unless it's the root)
         return null;
