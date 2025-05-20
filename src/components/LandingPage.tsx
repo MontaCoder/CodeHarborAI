@@ -14,8 +14,8 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
     <div className="min-h-screen flex flex-col">
       <header className="px-6 py-4 flex justify-between items-center">
         <div className="flex items-center space-x-2">
-          <FileText className="h-6 w-6 text-emerald-600 dark:text-emerald-400" />
-          <h1 className="text-xl font-bold text-gray-800 dark:text-white">SourcePrompt</h1>
+          <img src="/codeharborai_logo.svg" alt="CodeHarborAI Logo" className="h-7 w-7" />
+          <h1 className="text-xl font-bold text-gray-800 dark:text-white">CodeHarborAI</h1>
         </div>
         <button
           onClick={toggleTheme}
@@ -86,7 +86,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
               <div className="h-3 w-3 rounded-full bg-red-500"></div>
               <div className="h-3 w-3 rounded-full bg-yellow-500"></div>
               <div className="h-3 w-3 rounded-full bg-green-500"></div>
-              <div className="ml-2 text-sm text-gray-500 dark:text-gray-400">SourcePrompt</div>
+              <div className="ml-2 text-sm text-gray-500 dark:text-gray-400">CodeHarborAI</div>
             </div>
             <div className="space-y-3">
               <div className="flex items-center space-x-2">
