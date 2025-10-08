@@ -8,11 +8,14 @@ import PresetManager from './PresetManager';
 import StatsPanel from './StatsPanel';
 import MessageDisplay from './ui/MessageDisplay';
 import Button from './ui/Button';
+import { GitHubFile, GitHubRepoInfo } from '../services/githubService';
 
 const MainApp: React.FC = () => {
   const { toggleTheme, theme } = useTheme();
   const [folderHandle, setFolderHandle] = useState<FileSystemDirectoryHandle | null>(null);
   const [fileHandles, setFileHandles] = useState<Array<{handle: FileSystemFileHandle, path: string, size: number, lines: number}>>([]);
+  const [githubFiles, setGithubFiles] = useState<Array<{file: GitHubFile, path: string, size: number, lines: number}>>([]);
+  const [githubRepoInfo, setGithubRepoInfo] = useState<GitHubRepoInfo | null>(null);
   const [selectedFiles, setSelectedFiles] = useState<Set<string>>(new Set());
   const [output, setOutput] = useState<string>('');
   const [showOutput, setShowOutput] = useState<boolean>(false);
@@ -30,20 +33,26 @@ const MainApp: React.FC = () => {
   });
 
   useEffect(() => {
-    const { size, lines } = fileHandles.reduce((acc, file) => {
+    const currentFiles = folderHandle ? fileHandles : githubFiles;
+    const { size, lines } = currentFiles.reduce((acc, file) => {
       if (selectedFiles.has(file.path)) {
         acc.size += file.size;
         acc.lines += file.lines;
       }
       return acc;
     }, { size: 0, lines: 0 });
-    
+
     setTotalSize(size);
     setTotalLines(lines);
-  }, [selectedFiles, fileHandles]);
+  }, [selectedFiles, fileHandles, githubFiles, folderHandle]);
 
   const handleFilesSelected = useCallback((files: Array<{handle: FileSystemFileHandle, path: string, size: number, lines: number}>) => {
     setFileHandles(files);
+  }, []);
+
+  const handleGitHubFilesSelected = useCallback((files: Array<{file: GitHubFile, path: string, size: number, lines: number}>, repoInfo: GitHubRepoInfo) => {
+    setGithubFiles(files);
+    setGithubRepoInfo(repoInfo);
   }, []);
 
   const handleFolderSelected = useCallback((handle: FileSystemDirectoryHandle) => {
@@ -76,50 +85,62 @@ const MainApp: React.FC = () => {
       showMessage('Please select at least one file', 'error');
       return;
     }
-    
+
     setIsLoading(true);
-    
+
     try {
-      // This would contain the actual logic to combine files
-      // For now we'll simulate a delay and set sample output
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
       let outputText = '';
-      
+
       if (options.includePreamble && options.preambleText.trim()) {
         outputText += options.preambleText.trim() + '\n\n';
       }
-      
+
       if (options.includeGoal && options.goalText.trim()) {
         outputText += "Goal:\n" + options.goalText.trim() + '\n\n';
       }
-      
+
       // Add project structure
+      const projectName = folderHandle ? folderHandle.name : (githubRepoInfo ? `${githubRepoInfo.owner}/${githubRepoInfo.repo}` : 'Project');
       outputText += "Project Structure:\n";
-      outputText += "└── Project (Size: " + (totalSize / 1024).toFixed(2) + "kb; Lines: " + totalLines + ")\n";
-      
+      outputText += `└── ${projectName} (Size: ${(totalSize / 1024).toFixed(2)}kb; Lines: ${totalLines})\n`;
+
       // Add file contents
       for (const filePath of selectedFiles) {
-        const fileHandle = fileHandles.find(f => f.path === filePath);
-        if (fileHandle) {
-          const file = await fileHandle.handle.getFile();
-          let content = await file.text();
-          
+        let content = '';
+
+        if (folderHandle) {
+          // Local file
+          const fileHandle = fileHandles.find(f => f.path === filePath);
+          if (fileHandle) {
+            const file = await fileHandle.handle.getFile();
+            content = await file.text();
+          }
+        } else {
+          // GitHub file
+          const githubFile = githubFiles.find(f => f.path === filePath);
+          if (githubFile && githubFile.file.download_url) {
+            content = await fetch(githubFile.file.download_url).then(r => r.text());
+          }
+        }
+
+        if (content) {
           // Apply transformations if options are set
           if (options.removeComments) {
-            // In a real implementation, this would properly remove comments
-            content = content.replace(/\/\*[\s\S]*?\*\/|\/\/.*/g, '');
+            // Remove single-line comments
+            content = content.replace(/\/\/.*$/gm, '');
+            // Remove multi-line comments
+            content = content.replace(/\/\*[\s\S]*?\*\//g, '');
           }
-          
+
           if (options.minifyOutput) {
-            // In a real implementation, this would properly minify the content
+            // Simple minification: remove extra whitespace and newlines
             content = content.replace(/\s+/g, ' ').trim();
           }
-          
+
           outputText += `\n---\n${filePath}\n---\n${content}\n`;
         }
       }
-      
+
       setOutput(outputText);
       setShowOutput(true);
       showMessage('Files combined successfully!', 'success');
@@ -128,7 +149,7 @@ const MainApp: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [selectedFiles, fileHandles, options, showMessage, totalSize, totalLines]);
+  }, [selectedFiles, fileHandles, githubFiles, folderHandle, githubRepoInfo, options, showMessage, totalSize, totalLines]);
 
   const handleOptionChange = useCallback((key: string, value: string | boolean) => {
     setOptions(prev => ({
@@ -154,9 +175,9 @@ const MainApp: React.FC = () => {
           </h1>
         </div>
         <div className="flex items-center space-x-3">
-          {folderHandle && (
+          {(folderHandle || githubRepoInfo) && (
             <span className="text-sm text-slate-500 dark:text-slate-400 hidden md:inline-block truncate max-w-xs">
-              Selected: {folderHandle.name}
+              Selected: {folderHandle ? folderHandle.name : `${githubRepoInfo?.owner}/${githubRepoInfo?.repo}`}
             </span>
           )}
           <button
@@ -181,9 +202,10 @@ const MainApp: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <div className="md:col-span-2 space-y-8">
             <div className="bg-white/90 dark:bg-slate-900/80 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-700/50 p-6 md:p-8 backdrop-blur-md">
-              <FileSelector 
+              <FileSelector
                 onFolderSelected={handleFolderSelected}
                 onFilesSelected={handleFilesSelected}
+                onGitHubFilesSelected={handleGitHubFilesSelected}
                 onSelectFile={handleSelectFile}
                 onSelectAll={handleSelectAll}
                 selectedFiles={selectedFiles}
