@@ -1,10 +1,11 @@
-import React, { useState, useEffect, memo } from 'react';
-import { FolderOpen, RefreshCw, Filter, X, CheckSquare, ChevronDown, Github } from 'lucide-react';
+import React, { useState, useEffect, memo, useMemo } from 'react';
+import { FolderOpen, RefreshCw, Filter, X, CheckSquare, ChevronDown, Github, ArrowUpDown } from 'lucide-react';
 import Button from './ui/Button';
 import FileTree from './FileTree';
 import GitHubLoader from './GitHubLoader';
 import GitHubFileTree from './GitHubFileTree';
 import { GitHubFile, GitHubRepoInfo } from '../services/githubService';
+import { prioritizeFiles } from '../utils/filePrioritization';
 
 interface FileSelectorProps {
   onFolderSelected: (handle: FileSystemDirectoryHandle) => void;
@@ -35,6 +36,7 @@ const FileSelector: React.FC<FileSelectorProps> = ({
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
   const [filteredPaths, setFilteredPaths] = useState<string[]>([]);
   const [githubError, setGithubError] = useState<string>('');
+  const [isPrioritized, setIsPrioritized] = useState<boolean>(false);
   
   const fileTypeFilters = {
     'JavaScript': ['.js', '.mjs', '.cjs'],
@@ -231,6 +233,31 @@ const FileSelector: React.FC<FileSelectorProps> = ({
     }
   };
 
+  // Apply prioritization to files
+  const sortedFileHandles = useMemo(() => {
+    if (!isPrioritized) return fileHandles;
+    const paths = fileHandles.map(f => f.path);
+    const prioritized = prioritizeFiles(paths);
+    const pathOrder = new Map(prioritized.map((p, i) => [p.path, i]));
+    return [...fileHandles].sort((a, b) => {
+      const orderA = pathOrder.get(a.path) ?? 999999;
+      const orderB = pathOrder.get(b.path) ?? 999999;
+      return orderA - orderB;
+    });
+  }, [fileHandles, isPrioritized]);
+
+  const sortedGithubFiles = useMemo(() => {
+    if (!isPrioritized) return githubFiles;
+    const paths = githubFiles.map(f => f.path);
+    const prioritized = prioritizeFiles(paths);
+    const pathOrder = new Map(prioritized.map((p, i) => [p.path, i]));
+    return [...githubFiles].sort((a, b) => {
+      const orderA = pathOrder.get(a.path) ?? 999999;
+      const orderB = pathOrder.get(b.path) ?? 999999;
+      return orderA - orderB;
+    });
+  }, [githubFiles, isPrioritized]);
+
   useEffect(() => {
     // Update filtered paths whenever filter text changes
     const currentFiles = sourceType === 'local' ? fileHandles : githubFiles;
@@ -363,6 +390,15 @@ const FileSelector: React.FC<FileSelectorProps> = ({
             >
               {filteredPaths.every(path => selectedFiles.has(path)) && filteredPaths.length > 0 ? 'Deselect Filtered' : 'Select Filtered'}
             </Button>
+            <Button
+              icon={<ArrowUpDown className="h-4 w-4" />}
+              onClick={() => setIsPrioritized(!isPrioritized)}
+              disabled={isProcessing || isLoading}
+              secondary
+              className={`w-full sm:w-auto text-sm px-4 py-2.5 whitespace-nowrap ${isPrioritized ? 'ring-2 ring-emerald-500' : ''}`}
+            >
+              {isPrioritized ? '✨ Smart Sort' : 'Sort A-Z'}
+            </Button>
           </div>
 
           <div className="flex flex-wrap gap-2 items-center">
@@ -394,7 +430,7 @@ const FileSelector: React.FC<FileSelectorProps> = ({
             </div>
           ) : sourceType === 'local' && fileHandles.length > 0 ? (
             <FileTree
-              files={fileHandles}
+              files={sortedFileHandles}
               filterText={filterText}
               selectedFiles={selectedFiles}
               onSelectFile={onSelectFile}
@@ -403,7 +439,7 @@ const FileSelector: React.FC<FileSelectorProps> = ({
             />
           ) : sourceType === 'github' && githubFiles.length > 0 ? (
             <GitHubFileTree
-              files={githubFiles}
+              files={sortedGithubFiles}
               filterText={filterText}
               selectedFiles={selectedFiles}
               onSelectFile={onSelectFile}

@@ -1,5 +1,6 @@
 import React, { memo } from 'react';
 import { Settings, MessageSquare, Minimize, ChevronDown, Edit3 } from 'lucide-react';
+import TemplateSelector from './TemplateSelector';
 
 interface OptionsPanelProps {
   options: {
@@ -14,6 +15,18 @@ interface OptionsPanelProps {
 }
 
 const OptionsPanel: React.FC<OptionsPanelProps> = memo(({ options, onChange }) => {
+  
+  const handleTemplateApply = (templateData: {
+    preambleText: string;
+    goalText: string;
+    includePreamble: boolean;
+    includeGoal: boolean;
+  }) => {
+    onChange('preambleText', templateData.preambleText);
+    onChange('goalText', templateData.goalText);
+    onChange('includePreamble', templateData.includePreamble);
+    onChange('includeGoal', templateData.includeGoal);
+  };
 
   const inputBaseClasses = "w-full py-2 px-3.5 border-0 ring-1 ring-inset ring-slate-300 dark:ring-slate-700 rounded-lg bg-white dark:bg-slate-800/50 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-inset focus:ring-sky-500 transition-all duration-150 text-sm placeholder-slate-400 dark:placeholder-slate-500 shadow-sm disabled:opacity-60";
   const checkboxBaseClasses = "h-4.5 w-4.5 rounded border-slate-300 dark:border-slate-600 text-sky-600 focus:ring-sky-500 bg-white dark:bg-slate-700 dark:checked:bg-sky-600 dark:checked:border-sky-600 shadow-sm transition-all cursor-pointer";
@@ -36,6 +49,9 @@ const OptionsPanel: React.FC<OptionsPanelProps> = memo(({ options, onChange }) =
       </div>
       
       <div className="space-y-5">
+        {/* Template Selector */}
+        <TemplateSelector onTemplateApply={handleTemplateApply} />
+        
         {/* Preamble Section */}
         <div className="space-y-2.5 p-4 rounded-lg bg-slate-50 dark:bg-slate-800/40 ring-1 ring-slate-200 dark:ring-slate-700/50">
           <div className="flex items-center">

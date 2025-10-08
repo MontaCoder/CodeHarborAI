@@ -16,6 +16,8 @@ export interface GitHubRepoInfo {
 
 export class GitHubService {
   private static readonly API_BASE = 'https://api.github.com';
+  private static readonly CACHE_PREFIX = 'gh_cache_';
+  private static readonly CACHE_EXPIRY = 3600000; // 1 hour in milliseconds
 
   /**
    * Parse GitHub repository URL to extract owner, repo, and branch
@@ -47,49 +49,25 @@ export class GitHubService {
   }
 
   /**
-   * Fetch repository contents recursively
+   * Fetch repository contents using Git Tree API (much faster - single request)
    */
   static async fetchRepositoryContents(
     owner: string,
     repo: string,
-    branch: string = 'main',
-    path: string = ''
-  ): Promise<GitHubFile[]> {
-    const allFiles: GitHubFile[] = [];
-
-    try {
-      const contents = await this.fetchContents(owner, repo, path, branch);
-
-      for (const item of contents) {
-        if (item.type === 'file') {
-          allFiles.push(item);
-        } else if (item.type === 'dir') {
-          // Recursively fetch directory contents
-          const subFiles = await this.fetchRepositoryContents(owner, repo, branch, item.path);
-          allFiles.push(...subFiles);
-        }
-      }
-    } catch (error) {
-      console.error(`Error fetching repository contents for ${owner}/${repo}:`, error);
-      throw new Error(`Failed to fetch repository contents: ${error instanceof Error ? error.message : 'Unknown error'}`);
-    }
-
-    return allFiles;
-  }
-
-  /**
-   * Fetch contents of a specific path in the repository
-   */
-  private static async fetchContents(
-    owner: string,
-    repo: string,
-    path: string = '',
     branch: string = 'main'
   ): Promise<GitHubFile[]> {
-    const url = `${this.API_BASE}/repos/${owner}/${repo}/contents/${path}?ref=${branch}`;
-
     try {
-      const response = await fetch(url);
+      // Check cache first
+      const cacheKey = `${this.CACHE_PREFIX}${owner}_${repo}_${branch}`;
+      const cached = this.getFromCache(cacheKey);
+      if (cached) {
+        console.log('Using cached repository data');
+        return cached;
+      }
+
+      // Use Git Tree API for fast, single-request fetch
+      const treeUrl = `${this.API_BASE}/repos/${owner}/${repo}/git/trees/${branch}?recursive=1`;
+      const response = await fetch(treeUrl);
 
       if (!response.ok) {
         if (response.status === 404) {
@@ -101,13 +79,78 @@ export class GitHubService {
         }
       }
 
-      const data: GitHubFile[] = await response.json();
-      return data;
+      const data = await response.json();
+      
+      // Transform tree items to GitHubFile format
+      const files: GitHubFile[] = data.tree
+        .filter((item: any) => item.type === 'blob') // Only files, not trees
+        .map((item: any) => ({
+          name: item.path.split('/').pop() || item.path,
+          path: item.path,
+          type: 'file' as const,
+          size: item.size || 0,
+          download_url: `https://raw.githubusercontent.com/${owner}/${repo}/${branch}/${item.path}`,
+          url: item.url,
+          sha: item.sha
+        }));
+
+      // Cache the results
+      this.saveToCache(cacheKey, files);
+
+      return files;
     } catch (error) {
-      if (error instanceof Error) {
-        throw error;
+      console.error(`Error fetching repository contents for ${owner}/${repo}:`, error);
+      throw new Error(`Failed to fetch repository contents: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  /**
+   * Cache management
+   */
+  private static getFromCache(key: string): GitHubFile[] | null {
+    try {
+      const cached = localStorage.getItem(key);
+      if (!cached) return null;
+
+      const { data, timestamp } = JSON.parse(cached);
+      const now = Date.now();
+
+      if (now - timestamp > this.CACHE_EXPIRY) {
+        localStorage.removeItem(key);
+        return null;
       }
-      throw new Error('Network error while fetching repository contents');
+
+      return data;
+    } catch {
+      return null;
+    }
+  }
+
+  private static saveToCache(key: string, data: GitHubFile[]): void {
+    try {
+      const cacheData = {
+        data,
+        timestamp: Date.now()
+      };
+      localStorage.setItem(key, JSON.stringify(cacheData));
+    } catch (error) {
+      console.warn('Failed to cache repository data:', error);
+    }
+  }
+
+  /**
+   * Clear all GitHub cache
+   */
+  static clearCache(): void {
+    try {
+      const keys = Object.keys(localStorage);
+      keys.forEach(key => {
+        if (key.startsWith(this.CACHE_PREFIX)) {
+          localStorage.removeItem(key);
+        }
+      });
+    } catch (error) {
+      console.warn('Failed to clear cache:', error);
     }
   }
 
@@ -145,6 +188,38 @@ export class GitHubService {
       console.warn(`Failed to get content for ${file.path}, using basic size info:`, error);
       return { size: file.size, lines: 0 };
     }
+  }
+
+  /**
+   * Batch process files with progress tracking and concurrency control
+   */
+  static async batchProcessFiles<T>(
+    files: GitHubFile[],
+    processor: (file: GitHubFile) => Promise<T>,
+    onProgress?: (current: number, total: number, currentFile: string) => void,
+    concurrency: number = 10
+  ): Promise<T[]> {
+    const results: T[] = [];
+    const total = files.length;
+    let completed = 0;
+
+    // Process files in batches with concurrency control
+    for (let i = 0; i < files.length; i += concurrency) {
+      const batch = files.slice(i, i + concurrency);
+      const batchResults = await Promise.all(
+        batch.map(async (file) => {
+          const result = await processor(file);
+          completed++;
+          if (onProgress) {
+            onProgress(completed, total, file.path);
+          }
+          return result;
+        })
+      );
+      results.push(...batchResults);
+    }
+
+    return results;
   }
 
   /**

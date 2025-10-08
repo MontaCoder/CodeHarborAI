@@ -11,13 +11,28 @@ CodeHarborAI is a modern, privacy-focused web application that helps developers 
 
 ## ✨ Features
 
+### Core Capabilities
 - **Secure & Private**: All processing happens locally in your browser - no code is ever sent to external servers
 - **File System Access**: Browse and select files/folders using the File System Access API
-- **Smart Filtering**: Easily include or exclude files using glob patterns
-- **Customizable Output**: Include preambles, goals, and configure output format
+- **GitHub Integration**: Load repositories directly from GitHub with blazing-fast performance (10-100x faster)
+- **Smart Filtering**: Easily include or exclude files using glob patterns and quick filters
 - **Dark/Light Mode**: Beautiful UI with system preference detection
 - **Responsive Design**: Works on desktop and tablet devices
 - **No Installation Required**: Runs directly in modern web browsers
+
+### 🚀 Performance Features
+- **Ultra-Fast GitHub Loading**: Git Tree API + intelligent caching (1-hour cache)
+- **Batch Processing**: Process up to 15 files concurrently with progress tracking
+- **Smart Caching**: Instant reload for previously loaded repositories
+- **Real-time Progress**: Visual progress indicators with file counts
+
+### 🧠 Context Engineering (NEW!)
+- **10 Professional Templates**: Pre-optimized prompts for Code Review, API Docs, Architecture, Security, etc.
+- **Context7 Integration**: Import external documentation to enrich AI context
+- **3 Detail Levels**: Concise, Standard, or Detailed context formatting
+- **Smart File Prioritization**: Automatic prioritization of documentation and key files
+- **Advanced Options**: File metadata, project structure, comment stripping, minification
+- **AI-Optimized Output**: Generate perfect prompts for maximum LLM effectiveness
 
 ## 🚀 Getting Started
 
@@ -65,11 +80,26 @@ The build artifacts will be stored in the `dist/` directory.
 
 ## 📝 Usage
 
-1. Click "Select Folder" to choose a directory from your file system
-2. Select the files you want to include in your prompt
-3. Customize options (preamble, goal, formatting)
-4. Click "Generate Prompt" to create your optimized AI prompt
-5. Copy the output to use with your favorite AI coding assistant
+### Quick Start
+1. **Choose Source**: Select "Local Folder" or "GitHub Repo"
+2. **Load Files**: Browse your project or paste a GitHub URL
+3. **Select Template**: Choose from 10 professional templates (optional)
+4. **Pick Files**: Use smart sorting and filters to select relevant files
+5. **Add Context** (optional):
+   - Import Context7 documentation for framework references
+   - Set context detail level (Concise/Standard/Detailed)
+   - Configure metadata and structure options
+6. **Generate Context**: Click "Generate AI Context"
+7. **Copy & Use**: Paste into ChatGPT, Claude, or your favorite AI assistant
+
+### Advanced Features
+- **Smart Sort**: Toggle "✨ Smart Sort" to prioritize docs and key files
+- **Context7 Docs**: Add external documentation for better AI understanding
+- **Detail Levels**:
+  - Concise: Quick tasks, minimal tokens
+  - Standard: Balanced (recommended)
+  - Detailed: Maximum context for complex analysis
+- **Token Optimization**: Strip comments or minify code to reduce token usage
 
 ## 🛡️ Privacy
 

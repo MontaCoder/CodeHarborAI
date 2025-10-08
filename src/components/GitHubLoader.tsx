@@ -22,6 +22,7 @@ const GitHubLoader: React.FC<GitHubLoaderProps> = ({
   const [isValidating, setIsValidating] = useState<boolean>(false);
   const [validationStatus, setValidationStatus] = useState<'idle' | 'validating' | 'valid' | 'invalid'>('idle');
   const [repoInfo, setRepoInfo] = useState<GitHubRepoInfo | null>(null);
+  const [loadingProgress, setLoadingProgress] = useState<{ current: number; total: number; file?: string }>({ current: 0, total: 0 });
 
   const validateRepository = useCallback(async () => {
     if (!githubUrl.trim()) {
@@ -83,15 +84,16 @@ const GitHubLoader: React.FC<GitHubLoaderProps> = ({
 
     try {
       onError(''); // Clear any previous errors
+      setLoadingProgress({ current: 0, total: 0 });
 
-      // Fetch all repository files
+      // Fetch all repository files using optimized Tree API
       const githubFiles = await GitHubService.fetchRepositoryContents(
         repoInfo.owner,
         repoInfo.repo,
         repoInfo.branch
       );
 
-      // Filter to text files only and get size/line info
+      // Filter to text files only
       const textExtensions = [
         '.txt', '.md', '.csv', '.js', '.css', '.html',
         '.json', '.xml', '.yaml', '.yml', '.ini', '.log',
@@ -99,10 +101,10 @@ const GitHubLoader: React.FC<GitHubLoaderProps> = ({
         '.config', '.env', '.gitignore', '.sql', '.ts',
         '.tsx', '.schema', '.mjs', '.cjs', '.jsx', '.rs',
         '.go', '.php', '.rb', '.toml', '.prisma', '.bat', '.ps1',
-        '.svelte', '.lock'
+        '.svelte', '.lock', '.vue', '.dart', '.kt', '.swift', '.m'
       ];
 
-      const exactMatches = ['Makefile', 'Dockerfile'];
+      const exactMatches = ['Makefile', 'Dockerfile', 'Procfile', 'Rakefile'];
 
       const textFiles = githubFiles.filter(file =>
         file.type === 'file' && (
@@ -111,9 +113,10 @@ const GitHubLoader: React.FC<GitHubLoaderProps> = ({
         )
       );
 
-      // Get file details for each text file
-      const fileDetails = await Promise.all(
-        textFiles.map(async (file) => {
+      // Use batch processing with progress tracking
+      const fileDetails = await GitHubService.batchProcessFiles(
+        textFiles,
+        async (file) => {
           const { size, lines } = await GitHubService.getFileSizeAndLines(file);
           return {
             file,
@@ -121,13 +124,19 @@ const GitHubLoader: React.FC<GitHubLoaderProps> = ({
             size,
             lines
           };
-        })
+        },
+        (current, total, currentFile) => {
+          setLoadingProgress({ current, total, file: currentFile });
+        },
+        15 // Process 15 files concurrently
       );
 
+      setLoadingProgress({ current: 0, total: 0 });
       onRepositoryLoaded(fileDetails, repoInfo);
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to load repository';
       onError(errorMessage);
+      setLoadingProgress({ current: 0, total: 0 });
     }
   }, [repoInfo, isLoading, onRepositoryLoaded, onError]);
 
@@ -245,10 +254,36 @@ const GitHubLoader: React.FC<GitHubLoaderProps> = ({
         </div>
       </div>
 
+      {isLoading && loadingProgress.total > 0 && (
+        <div className="bg-slate-50 dark:bg-slate-800 rounded-lg p-4 border border-slate-200 dark:border-slate-700">
+          <div className="space-y-2">
+            <div className="flex justify-between text-sm text-slate-700 dark:text-slate-300">
+              <span>Processing files...</span>
+              <span className="font-medium">
+                {loadingProgress.current} / {loadingProgress.total}
+              </span>
+            </div>
+            <div className="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-2 overflow-hidden">
+              <div
+                className="bg-emerald-500 h-2 transition-all duration-300 ease-out"
+                style={{
+                  width: `${(loadingProgress.current / loadingProgress.total) * 100}%`
+                }}
+              />
+            </div>
+            {loadingProgress.file && (
+              <p className="text-xs text-slate-500 dark:text-slate-400 truncate">
+                {loadingProgress.file}
+              </p>
+            )}
+          </div>
+        </div>
+      )}
+
       <div className="text-xs text-slate-500 dark:text-slate-400 space-y-1">
         <p>• Supports public GitHub repositories</p>
         <p>• Only text files are loaded (code, config, documentation)</p>
-        <p>• Large repositories may take time to load</p>
+        <p>• Results are cached for 1 hour for faster reloading</p>
       </div>
     </div>
   );

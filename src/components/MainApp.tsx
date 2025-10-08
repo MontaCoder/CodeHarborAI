@@ -3,12 +3,12 @@ import { ArrowLeft, RefreshCw, Sun, Moon } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 import FileSelector from './FileSelector';
 import OutputPanel from './OutputPanel';
-import OptionsPanel from './OptionsPanel';
-import PresetManager from './PresetManager';
+import AdvancedOptionsPanel from './AdvancedOptionsPanel';
 import StatsPanel from './StatsPanel';
 import MessageDisplay from './ui/MessageDisplay';
 import Button from './ui/Button';
 import { GitHubFile, GitHubRepoInfo } from '../services/githubService';
+import { Context7Service, Context7Doc } from '../services/context7Service';
 
 const MainApp: React.FC = () => {
   const { toggleTheme, theme } = useTheme();
@@ -29,7 +29,12 @@ const MainApp: React.FC = () => {
     includeGoal: false,
     goalText: '',
     removeComments: false,
-    minifyOutput: false
+    minifyOutput: false,
+    includeContext7Docs: false,
+    context7Docs: [] as Context7Doc[],
+    contextEnhancement: 'standard' as 'standard' | 'detailed' | 'concise',
+    includeFileMetadata: true,
+    includeProjectStructure: true
   });
 
   useEffect(() => {
@@ -91,20 +96,58 @@ const MainApp: React.FC = () => {
     try {
       let outputText = '';
 
+      // Add preamble based on context enhancement level
       if (options.includePreamble && options.preambleText.trim()) {
         outputText += options.preambleText.trim() + '\n\n';
       }
 
-      if (options.includeGoal && options.goalText.trim()) {
-        outputText += "Goal:\n" + options.goalText.trim() + '\n\n';
+      // Add Context7 documentation references
+      if (options.includeContext7Docs && options.context7Docs.length > 0) {
+        outputText += '# Referenced Documentation\n\n';
+        for (const doc of options.context7Docs) {
+          outputText += Context7Service.formatForPrompt(doc);
+        }
+        outputText += '\n';
       }
 
-      // Add project structure
+      // Add goal
+      if (options.includeGoal && options.goalText.trim()) {
+        outputText += "# Task Goal\n" + options.goalText.trim() + '\n\n';
+      }
+
       const projectName = folderHandle ? folderHandle.name : (githubRepoInfo ? `${githubRepoInfo.owner}/${githubRepoInfo.repo}` : 'Project');
-      outputText += "Project Structure:\n";
-      outputText += `└── ${projectName} (Size: ${(totalSize / 1024).toFixed(2)}kb; Lines: ${totalLines})\n`;
+
+      // Add project structure based on context enhancement level
+      if (options.includeProjectStructure) {
+        outputText += "# Project Overview\n";
+        outputText += `**Project:** ${projectName}\n`;
+        
+        if (options.includeFileMetadata) {
+          outputText += `**Total Size:** ${(totalSize / 1024).toFixed(2)} KB\n`;
+          outputText += `**Total Lines:** ${totalLines.toLocaleString()}\n`;
+          outputText += `**Files Included:** ${selectedFiles.size}\n`;
+        }
+        
+        if (options.contextEnhancement === 'detailed') {
+          outputText += '\n## File Structure\n';
+          const sortedFiles = Array.from(selectedFiles).sort();
+          sortedFiles.forEach(filePath => {
+            const file = folderHandle 
+              ? fileHandles.find(f => f.path === filePath)
+              : githubFiles.find(f => f.path === filePath);
+            if (file && options.includeFileMetadata) {
+              outputText += `- ${filePath} (${(file.size / 1024).toFixed(2)} KB, ${file.lines} lines)\n`;
+            } else {
+              outputText += `- ${filePath}\n`;
+            }
+          });
+        }
+        outputText += '\n';
+      }
 
       // Add file contents
+      const separator = options.contextEnhancement === 'concise' ? '\n---\n' : '\n═══════════════════════════════════════\n';
+      
       for (const filePath of selectedFiles) {
         let content = '';
 
@@ -137,15 +180,31 @@ const MainApp: React.FC = () => {
             content = content.replace(/\s+/g, ' ').trim();
           }
 
-          outputText += `\n---\n${filePath}\n---\n${content}\n`;
+          // Format based on context enhancement level
+          if (options.contextEnhancement === 'detailed') {
+            const file = folderHandle 
+              ? fileHandles.find(f => f.path === filePath)
+              : githubFiles.find(f => f.path === filePath);
+            outputText += `${separator}`;
+            outputText += `FILE: ${filePath}\n`;
+            if (file && options.includeFileMetadata) {
+              outputText += `Size: ${(file.size / 1024).toFixed(2)} KB | Lines: ${file.lines}\n`;
+            }
+            outputText += `${separator}\n${content}\n`;
+          } else if (options.contextEnhancement === 'concise') {
+            outputText += `${separator}${filePath}\n${content}\n`;
+          } else {
+            // Standard
+            outputText += `${separator}${filePath}${separator}\n${content}\n`;
+          }
         }
       }
 
       setOutput(outputText);
       setShowOutput(true);
-      showMessage('Files combined successfully!', 'success');
+      showMessage('Context generated successfully!', 'success');
     } catch (error) {
-      showMessage(`Error combining files: ${error instanceof Error ? error.message : 'Unknown error'}`, 'error');
+      showMessage(`Error generating context: ${error instanceof Error ? error.message : 'Unknown error'}`, 'error');
     } finally {
       setIsLoading(false);
     }
@@ -226,7 +285,7 @@ const MainApp: React.FC = () => {
                     <span>Processing...</span>
                   </div>
                 ) : (
-                  <span>Combine Selected Files</span>
+                  <span>Generate AI Context</span>
                 )}
               </Button>
             </div>
@@ -243,21 +302,9 @@ const MainApp: React.FC = () => {
               <StatsPanel totalSize={totalSize} totalLines={totalLines} />
             </div>
             <div className="bg-white/90 dark:bg-slate-900/80 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-700/50 p-6 md:p-8 backdrop-blur-md">
-              <OptionsPanel 
+              <AdvancedOptionsPanel 
                 options={options} 
                 onChange={handleOptionChange}
-              />
-            </div>
-            <div className="bg-white/90 dark:bg-slate-900/80 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-700/50 p-6 md:p-8 backdrop-blur-md">
-              <PresetManager
-                folderHandle={folderHandle}
-                selectedFiles={selectedFiles}
-                options={options}
-                onLoadPreset={(files, opts) => {
-                  setSelectedFiles(new Set(files));
-                  setOptions(opts);
-                }}
-                showMessage={showMessage}
               />
             </div>
           </div>
