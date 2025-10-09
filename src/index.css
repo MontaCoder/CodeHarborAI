@@ -56,17 +56,61 @@
 /* Custom utilities                                                           */
 /* -------------------------------------------------------------------------- */
 @layer utilities {
-  .animate-fade-in   { animation: fadeIn 0.3s ease-in-out; }
+  .animate-fade-in   { animation: fadeIn 0.6s ease-out; }
+  .animate-fade-in-delay { animation: fadeIn 0.8s ease-out 0.2s backwards; }
   .animate-fade-down { animation: fadeDown 0.3s ease-in-out; }
+  .animate-slide-in { animation: slideIn 0.5s ease-out backwards; }
+  .animate-gradient { 
+    background-size: 200% auto;
+    animation: gradientShift 3s ease infinite;
+  }
+  .animate-pulse-slow { animation: pulseSlow 3s ease-in-out infinite; }
+  .animate-bounce-slow { animation: bounceSlow 3s ease-in-out infinite; }
+  .animate-shimmer { animation: shimmer 2s ease-in-out infinite; }
 
   @keyframes fadeIn {
-    from { opacity: 0; }
-    to   { opacity: 1; }
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
   }
 
   @keyframes fadeDown {
     from { opacity: 0; transform: translate(-50%, -20px); }
     to   { opacity: 1; transform: translate(-50%, 0); }
+  }
+
+  @keyframes slideIn {
+    from { 
+      opacity: 0; 
+      transform: translateX(-20px);
+    }
+    to   { 
+      opacity: 1; 
+      transform: translateX(0);
+    }
+  }
+
+  @keyframes gradientShift {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+  }
+
+  @keyframes pulseSlow {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+  }
+
+  @keyframes bounceSlow {
+    0%, 100% { 
+      transform: translateY(0);
+    }
+    50% { 
+      transform: translateY(-10px);
+    }
+  }
+
+  @keyframes shimmer {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
   }
 }
 
