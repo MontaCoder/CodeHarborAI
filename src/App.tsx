@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { ThemeProvider } from './context/ThemeContext';
 import LandingPage from './components/LandingPage';
 import MainApp from './components/MainApp';
+import Footer from './components/Footer';
 
 function App() {
   const [showApp, setShowApp] = useState(false);
@@ -16,16 +17,7 @@ function App() {
             <LandingPage onGetStarted={() => setShowApp(true)} />
           )}
         </div>
-        <footer className="py-8 px-4 sm:px-6 text-center text-sm text-neutral-500 dark:text-neutral-400 border-t border-neutral-200 dark:border-neutral-800">
-          <p className="mb-1">
-            &copy; {new Date().getFullYear()} Montassar Hajri. All rights reserved.
-          </p>
-          <p>
-            <a href="https://github.com/MontaCoder" target="_blank" rel="noopener noreferrer" className="font-medium hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">
-              GitHub: MontaCoder
-            </a>
-          </p>
-        </footer>
+        <Footer />
       </div>
     </ThemeProvider>
   );

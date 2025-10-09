@@ -1,5 +1,65 @@
 <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <path d="M24 4L6 10V22C6 31.9411 13.7304 40.9302 24 44C34.2696 40.9302 42 31.9411 42 22V10L24 4Z" stroke="#059669" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-  <path d="M19 20L16 24L19 28" stroke="#059669" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-  <path d="M29 20L32 24L29 28" stroke="#059669" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- Gradient Definitions -->
+  <defs>
+    <linearGradient id="shieldGradient" x1="24" y1="4" x2="24" y2="44" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#10b981"/>
+      <stop offset="50%" stop-color="#059669"/>
+      <stop offset="100%" stop-color="#047857"/>
+    </linearGradient>
+    <linearGradient id="codeGradient" x1="16" y1="20" x2="32" y2="28" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#34d399"/>
+      <stop offset="100%" stop-color="#10b981"/>
+    </linearGradient>
+    <radialGradient id="glowGradient" cx="24" cy="24" r="20" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#10b981" stop-opacity="0.3"/>
+      <stop offset="100%" stop-color="#10b981" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  
+  <!-- Glow Effect -->
+  <circle cx="24" cy="24" r="18" fill="url(#glowGradient)" opacity="0.6"/>
+  
+  <!-- Shield Background -->
+  <path d="M24 4L6 10V22C6 31.9411 13.7304 40.9302 24 44C34.2696 40.9302 42 31.9411 42 22V10L24 4Z" 
+        fill="url(#shieldGradient)" fill-opacity="0.15"/>
+  
+  <!-- Shield Outline -->
+  <path d="M24 4L6 10V22C6 31.9411 13.7304 40.9302 24 44C34.2696 40.9302 42 31.9411 42 22V10L24 4Z" 
+        stroke="url(#shieldGradient)" 
+        stroke-width="2.5" 
+        stroke-linecap="round" 
+        stroke-linejoin="round"/>
+  
+  <!-- Code Brackets with Enhanced Design -->
+  <!-- Left Bracket -->
+  <path d="M19 19L15 24L19 29" 
+        stroke="url(#codeGradient)" 
+        stroke-width="2.8" 
+        stroke-linecap="round" 
+        stroke-linejoin="round"/>
+  
+  <!-- Right Bracket -->
+  <path d="M29 19L33 24L29 29" 
+        stroke="url(#codeGradient)" 
+        stroke-width="2.8" 
+        stroke-linecap="round" 
+        stroke-linejoin="round"/>
+  
+  <!-- Center Slash -->
+  <path d="M26 18L22 30" 
+        stroke="url(#codeGradient)" 
+        stroke-width="2.5" 
+        stroke-linecap="round"/>
+  
+  <!-- Decorative Dots -->
+  <circle cx="24" cy="12" r="1.5" fill="#10b981" opacity="0.6"/>
+  <circle cx="20" cy="14" r="1" fill="#34d399" opacity="0.5"/>
+  <circle cx="28" cy="14" r="1" fill="#34d399" opacity="0.5"/>
+  
+  <!-- Subtle Inner Highlights -->
+  <path d="M24 6.5L8.5 11.5V22C8.5 30.5 15 38.5 24 41.5" 
+        stroke="#10b981" 
+        stroke-opacity="0.2" 
+        stroke-width="1.5" 
+        stroke-linecap="round"/>
 </svg>
