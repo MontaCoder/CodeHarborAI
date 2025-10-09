@@ -125,8 +125,8 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
             </div>
           </div>
 
-          {/* CTA Buttons */}
-          <div className="flex flex-col sm:flex-row gap-4 justify-center md:justify-start">
+          {/* CTA Button */}
+          <div className="flex justify-center md:justify-start">
             <Button 
               onClick={onGetStarted} 
               icon={<Zap className="h-5 w-5" />} 
@@ -139,9 +139,81 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
               </span>
               <div className="absolute inset-0 bg-gradient-to-r from-emerald-600 to-sky-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
             </Button>
-            <button className="px-8 py-4 text-base font-medium text-neutral-700 dark:text-neutral-300 bg-white dark:bg-neutral-800 border-2 border-neutral-300 dark:border-neutral-700 rounded-lg hover:border-emerald-500 dark:hover:border-emerald-500 hover:text-emerald-600 dark:hover:text-emerald-400 transition-all duration-300 w-full sm:w-auto">
-              View Demo
-            </button>
+          </div>
+
+          {/* Context Management Details */}
+          <div className="mt-12 pt-12 border-t border-neutral-200 dark:border-neutral-800">
+            <h3 className="text-2xl font-bold text-neutral-900 dark:text-white mb-6">
+              Advanced Context Management
+            </h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="flex items-start space-x-3">
+                <div className="mt-1 bg-emerald-100 dark:bg-emerald-500/20 p-2 rounded-lg flex-shrink-0">
+                  <svg className="h-4 w-4 text-emerald-600 dark:text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+                <div>
+                  <h4 className="font-medium text-neutral-900 dark:text-white text-sm mb-1">Smart Token Tracking</h4>
+                  <p className="text-xs text-neutral-600 dark:text-neutral-400">Real-time token count for GPT-5, Claude, and more</p>
+                </div>
+              </div>
+              <div className="flex items-start space-x-3">
+                <div className="mt-1 bg-sky-100 dark:bg-sky-500/20 p-2 rounded-lg flex-shrink-0">
+                  <svg className="h-4 w-4 text-sky-600 dark:text-sky-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+                <div>
+                  <h4 className="font-medium text-neutral-900 dark:text-white text-sm mb-1">Comment Removal</h4>
+                  <p className="text-xs text-neutral-600 dark:text-neutral-400">Strip comments to reduce context size</p>
+                </div>
+              </div>
+              <div className="flex items-start space-x-3">
+                <div className="mt-1 bg-purple-100 dark:bg-purple-500/20 p-2 rounded-lg flex-shrink-0">
+                  <svg className="h-4 w-4 text-purple-600 dark:text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+                <div>
+                  <h4 className="font-medium text-neutral-900 dark:text-white text-sm mb-1">File Filtering</h4>
+                  <p className="text-xs text-neutral-600 dark:text-neutral-400">Exclude node_modules, .git, and custom patterns</p>
+                </div>
+              </div>
+              <div className="flex items-start space-x-3">
+                <div className="mt-1 bg-amber-100 dark:bg-amber-500/20 p-2 rounded-lg flex-shrink-0">
+                  <svg className="h-4 w-4 text-amber-600 dark:text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+                <div>
+                  <h4 className="font-medium text-neutral-900 dark:text-white text-sm mb-1">Preset Management</h4>
+                  <p className="text-xs text-neutral-600 dark:text-neutral-400">Save and load your favorite configurations</p>
+                </div>
+              </div>
+              <div className="flex items-start space-x-3">
+                <div className="mt-1 bg-rose-100 dark:bg-rose-500/20 p-2 rounded-lg flex-shrink-0">
+                  <svg className="h-4 w-4 text-rose-600 dark:text-rose-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+                <div>
+                  <h4 className="font-medium text-neutral-900 dark:text-white text-sm mb-1">GitHub Integration</h4>
+                  <p className="text-xs text-neutral-600 dark:text-neutral-400">Import directly from GitHub repositories</p>
+                </div>
+              </div>
+              <div className="flex items-start space-x-3">
+                <div className="mt-1 bg-indigo-100 dark:bg-indigo-500/20 p-2 rounded-lg flex-shrink-0">
+                  <svg className="h-4 w-4 text-indigo-600 dark:text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+                <div>
+                  <h4 className="font-medium text-neutral-900 dark:text-white text-sm mb-1">One-Click Copy</h4>
+                  <p className="text-xs text-neutral-600 dark:text-neutral-400">Copy formatted output directly to clipboard</p>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
