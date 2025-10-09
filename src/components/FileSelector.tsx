@@ -274,13 +274,13 @@ const FileSelector: React.FC<FileSelectorProps> = ({
   return (
     <div className="animate-fade-in space-y-6">
       {/* Source Type Toggle */}
-      <div className="flex items-center justify-center space-x-1 p-1 bg-slate-100 dark:bg-slate-800 rounded-lg">
+      <div className="flex items-center justify-center space-x-1 p-1 bg-neutral-100 dark:bg-neutral-800 rounded-lg">
         <button
           onClick={() => handleSourceTypeChange('local')}
           className={`flex items-center space-x-2 px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
             sourceType === 'local'
-              ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 shadow-sm'
-              : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
+              ? 'bg-white dark:bg-neutral-700 text-neutral-900 dark:text-neutral-100 shadow-sm'
+              : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-100'
           }`}
         >
           <FolderOpen className="h-4 w-4" />
@@ -290,8 +290,8 @@ const FileSelector: React.FC<FileSelectorProps> = ({
           onClick={() => handleSourceTypeChange('github')}
           className={`flex items-center space-x-2 px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
             sourceType === 'github'
-              ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 shadow-sm'
-              : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
+              ? 'bg-white dark:bg-neutral-700 text-neutral-900 dark:text-neutral-100 shadow-sm'
+              : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-100'
           }`}
         >
           <Github className="h-4 w-4" />
@@ -325,9 +325,9 @@ const FileSelector: React.FC<FileSelectorProps> = ({
           )}
 
           {folderHandle && (
-            <span className="text-sm text-slate-600 dark:text-slate-400 flex-1 min-w-0 truncate">
-              <strong className="font-medium text-slate-700 dark:text-slate-300">Project:</strong> {folderHandle.name}
-              {gitignoreStatus && <span className="text-xs ml-1 p-1 rounded-md bg-slate-100 dark:bg-slate-700">({gitignoreStatus})</span>}
+            <span className="text-sm text-neutral-600 dark:text-neutral-400 flex-1 min-w-0 truncate">
+              <strong className="font-medium text-neutral-700 dark:text-neutral-300">Project:</strong> {folderHandle.name}
+              {gitignoreStatus && <span className="text-xs ml-1 p-1 rounded-md bg-neutral-100 dark:bg-neutral-700">({gitignoreStatus})</span>}
             </span>
           )}
         </div>
@@ -342,8 +342,8 @@ const FileSelector: React.FC<FileSelectorProps> = ({
             isLoading={isLoading}
           />
           {githubRepoInfo && (
-            <div className="text-sm text-slate-600 dark:text-slate-400 text-center">
-              <strong className="font-medium text-slate-700 dark:text-slate-300">Repository:</strong> {githubRepoInfo.owner}/{githubRepoInfo.repo} ({githubRepoInfo.branch})
+            <div className="text-sm text-neutral-600 dark:text-neutral-400 text-center">
+              <strong className="font-medium text-neutral-700 dark:text-neutral-300">Repository:</strong> {githubRepoInfo.owner}/{githubRepoInfo.repo} ({githubRepoInfo.branch})
             </div>
           )}
         </div>
@@ -361,20 +361,20 @@ const FileSelector: React.FC<FileSelectorProps> = ({
           <div className="flex flex-col sm:flex-row gap-3 items-center">
             <div className="relative flex-grow w-full sm:w-auto">
               <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                <Filter className="h-4 w-4 text-slate-400 dark:text-slate-500" />
+                <Filter className="h-4 w-4 text-neutral-400 dark:text-neutral-500" />
               </div>
               <input
                 type="text"
                 placeholder="Filter files (e.g., utils, .ts, /components/)"
                 value={filterText}
                 onChange={handleFilterChange}
-                className="pl-10 pr-10 w-full py-2.5 px-4 border-0 ring-1 ring-inset ring-slate-300 dark:ring-slate-700 rounded-lg bg-white dark:bg-slate-800/50 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-inset focus:ring-emerald-500 transition-all duration-150 text-sm placeholder-slate-400 dark:placeholder-slate-500 shadow-sm"
+                className="pl-10 pr-10 w-full py-2.5 px-4 border-0 ring-1 ring-inset ring-neutral-300 dark:ring-neutral-700 rounded-lg bg-white dark:bg-neutral-800/50 text-neutral-900 dark:text-neutral-100 focus:ring-2 focus:ring-inset focus:ring-emerald-500 transition-all duration-150 text-sm placeholder-neutral-400 dark:placeholder-neutral-500 shadow-sm"
                 disabled={isProcessing || isLoading}
               />
               {filterText && (
                 <button
                   onClick={handleClearFilter}
-                  className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300 transition-colors"
+                  className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-neutral-400 hover:text-neutral-600 dark:text-neutral-500 dark:hover:text-neutral-300 transition-colors"
                   aria-label="Clear filter"
                 >
                   <X className="h-4 w-4" />
@@ -402,15 +402,15 @@ const FileSelector: React.FC<FileSelectorProps> = ({
           </div>
 
           <div className="flex flex-wrap gap-2 items-center">
-            <span className="text-sm font-medium text-slate-700 dark:text-slate-300 mr-2">Quick Filters:</span>
+            <span className="text-sm font-medium text-neutral-700 dark:text-neutral-300 mr-2">Quick Filters:</span>
             {Object.entries(fileTypeFilters).slice(0, 5).map(([typeName, extensions]) => (
               <button
                 key={typeName}
                 onClick={() => applyFileTypeFilter(extensions)}
                 disabled={isProcessing || isLoading}
                 className="px-3 py-1 text-xs font-medium rounded-full transition-colors duration-150
-                          bg-slate-100 text-slate-700 hover:bg-emerald-100 hover:text-emerald-700
-                          dark:bg-slate-700/80 dark:text-slate-200 dark:hover:bg-emerald-500/30 dark:hover:text-emerald-300
+                          bg-neutral-100 text-neutral-700 hover:bg-emerald-100 hover:text-emerald-700
+                          dark:bg-neutral-700/80 dark:text-neutral-200 dark:hover:bg-emerald-500/30 dark:hover:text-emerald-300
                           focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
               >
                 {typeName}
@@ -424,7 +424,7 @@ const FileSelector: React.FC<FileSelectorProps> = ({
           {isProcessing ? (
             <div className="text-center py-10">
               <RefreshCw className="h-8 w-8 text-emerald-500 animate-spin mx-auto mb-3" />
-              <p className="text-slate-600 dark:text-slate-400">
+              <p className="text-neutral-600 dark:text-neutral-400">
                 {sourceType === 'local' ? 'Scanning folder...' : 'Loading repository...'}
               </p>
             </div>
@@ -447,13 +447,13 @@ const FileSelector: React.FC<FileSelectorProps> = ({
               filteredPaths={filteredPaths}
             />
           ) : folderHandle || githubRepoInfo ? (
-            <p className="text-center text-slate-500 dark:text-slate-400 py-10">
+            <p className="text-center text-neutral-500 dark:text-neutral-400 py-10">
               {sourceType === 'local'
                 ? 'No text files found in the selected folder or matching filters.'
                 : 'No text files found in the repository or matching filters.'}
             </p>
           ) : (
-            <p className="text-center text-slate-500 dark:text-slate-400 py-10">
+            <p className="text-center text-neutral-500 dark:text-neutral-400 py-10">
               {sourceType === 'local'
                 ? 'Select a project folder to view files.'
                 : 'Load a GitHub repository to view files.'}

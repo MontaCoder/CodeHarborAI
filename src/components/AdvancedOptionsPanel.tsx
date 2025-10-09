@@ -73,18 +73,18 @@ const AdvancedOptionsPanel: React.FC<AdvancedOptionsPanelProps> = memo(({ option
     }
   };
 
-  const inputBaseClasses = "w-full py-2 px-3.5 border-0 ring-1 ring-inset ring-slate-300 dark:ring-slate-700 rounded-lg bg-white dark:bg-slate-800/50 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-inset focus:ring-emerald-500 transition-all duration-150 text-sm placeholder-slate-400 dark:placeholder-slate-500 shadow-sm disabled:opacity-60";
-  const checkboxBaseClasses = "h-4.5 w-4.5 rounded border-slate-300 dark:border-slate-600 text-emerald-600 focus:ring-emerald-500 bg-white dark:bg-slate-700 dark:checked:bg-emerald-600 dark:checked:border-emerald-600 shadow-sm transition-all cursor-pointer";
-  const labelBaseClasses = "text-sm font-medium text-slate-700 dark:text-slate-200 select-none cursor-pointer";
+  const inputBaseClasses = "w-full py-2 px-3.5 border-0 ring-1 ring-inset ring-neutral-300 dark:ring-neutral-700 rounded-lg bg-white dark:bg-neutral-800/50 text-neutral-900 dark:text-neutral-100 focus:ring-2 focus:ring-inset focus:ring-emerald-500 transition-all duration-150 text-sm placeholder-neutral-400 dark:placeholder-neutral-500 shadow-sm disabled:opacity-60";
+  const checkboxBaseClasses = "h-4.5 w-4.5 rounded border-neutral-300 dark:border-neutral-600 text-emerald-600 focus:ring-emerald-500 bg-white dark:bg-neutral-700 dark:checked:bg-emerald-600 dark:checked:border-emerald-600 shadow-sm transition-all cursor-pointer";
+  const labelBaseClasses = "text-sm font-medium text-neutral-700 dark:text-neutral-200 select-none cursor-pointer";
 
   return (
     <div className="animate-fade-in space-y-6">
       <div className="flex items-center justify-between">
         <div className="flex items-center">
           <Brain className="w-5 h-5 mr-2.5 text-emerald-500 dark:text-emerald-400" />
-          <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-100">Context Engineering</h2>
+          <h2 className="text-lg font-semibold text-neutral-800 dark:text-neutral-100">Context Engineering</h2>
         </div>
-        <div className="flex items-center space-x-1 text-xs text-slate-500 dark:text-slate-400">
+        <div className="flex items-center space-x-1 text-xs text-neutral-500 dark:text-neutral-400">
           <Sparkles className="w-3.5 h-3.5" />
           <span>AI-Optimized</span>
         </div>
@@ -98,7 +98,7 @@ const AdvancedOptionsPanel: React.FC<AdvancedOptionsPanelProps> = memo(({ option
         <div className="p-4 rounded-lg bg-gradient-to-br from-sky-50 to-indigo-50 dark:from-sky-950/20 dark:to-indigo-950/20 ring-1 ring-sky-200 dark:ring-sky-800/50 space-y-3">
           <div className="flex items-center">
             <Zap className="w-4 h-4 mr-2 text-sky-600 dark:text-sky-400" />
-            <label className="text-sm font-semibold text-slate-800 dark:text-slate-100">
+            <label className="text-sm font-semibold text-neutral-800 dark:text-neutral-100">
               Context Detail Level
             </label>
           </div>
@@ -112,9 +112,9 @@ const AdvancedOptionsPanel: React.FC<AdvancedOptionsPanelProps> = memo(({ option
               <option value="standard">⭐ Standard - Balanced context and detail</option>
               <option value="detailed">🔬 Detailed - Maximum context and metadata</option>
             </select>
-            <ChevronDown className="w-4 h-4 text-slate-400 dark:text-slate-500 absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+            <ChevronDown className="w-4 h-4 text-neutral-400 dark:text-neutral-500 absolute right-3.5 top-1/2 -tranneutral-y-1/2 pointer-events-none" />
           </div>
-          <p className="text-xs text-slate-600 dark:text-slate-400">
+          <p className="text-xs text-neutral-600 dark:text-neutral-400">
             {options.contextEnhancement === 'concise' && '💡 Best for quick queries and simple tasks'}
             {options.contextEnhancement === 'standard' && '💡 Recommended for most use cases'}
             {options.contextEnhancement === 'detailed' && '💡 Best for complex analysis and comprehensive reviews'}
@@ -126,7 +126,7 @@ const AdvancedOptionsPanel: React.FC<AdvancedOptionsPanelProps> = memo(({ option
           <div className="flex items-center justify-between">
             <div className="flex items-center">
               <BookOpen className="w-4 h-4 mr-2 text-violet-600 dark:text-violet-400" />
-              <label className="text-sm font-semibold text-slate-800 dark:text-slate-100">
+              <label className="text-sm font-semibold text-neutral-800 dark:text-neutral-100">
                 Reference Documentation
               </label>
             </div>
@@ -138,7 +138,7 @@ const AdvancedOptionsPanel: React.FC<AdvancedOptionsPanelProps> = memo(({ option
           <div className="space-y-2">
             <div className="flex gap-2">
               <div className="relative flex-1">
-                <LinkIcon className="w-4 h-4 text-slate-400 dark:text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
+                <LinkIcon className="w-4 h-4 text-neutral-400 dark:text-neutral-500 absolute left-3 top-1/2 -tranneutral-y-1/2" />
                 <input
                   type="url"
                   placeholder="https://context7.ai/docs/..."
@@ -176,12 +176,12 @@ const AdvancedOptionsPanel: React.FC<AdvancedOptionsPanelProps> = memo(({ option
                 {options.context7Docs.map((doc, index) => (
                   <div
                     key={index}
-                    className="flex items-start justify-between p-2.5 bg-white dark:bg-slate-800 rounded-md shadow-sm ring-1 ring-slate-200 dark:ring-slate-700"
+                    className="flex items-start justify-between p-2.5 bg-white dark:bg-neutral-800 rounded-md shadow-sm ring-1 ring-neutral-200 dark:ring-neutral-700"
                   >
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center space-x-2">
                         <FileText className="w-3.5 h-3.5 text-violet-500 dark:text-violet-400 flex-shrink-0" />
-                        <p className="text-sm font-medium text-slate-700 dark:text-slate-300 truncate">
+                        <p className="text-sm font-medium text-neutral-700 dark:text-neutral-300 truncate">
                           {doc.title}
                         </p>
                       </div>
@@ -189,14 +189,14 @@ const AdvancedOptionsPanel: React.FC<AdvancedOptionsPanelProps> = memo(({ option
                         href={doc.url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-xs text-slate-500 dark:text-slate-400 hover:text-violet-600 dark:hover:text-violet-400 truncate block"
+                        className="text-xs text-neutral-500 dark:text-neutral-400 hover:text-violet-600 dark:hover:text-violet-400 truncate block"
                       >
                         {doc.url}
                       </a>
                     </div>
                     <button
                       onClick={() => handleRemoveDoc(index)}
-                      className="ml-2 p-1 text-slate-400 hover:text-red-500 dark:hover:text-red-400 transition-colors rounded"
+                      className="ml-2 p-1 text-neutral-400 hover:text-red-500 dark:hover:text-red-400 transition-colors rounded"
                     >
                       <X className="w-4 h-4" />
                     </button>
@@ -205,14 +205,14 @@ const AdvancedOptionsPanel: React.FC<AdvancedOptionsPanelProps> = memo(({ option
               </div>
             )}
 
-            <p className="text-xs text-slate-500 dark:text-slate-400">
+            <p className="text-xs text-neutral-500 dark:text-neutral-400">
               💡 Add documentation links to provide additional context for AI analysis
             </p>
           </div>
         </div>
 
         {/* Preamble Section */}
-        <div className="space-y-2.5 p-4 rounded-lg bg-slate-50 dark:bg-slate-800/40 ring-1 ring-slate-200 dark:ring-slate-700/50">
+        <div className="space-y-2.5 p-4 rounded-lg bg-neutral-50 dark:bg-neutral-800/40 ring-1 ring-neutral-200 dark:ring-neutral-700/50">
           <div className="flex items-center">
             <input
               type="checkbox"
@@ -240,7 +240,7 @@ const AdvancedOptionsPanel: React.FC<AdvancedOptionsPanelProps> = memo(({ option
         </div>
         
         {/* Goal Section */}
-        <div className="space-y-2.5 p-4 rounded-lg bg-slate-50 dark:bg-slate-800/40 ring-1 ring-slate-200 dark:ring-slate-700/50">
+        <div className="space-y-2.5 p-4 rounded-lg bg-neutral-50 dark:bg-neutral-800/40 ring-1 ring-neutral-200 dark:ring-neutral-700/50">
           <div className="flex items-center">
             <input
               type="checkbox"
@@ -268,9 +268,9 @@ const AdvancedOptionsPanel: React.FC<AdvancedOptionsPanelProps> = memo(({ option
         </div>
 
         {/* Advanced Options */}
-        <div className="space-y-2.5 p-4 rounded-lg bg-slate-50 dark:bg-slate-800/40 ring-1 ring-slate-200 dark:ring-slate-700/50">
-          <h3 className="text-sm font-semibold text-slate-800 dark:text-slate-100 flex items-center mb-2">
-            <Settings className="w-4 h-4 mr-2 text-slate-500 dark:text-slate-400" />
+        <div className="space-y-2.5 p-4 rounded-lg bg-neutral-50 dark:bg-neutral-800/40 ring-1 ring-neutral-200 dark:ring-neutral-700/50">
+          <h3 className="text-sm font-semibold text-neutral-800 dark:text-neutral-100 flex items-center mb-2">
+            <Settings className="w-4 h-4 mr-2 text-neutral-500 dark:text-neutral-400" />
             Advanced Settings
           </h3>
           <div className="pl-1 space-y-2.5">
@@ -329,7 +329,7 @@ const AdvancedOptionsPanel: React.FC<AdvancedOptionsPanelProps> = memo(({ option
         </div>
 
         {/* Tips */}
-        <div className="text-xs text-slate-500 dark:text-slate-400 space-y-1 bg-blue-50 dark:bg-blue-950/20 p-3 rounded-lg">
+        <div className="text-xs text-neutral-500 dark:text-neutral-400 space-y-1 bg-blue-50 dark:bg-blue-950/20 p-3 rounded-lg">
           <p className="font-semibold text-blue-700 dark:text-blue-400">💡 Context Engineering Tips:</p>
           <ul className="space-y-1 pl-4 list-disc">
             <li>Use templates as a starting point for common tasks</li>

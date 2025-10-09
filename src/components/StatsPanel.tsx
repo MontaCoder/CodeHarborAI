@@ -37,26 +37,26 @@ const StatsPanel: React.FC<StatsPanelProps> = memo(({ totalSize, totalLines }) =
     <div className="animate-fade-in space-y-5">
       <div className="flex items-center">
         <BarChart2 className="w-5 h-5 mr-2.5 text-indigo-500 dark:text-indigo-400" />
-        <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-100">Performance Stats</h2>
+        <h2 className="text-lg font-semibold text-neutral-800 dark:text-neutral-100">Performance Stats</h2>
       </div>
       
       <div className="space-y-4">
         <div className="flex justify-between items-baseline">
-          <span className="text-sm text-slate-600 dark:text-slate-400">Total Size:</span>
-          <span className="text-xl font-bold text-slate-800 dark:text-slate-100">
+          <span className="text-sm text-neutral-600 dark:text-neutral-400">Total Size:</span>
+          <span className="text-xl font-bold text-neutral-800 dark:text-neutral-100">
             {sizeKB.toFixed(2)} KB
           </span>
         </div>
         
         <div className="flex justify-between items-baseline">
-          <span className="text-sm text-slate-600 dark:text-slate-400">Total Lines:</span>
-          <span className="text-xl font-bold text-slate-800 dark:text-slate-100">
+          <span className="text-sm text-neutral-600 dark:text-neutral-400">Total Lines:</span>
+          <span className="text-xl font-bold text-neutral-800 dark:text-neutral-100">
             {formatNumber(totalLines)}
           </span>
         </div>
         
         <div className="pt-1">
-          <div className="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-3 relative overflow-hidden">
+          <div className="w-full bg-neutral-200 dark:bg-neutral-700 rounded-full h-3 relative overflow-hidden">
             <div 
               className={`absolute top-0 left-0 h-full rounded-full transition-all duration-500 ease-out ${progressBarColor}`}
               style={{ width: `${progressPercentage}%` }}

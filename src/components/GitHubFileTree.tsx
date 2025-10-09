@@ -177,7 +177,7 @@ const GitHubFileTree: React.FC<GitHubFileTreeProps> = ({
     }
 
     const baseRowClasses = "flex items-center py-2 px-2.5 rounded-md transition-colors duration-100 cursor-pointer";
-    const hoverClasses = "hover:bg-slate-100 dark:hover:bg-slate-700/60";
+    const hoverClasses = "hover:bg-neutral-100 dark:hover:bg-neutral-700/60";
     const selectedClasses = isSelected ? "bg-emerald-50 dark:bg-emerald-500/10" : "";
     const interactionDisabledClass = isLoading ? "opacity-60 cursor-not-allowed" : "";
 
@@ -194,7 +194,7 @@ const GitHubFileTree: React.FC<GitHubFileTreeProps> = ({
               <button
                 onClick={() => !isLoading && toggleDir(node.path)}
                 disabled={isLoading}
-                className="mr-1.5 p-0.5 rounded hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-500 dark:text-slate-400"
+                className="mr-1.5 p-0.5 rounded hover:bg-neutral-200 dark:hover:bg-neutral-600 text-neutral-500 dark:text-neutral-400"
                 aria-label={isExpanded ? 'Collapse folder' : 'Expand folder'}
               >
                 {isExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
@@ -209,32 +209,32 @@ const GitHubFileTree: React.FC<GitHubFileTreeProps> = ({
                     if (input) input.indeterminate = dirCheckboxState === 'indeterminate';
                   }}
                   onChange={(e) => !isLoading && handleDirectoryCheckboxChange(node, e.target.checked)}
-                  className="mr-2 h-4 w-4 rounded border-slate-300 dark:border-slate-600 text-emerald-600 focus:ring-emerald-500 bg-white dark:bg-slate-700 dark:checked:bg-emerald-600 dark:checked:border-emerald-600 shadow-sm transition-all"
+                  className="mr-2 h-4 w-4 rounded border-neutral-300 dark:border-neutral-600 text-emerald-600 focus:ring-emerald-500 bg-white dark:bg-neutral-700 dark:checked:bg-emerald-600 dark:checked:border-emerald-600 shadow-sm transition-all"
                   disabled={isLoading}
                   aria-label={`Select all files in ${node.name || 'Project Root'}`}
                 />
               )}
-              <span className="text-sm text-slate-700 dark:text-slate-200 select-none truncate" onClick={() => !isLoading && toggleDir(node.path)}>
+              <span className="text-sm text-neutral-700 dark:text-neutral-200 select-none truncate" onClick={() => !isLoading && toggleDir(node.path)}>
                 {node.name || 'Project Root'}
               </span>
             </>
           ) : (
             <>
               <span style={{ width: `${1.5}rem` }} className="mr-1.5 flex-shrink-0"></span> {/* Spacer for file icon alignment */}
-              <FileText className="h-4 w-4 text-slate-500 dark:text-slate-400 mr-2 flex-shrink-0" />
+              <FileText className="h-4 w-4 text-neutral-500 dark:text-neutral-400 mr-2 flex-shrink-0" />
               <input
                 type="checkbox"
                 checked={isSelected}
                 onChange={e => !isLoading && onSelectFile(node.path, e.target.checked)}
-                className="mr-2 h-4 w-4 rounded border-slate-300 dark:border-slate-600 text-emerald-600 focus:ring-emerald-500 bg-white dark:bg-slate-700 dark:checked:bg-emerald-600 dark:checked:border-emerald-600 shadow-sm transition-all"
+                className="mr-2 h-4 w-4 rounded border-neutral-300 dark:border-neutral-600 text-emerald-600 focus:ring-emerald-500 bg-white dark:bg-neutral-700 dark:checked:bg-emerald-600 dark:checked:border-emerald-600 shadow-sm transition-all"
                 disabled={isLoading}
                 aria-label={`Select file ${node.name}`}
               />
-              <span className="text-sm text-slate-700 dark:text-slate-200 select-none truncate" onClick={() => !isLoading && onSelectFile(node.path, !isSelected)}>
+              <span className="text-sm text-neutral-700 dark:text-neutral-200 select-none truncate" onClick={() => !isLoading && onSelectFile(node.path, !isSelected)}>
                 {node.name}
               </span>
               {(isHover || isSelected) && (
-                <span className="ml-auto pl-2 text-xs text-slate-400 dark:text-slate-500 whitespace-nowrap select-none">
+                <span className="ml-auto pl-2 text-xs text-neutral-400 dark:text-neutral-500 whitespace-nowrap select-none">
                   ({(node.size! / 1024).toFixed(1)} KB, {node.lines} lines)
                 </span>
               )}
@@ -268,7 +268,7 @@ const GitHubFileTree: React.FC<GitHubFileTreeProps> = ({
   }
 
   return (
-    <div className="bg-slate-50/50 dark:bg-slate-800/30 rounded-lg p-3 space-y-1 max-h-[500px] overflow-y-auto ring-1 ring-slate-200 dark:ring-slate-700/50 shadow-inner">
+    <div className="bg-neutral-50/50 dark:bg-neutral-800/30 rounded-lg p-3 space-y-1 max-h-[500px] overflow-y-auto ring-1 ring-neutral-200 dark:ring-neutral-700/50 shadow-inner">
       {filteredAndSortedTree && Object.keys(filteredAndSortedTree.children).length > 0 ? (
         Object.values(filteredAndSortedTree.children)
           .sort((a, b) => {
@@ -277,7 +277,7 @@ const GitHubFileTree: React.FC<GitHubFileTreeProps> = ({
           })
           .map(node => renderNode(node, 0))
       ) : (
-        <p className="text-sm text-center text-slate-500 dark:text-slate-400 py-8 px-4">
+        <p className="text-sm text-center text-neutral-500 dark:text-neutral-400 py-8 px-4">
           {filterText ? "No files or folders match your filter." : (files.length === 0 ? "No files loaded." : "Repository is empty or contains no text files.")}
         </p>
       )}

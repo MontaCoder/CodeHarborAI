@@ -32,13 +32,13 @@ const Button: React.FC<ButtonProps> = ({
   if (primary) {
     buttonClass += "bg-emerald-500 hover:bg-emerald-600 text-white shadow-sm hover:shadow ";
   } else if (secondary) {
-    buttonClass += "bg-gray-100 hover:bg-gray-200 text-gray-700 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-200 ";
+    buttonClass += "bg-neutral-100 hover:bg-neutral-200 text-neutral-700 dark:bg-neutral-800 dark:hover:bg-neutral-700 dark:text-neutral-200 ";
   } else if (accent) {
     buttonClass += "bg-purple-500 hover:bg-purple-600 text-white shadow-sm hover:shadow ";
   } else if (danger) {
     buttonClass += "bg-red-500 hover:bg-red-600 text-white shadow-sm hover:shadow ";
   } else {
-    buttonClass += "bg-white hover:bg-gray-50 text-gray-700 border border-gray-300 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-gray-200 dark:border-gray-600 ";
+    buttonClass += "bg-white hover:bg-neutral-50 text-neutral-700 border border-neutral-300 dark:bg-neutral-800 dark:hover:bg-neutral-700 dark:text-neutral-200 dark:border-neutral-700 ";
   }
   
   buttonClass += className;

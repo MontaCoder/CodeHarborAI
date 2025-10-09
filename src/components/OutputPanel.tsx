@@ -38,7 +38,7 @@ const OutputPanel: React.FC<OutputPanelProps> = memo(({ output }) => {
     <div className="animate-fade-in space-y-5">
       <div className="flex items-center">
         <FileTextIcon className="w-5 h-5 mr-2.5 text-emerald-500 dark:text-emerald-400" />
-        <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-100">Generated Prompt Output</h2>
+        <h2 className="text-lg font-semibold text-neutral-800 dark:text-neutral-100">Generated Prompt Output</h2>
       </div>
       
       <div className="space-y-4">
@@ -46,7 +46,7 @@ const OutputPanel: React.FC<OutputPanelProps> = memo(({ output }) => {
           <textarea
             value={output}
             readOnly
-            className="w-full h-[24rem] min-h-[16rem] p-4 border-0 ring-1 ring-inset ring-slate-300 dark:ring-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800/60 text-slate-800 dark:text-slate-100 font-mono text-sm focus:ring-2 focus:ring-inset focus:ring-emerald-500 transition-all duration-150 resize-y shadow-sm"
+            className="w-full h-[24rem] min-h-[16rem] p-4 border-0 ring-1 ring-inset ring-neutral-300 dark:ring-neutral-700 rounded-lg bg-neutral-50 dark:bg-neutral-800/60 text-neutral-800 dark:text-neutral-100 font-mono text-sm focus:ring-2 focus:ring-inset focus:ring-emerald-500 transition-all duration-150 resize-y shadow-sm"
             aria-label="Combined output text"
           />
           
@@ -56,7 +56,7 @@ const OutputPanel: React.FC<OutputPanelProps> = memo(({ output }) => {
               className={`p-2 rounded-md flex items-center justify-center transition-all duration-150 ease-in-out active:scale-95
                 ${copied 
                   ? 'bg-emerald-500 text-white dark:bg-emerald-600' 
-                  : 'bg-slate-200 text-slate-600 hover:bg-slate-300 dark:bg-slate-700 dark:text-slate-300 dark:hover:bg-slate-600'}`}
+                  : 'bg-neutral-200 text-neutral-600 hover:bg-neutral-300 dark:bg-neutral-700 dark:text-neutral-300 dark:hover:bg-neutral-600'}`}
               title={copied ? "Copied!" : "Copy to clipboard"}
               aria-live="polite"
             >

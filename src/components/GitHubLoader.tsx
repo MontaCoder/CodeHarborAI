@@ -167,15 +167,15 @@ const GitHubLoader: React.FC<GitHubLoaderProps> = ({
   return (
     <div className="space-y-4">
       <div className="flex items-center space-x-2 mb-4">
-        <Github className="h-5 w-5 text-slate-600 dark:text-slate-400" />
-        <h3 className="text-lg font-medium text-slate-900 dark:text-slate-100">
+        <Github className="h-5 w-5 text-neutral-600 dark:text-neutral-400" />
+        <h3 className="text-lg font-medium text-neutral-900 dark:text-neutral-100">
           Load from GitHub
         </h3>
       </div>
 
       <div className="space-y-4">
         <div>
-          <label htmlFor="github-url" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+          <label htmlFor="github-url" className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
             GitHub Repository URL
           </label>
           <div className="relative">
@@ -185,7 +185,7 @@ const GitHubLoader: React.FC<GitHubLoaderProps> = ({
               placeholder="https://github.com/owner/repo"
               value={githubUrl}
               onChange={handleUrlChange}
-              className="w-full px-4 py-2.5 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors"
+              className="w-full px-4 py-2.5 border border-neutral-300 dark:border-neutral-600 rounded-lg bg-white dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100 placeholder-neutral-400 dark:placeholder-neutral-500 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors"
               disabled={isLoading || isValidating}
             />
             {validationStatus !== 'idle' && (
@@ -202,7 +202,7 @@ const GitHubLoader: React.FC<GitHubLoaderProps> = ({
         </div>
 
         <div>
-          <label htmlFor="branch" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+          <label htmlFor="branch" className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
             Branch (optional)
           </label>
           <input
@@ -211,10 +211,10 @@ const GitHubLoader: React.FC<GitHubLoaderProps> = ({
             placeholder="main, develop, etc."
             value={branch}
             onChange={handleBranchChange}
-            className="w-full px-4 py-2.5 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors"
+            className="w-full px-4 py-2.5 border border-neutral-300 dark:border-neutral-600 rounded-lg bg-white dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100 placeholder-neutral-400 dark:placeholder-neutral-500 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors"
             disabled={isLoading || isValidating}
           />
-          <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+          <p className="mt-1 text-xs text-neutral-500 dark:text-neutral-400">
             Leave empty to use the default branch
           </p>
         </div>
@@ -255,15 +255,15 @@ const GitHubLoader: React.FC<GitHubLoaderProps> = ({
       </div>
 
       {isLoading && loadingProgress.total > 0 && (
-        <div className="bg-slate-50 dark:bg-slate-800 rounded-lg p-4 border border-slate-200 dark:border-slate-700">
+        <div className="bg-neutral-50 dark:bg-neutral-800 rounded-lg p-4 border border-neutral-200 dark:border-neutral-700">
           <div className="space-y-2">
-            <div className="flex justify-between text-sm text-slate-700 dark:text-slate-300">
+            <div className="flex justify-between text-sm text-neutral-700 dark:text-neutral-300">
               <span>Processing files...</span>
               <span className="font-medium">
                 {loadingProgress.current} / {loadingProgress.total}
               </span>
             </div>
-            <div className="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-2 overflow-hidden">
+            <div className="w-full bg-neutral-200 dark:bg-neutral-700 rounded-full h-2 overflow-hidden">
               <div
                 className="bg-emerald-500 h-2 transition-all duration-300 ease-out"
                 style={{
@@ -272,7 +272,7 @@ const GitHubLoader: React.FC<GitHubLoaderProps> = ({
               />
             </div>
             {loadingProgress.file && (
-              <p className="text-xs text-slate-500 dark:text-slate-400 truncate">
+              <p className="text-xs text-neutral-500 dark:text-neutral-400 truncate">
                 {loadingProgress.file}
               </p>
             )}
@@ -280,7 +280,7 @@ const GitHubLoader: React.FC<GitHubLoaderProps> = ({
         </div>
       )}
 
-      <div className="text-xs text-slate-500 dark:text-slate-400 space-y-1">
+      <div className="text-xs text-neutral-500 dark:text-neutral-400 space-y-1">
         <p>• Supports public GitHub repositories</p>
         <p>• Only text files are loaded (code, config, documentation)</p>
         <p>• Results are cached for 1 hour for faster reloading</p>

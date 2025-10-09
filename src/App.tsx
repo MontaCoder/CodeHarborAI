@@ -8,7 +8,7 @@ function App() {
 
   return (
     <ThemeProvider>
-      <div className="min-h-screen bg-slate-50 dark:bg-slate-900 transition-colors duration-300 flex flex-col font-sans">
+      <div className="min-h-screen bg-neutral-50 dark:bg-neutral-950 transition-colors duration-300 flex flex-col font-sans">
         <div className="flex-grow">
           {showApp ? (
             <MainApp />
@@ -16,7 +16,7 @@ function App() {
             <LandingPage onGetStarted={() => setShowApp(true)} />
           )}
         </div>
-        <footer className="py-8 px-4 sm:px-6 text-center text-sm text-slate-500 dark:text-slate-400 border-t border-slate-200 dark:border-slate-700/50">
+        <footer className="py-8 px-4 sm:px-6 text-center text-sm text-neutral-500 dark:text-neutral-400 border-t border-neutral-200 dark:border-neutral-800">
           <p className="mb-1">
             &copy; {new Date().getFullYear()} Montassar Hajri. All rights reserved.
           </p>

@@ -219,11 +219,11 @@ const MainApp: React.FC = () => {
 
   return (
     <div className="min-h-screen flex flex-col">
-      <header className="backdrop-blur-md bg-white/80 dark:bg-slate-900/80 border-b border-slate-200 dark:border-slate-700/50 px-4 sm:px-8 py-3 flex justify-between items-center sticky top-0 z-20 shadow-md">
+      <header className="backdrop-blur-md bg-white/80 dark:bg-neutral-900/80 border-b border-neutral-200 dark:border-neutral-800 px-4 sm:px-8 py-3 flex justify-between items-center sticky top-0 z-20 shadow-sm">
         <div className="flex items-center space-x-4">
           <button 
             onClick={() => window.location.reload()}
-            className="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800/60 text-slate-500 dark:text-slate-400 transition-colors duration-150"
+            className="p-2 rounded-full hover:bg-neutral-100 dark:hover:bg-neutral-800 text-neutral-500 dark:text-neutral-400 transition-colors duration-150"
             title="Return to landing page"
           >
             <ArrowLeft className="h-5 w-5" />
@@ -235,13 +235,13 @@ const MainApp: React.FC = () => {
         </div>
         <div className="flex items-center space-x-3">
           {(folderHandle || githubRepoInfo) && (
-            <span className="text-sm text-slate-500 dark:text-slate-400 hidden md:inline-block truncate max-w-xs">
+            <span className="text-sm text-neutral-500 dark:text-neutral-400 hidden md:inline-block truncate max-w-xs">
               Selected: {folderHandle ? folderHandle.name : `${githubRepoInfo?.owner}/${githubRepoInfo?.repo}`}
             </span>
           )}
           <button
             onClick={toggleTheme}
-            className="p-2 rounded-full text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/60 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-50 dark:focus-visible:ring-offset-slate-900 transition-colors duration-150"
+            className="p-2 rounded-full text-neutral-500 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-neutral-950 transition-colors duration-150"
             aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
           >
             {theme === 'dark' ? (
@@ -260,7 +260,7 @@ const MainApp: React.FC = () => {
       <main className="flex-1 max-w-7xl mx-auto w-full p-4 md:p-8">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <div className="md:col-span-2 space-y-8">
-            <div className="bg-white/90 dark:bg-slate-900/80 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-700/50 p-6 md:p-8 backdrop-blur-md">
+            <div className="bg-white dark:bg-neutral-900 rounded-2xl shadow-lg border border-neutral-200 dark:border-neutral-800 p-6 md:p-8">
               <FileSelector
                 onFolderSelected={handleFolderSelected}
                 onFilesSelected={handleFilesSelected}
@@ -277,7 +277,7 @@ const MainApp: React.FC = () => {
                 onClick={handleCombine}
                 disabled={selectedFiles.size === 0 || isLoading}
                 primary
-                className="px-8 py-3 text-base shadow-xl hover:shadow-emerald-400/50 dark:hover:shadow-emerald-600/50 transform hover:scale-105 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-white dark:focus-visible:ring-offset-slate-900"
+                className="px-8 py-3 text-base shadow-xl hover:shadow-emerald-400/50 dark:hover:shadow-emerald-600/50 transform hover:scale-105 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-white dark:focus-visible:ring-offset-neutral-950"
               >
                 {isLoading ? (
                   <div className="flex items-center space-x-2.5">
@@ -291,17 +291,17 @@ const MainApp: React.FC = () => {
             </div>
             
             {showOutput && (
-              <div className="bg-white/90 dark:bg-slate-900/80 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-700/50 p-6 md:p-8 backdrop-blur-md mt-8">
+              <div className="bg-white dark:bg-neutral-900 rounded-2xl shadow-lg border border-neutral-200 dark:border-neutral-800 p-6 md:p-8 mt-8">
                 <OutputPanel output={output} />
               </div>
             )}
           </div>
           
           <div className="space-y-8">
-            <div className="bg-white/90 dark:bg-slate-900/80 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-700/50 p-6 md:p-8 backdrop-blur-md">
+            <div className="bg-white dark:bg-neutral-900 rounded-2xl shadow-lg border border-neutral-200 dark:border-neutral-800 p-6 md:p-8">
               <StatsPanel totalSize={totalSize} totalLines={totalLines} />
             </div>
-            <div className="bg-white/90 dark:bg-slate-900/80 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-700/50 p-6 md:p-8 backdrop-blur-md">
+            <div className="bg-white dark:bg-neutral-900 rounded-2xl shadow-lg border border-neutral-200 dark:border-neutral-800 p-6 md:p-8">
               <AdvancedOptionsPanel 
                 options={options} 
                 onChange={handleOptionChange}

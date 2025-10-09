@@ -3,11 +3,53 @@
 @variant dark (&:where(.dark, .dark *));
 
 /* -------------------------------------------------------------------------- */
+/* Custom theme variables                                                     */
+/* -------------------------------------------------------------------------- */
+@theme {
+  /* Light theme - Enterprise-grade neutral palette */
+  --color-bg-primary: #fafafa;
+  --color-bg-secondary: #ffffff;
+  --color-bg-tertiary: #f5f5f5;
+  --color-bg-hover: #f0f0f0;
+  
+  --color-surface-primary: #ffffff;
+  --color-surface-secondary: #fafafa;
+  --color-surface-elevated: #ffffff;
+  
+  --color-border-light: #e5e5e5;
+  --color-border-medium: #d4d4d4;
+  
+  /* Dark theme - Rich, layered dark palette */
+  --color-dark-bg-primary: #0a0a0a;
+  --color-dark-bg-secondary: #171717;
+  --color-dark-bg-tertiary: #0f0f0f;
+  --color-dark-bg-hover: #262626;
+  
+  --color-dark-surface-primary: #171717;
+  --color-dark-surface-secondary: #1a1a1a;
+  --color-dark-surface-elevated: #262626;
+  
+  --color-dark-border-light: #262626;
+  --color-dark-border-medium: #404040;
+  
+  /* Accent colors */
+  --color-accent-primary: #10b981;
+  --color-accent-secondary: #0ea5e9;
+}
+
+/* -------------------------------------------------------------------------- */
 /* Base layer                                                                 */
 /* -------------------------------------------------------------------------- */
 @layer base {
   html { @apply antialiased; }
-  body { @apply min-h-screen; }
+  body { 
+    @apply min-h-screen; 
+    background-color: var(--color-bg-primary);
+  }
+  
+  .dark body {
+    background-color: var(--color-dark-bg-primary);
+  }
 }
 
 /* -------------------------------------------------------------------------- */
@@ -37,12 +79,12 @@
 }
 
 ::-webkit-scrollbar-track {
-  @apply bg-neutral-100 dark:bg-neutral-700 rounded-full;
+  @apply bg-neutral-100 dark:bg-neutral-800 rounded-full;
 }
 
 ::-webkit-scrollbar-thumb {
-  @apply bg-neutral-300 dark:bg-neutral-600 rounded-full
-         hover:bg-neutral-400 dark:hover:bg-neutral-500
+  @apply bg-neutral-300 dark:bg-neutral-700 rounded-full
+         hover:bg-neutral-400 dark:hover:bg-neutral-600
          transition-colors;
 }
 
@@ -56,5 +98,5 @@ input[type='checkbox'] {
 }
 
 .dark input[type='checkbox'] {
-  @apply border-neutral-600 bg-neutral-700;
+  @apply border-neutral-700 bg-neutral-800;
 }

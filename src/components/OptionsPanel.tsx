@@ -28,9 +28,9 @@ const OptionsPanel: React.FC<OptionsPanelProps> = memo(({ options, onChange }) =
     onChange('includeGoal', templateData.includeGoal);
   };
 
-  const inputBaseClasses = "w-full py-2 px-3.5 border-0 ring-1 ring-inset ring-slate-300 dark:ring-slate-700 rounded-lg bg-white dark:bg-slate-800/50 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-inset focus:ring-sky-500 transition-all duration-150 text-sm placeholder-slate-400 dark:placeholder-slate-500 shadow-sm disabled:opacity-60";
-  const checkboxBaseClasses = "h-4.5 w-4.5 rounded border-slate-300 dark:border-slate-600 text-sky-600 focus:ring-sky-500 bg-white dark:bg-slate-700 dark:checked:bg-sky-600 dark:checked:border-sky-600 shadow-sm transition-all cursor-pointer";
-  const labelBaseClasses = "text-sm font-medium text-slate-700 dark:text-slate-200 select-none cursor-pointer";
+  const inputBaseClasses = "w-full py-2 px-3.5 border-0 ring-1 ring-inset ring-neutral-300 dark:ring-neutral-700 rounded-lg bg-white dark:bg-neutral-800/50 text-neutral-900 dark:text-neutral-100 focus:ring-2 focus:ring-inset focus:ring-sky-500 transition-all duration-150 text-sm placeholder-neutral-400 dark:placeholder-neutral-500 shadow-sm disabled:opacity-60";
+  const checkboxBaseClasses = "h-4.5 w-4.5 rounded border-neutral-300 dark:border-neutral-600 text-sky-600 focus:ring-sky-500 bg-white dark:bg-neutral-700 dark:checked:bg-sky-600 dark:checked:border-sky-600 shadow-sm transition-all cursor-pointer";
+  const labelBaseClasses = "text-sm font-medium text-neutral-700 dark:text-neutral-200 select-none cursor-pointer";
 
   const preambleOptions = [
     { value: 'custom', label: '✨ Write Custom Preamble' },
@@ -45,7 +45,7 @@ const OptionsPanel: React.FC<OptionsPanelProps> = memo(({ options, onChange }) =
     <div className="animate-fade-in space-y-6">
       <div className="flex items-center">
         <Settings className="w-5 h-5 mr-2.5 text-sky-500 dark:text-sky-400" />
-        <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-100">Output Configuration</h2>
+        <h2 className="text-lg font-semibold text-neutral-800 dark:text-neutral-100">Output Configuration</h2>
       </div>
       
       <div className="space-y-5">
@@ -53,7 +53,7 @@ const OptionsPanel: React.FC<OptionsPanelProps> = memo(({ options, onChange }) =
         <TemplateSelector onTemplateApply={handleTemplateApply} />
         
         {/* Preamble Section */}
-        <div className="space-y-2.5 p-4 rounded-lg bg-slate-50 dark:bg-slate-800/40 ring-1 ring-slate-200 dark:ring-slate-700/50">
+        <div className="space-y-2.5 p-4 rounded-lg bg-neutral-50 dark:bg-neutral-800/40 ring-1 ring-neutral-200 dark:ring-neutral-700/50">
           <div className="flex items-center">
             <input
               type="checkbox"
@@ -80,7 +80,7 @@ const OptionsPanel: React.FC<OptionsPanelProps> = memo(({ options, onChange }) =
                     <option key={opt.value} value={opt.value}>{opt.label}</option>
                   ))}
                 </select>
-                <ChevronDown className="w-4 h-4 text-slate-400 dark:text-slate-500 absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                <ChevronDown className="w-4 h-4 text-neutral-400 dark:text-neutral-500 absolute right-3.5 top-1/2 -tranneutral-y-1/2 pointer-events-none" />
               </div>
               
               {(isCustomPreamble || options.preambleText === '') && (
@@ -97,7 +97,7 @@ const OptionsPanel: React.FC<OptionsPanelProps> = memo(({ options, onChange }) =
         </div>
         
         {/* Goal Section */}
-        <div className="space-y-2.5 p-4 rounded-lg bg-slate-50 dark:bg-slate-800/40 ring-1 ring-slate-200 dark:ring-slate-700/50">
+        <div className="space-y-2.5 p-4 rounded-lg bg-neutral-50 dark:bg-neutral-800/40 ring-1 ring-neutral-200 dark:ring-neutral-700/50">
           <div className="flex items-center">
             <input
               type="checkbox"
@@ -123,8 +123,8 @@ const OptionsPanel: React.FC<OptionsPanelProps> = memo(({ options, onChange }) =
         </div>
         
         {/* Code Processing Section */}
-        <div className="space-y-2.5 p-4 rounded-lg bg-slate-50 dark:bg-slate-800/40 ring-1 ring-slate-200 dark:ring-slate-700/50">
-            <h3 className="text-sm font-semibold text-slate-800 dark:text-slate-100 flex items-center mb-2">
+        <div className="space-y-2.5 p-4 rounded-lg bg-neutral-50 dark:bg-neutral-800/40 ring-1 ring-neutral-200 dark:ring-neutral-700/50">
+            <h3 className="text-sm font-semibold text-neutral-800 dark:text-neutral-100 flex items-center mb-2">
                 <Edit3 className="w-4 h-4 mr-2 text-sky-500 dark:text-sky-400" />
                 Code Transformations
             </h3>
