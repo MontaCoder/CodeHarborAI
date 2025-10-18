@@ -15,20 +15,20 @@ export class Context7Service {
    */
   static parseContext7Url(url: string): string | null {
     try {
-      // Support various Context7 URL formats
-      const patterns = [
-        /context7\.ai\/docs\/([^\/\?]+)/,
-        /context7\.ai\/d\/([^\/\?]+)/,
-        /ctx7\.dev\/([^\/\?]+)/
-      ];
+      const parsed = new URL(url);
+      const hostname = parsed.hostname.toLowerCase();
+      const allowedHosts = ['context7.ai', 'context7.com', 'ctx7.dev'];
 
-      for (const pattern of patterns) {
-        const match = url.match(pattern);
-        if (match) {
-          return match[1];
-        }
+      const isAllowedHost = allowedHosts.some(host =>
+        hostname === host || hostname.endsWith(`.${host}`)
+      );
+
+      if (!isAllowedHost) {
+        return null;
       }
-      return null;
+
+      const path = parsed.pathname.split('/').filter(Boolean).join('/');
+      return path.length > 0 ? path : null;
     } catch (error) {
       console.error('Error parsing Context7 URL:', error);
       return null;
@@ -45,29 +45,68 @@ export class Context7Service {
       if (!docId) {
         throw new Error('Invalid Context7 URL format');
       }
-
-      // For now, we'll fetch the page and extract the content
-      // In production, you'd use the Context7 API if available
-      const response = await fetch(url);
-      
-      if (!response.ok) {
-        throw new Error(`Failed to fetch documentation: ${response.status}`);
+      const candidates = [url];
+      const normalized = url.replace(/^https?:\/\//, '');
+      const protocol = url.startsWith('https://') ? 'https://' : 'http://';
+      const proxyUrl = `https://r.jina.ai/${protocol}${normalized}`;
+      if (proxyUrl !== url) {
+        candidates.push(proxyUrl);
       }
 
-      const html = await response.text();
-      
-      // Extract content (basic HTML parsing - improve as needed)
-      const titleMatch = html.match(/<title>(.*?)<\/title>/);
-      const title = titleMatch ? titleMatch[1] : 'Documentation';
-      
-      // Remove HTML tags and extract text content
-      const content = this.extractTextFromHtml(html);
+      let lastError: unknown;
 
-      return {
-        title,
-        content,
-        url
-      };
+      for (const requestUrl of candidates) {
+        try {
+          const response = await fetch(requestUrl);
+          if (!response.ok) {
+            lastError = new Error(`Failed to fetch documentation: ${response.status}`);
+            continue;
+          }
+
+          const contentType = response.headers.get('content-type') ?? '';
+          const body = await response.text();
+
+          let title = docId;
+          let content = body;
+
+          if (contentType.includes('text/html')) {
+            const titleMatch = body.match(/<title>(.*?)<\/title>/i);
+            title = titleMatch ? titleMatch[1] : title;
+            content = this.extractTextFromHtml(body);
+          } else if (contentType.includes('application/json')) {
+            try {
+              const parsedJson = JSON.parse(body);
+              content = JSON.stringify(parsedJson, null, 2);
+            } catch {
+              content = body;
+            }
+          } else {
+            content = body.trim();
+          }
+
+          if (title.trim().length === 0) {
+            title = 'Documentation';
+          }
+
+          if (content.length === 0) {
+            content = 'No content available.';
+          }
+
+          return {
+            title,
+            content,
+            url
+          };
+        } catch (error) {
+          lastError = error;
+        }
+      }
+
+      throw new Error(
+        `Failed to fetch Context7 documentation: ${
+          lastError instanceof Error ? lastError.message : 'Unknown error'
+        }`
+      );
     } catch (error) {
       throw new Error(`Failed to fetch Context7 documentation: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
@@ -117,8 +156,12 @@ ${doc.content}
   static isValidUrl(url: string): boolean {
     try {
       const parsed = new URL(url);
-      return parsed.hostname.includes('context7.ai') || 
-             parsed.hostname.includes('ctx7.dev');
+      const hostname = parsed.hostname.toLowerCase();
+      const allowedHosts = ['context7.ai', 'context7.com', 'ctx7.dev'];
+
+      return allowedHosts.some(host =>
+        hostname === host || hostname.endsWith(`.${host}`)
+      );
     } catch {
       return false;
     }
