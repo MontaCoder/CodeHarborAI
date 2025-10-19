@@ -1,14 +1,12 @@
 import {
   BookOpen,
   Brain,
-  ChevronDown,
   FileText,
   Link as LinkIcon,
   Loader2,
   Settings,
   Sparkles,
   X,
-  Zap,
 } from 'lucide-react';
 import type React from 'react';
 import { memo, useState } from 'react';
@@ -26,9 +24,13 @@ interface AdvancedOptionsPanelProps {
     minifyOutput: boolean;
     includeContext7Docs: boolean;
     context7Docs: Context7Doc[];
-    contextEnhancement: 'standard' | 'detailed' | 'concise';
-    includeFileMetadata: boolean;
-    includeProjectStructure: boolean;
+    // Smart Context Optimizer options
+    enableSmartOptimization: boolean;
+    maxTotalTokens: number;
+    prioritizeDocumentation: boolean;
+    includeStructureMap: boolean;
+    extractCodeSignatures: boolean;
+    adaptiveCompression: boolean;
   };
   onChange: (key: string, value: any) => void;
 }
@@ -116,40 +118,116 @@ const AdvancedOptionsPanel: React.FC<AdvancedOptionsPanelProps> = memo(
           {/* Template Selector */}
           <TemplateSelector onTemplateApply={handleTemplateApply} />
 
-          {/* Context Enhancement Level */}
-          <div className="p-4 rounded-lg bg-gradient-to-br from-sky-50 to-indigo-50 dark:from-sky-950/20 dark:to-indigo-950/20 ring-1 ring-sky-200 dark:ring-sky-800/50 space-y-3">
-            <div className="flex items-center">
-              <Zap className="w-4 h-4 mr-2 text-sky-600 dark:text-sky-400" />
-              <label className="text-sm font-semibold text-neutral-800 dark:text-neutral-100">
-                Context Detail Level
-              </label>
+          {/* Smart Context Optimizer */}
+          <div className="p-4 rounded-lg bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-950/20 dark:to-teal-950/20 ring-1 ring-emerald-200 dark:ring-emerald-800/50 space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center">
+                <Sparkles className="w-4 h-4 mr-2 text-emerald-600 dark:text-emerald-400" />
+                <label className="text-sm font-semibold text-neutral-800 dark:text-neutral-100">
+                  Smart Context Optimizer
+                </label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  id="enableSmartOptimization"
+                  checked={options.enableSmartOptimization}
+                  onChange={(e) => onChange('enableSmartOptimization', e.target.checked)}
+                  className={checkboxBaseClasses}
+                />
+                <label
+                  htmlFor="enableSmartOptimization"
+                  className="text-xs font-medium text-neutral-700 dark:text-neutral-200 cursor-pointer"
+                >
+                  {options.enableSmartOptimization ? '✅ Enabled' : 'Disabled'}
+                </label>
+              </div>
             </div>
-            <div className="relative">
-              <select
-                value={options.contextEnhancement}
-                onChange={(e) => onChange('contextEnhancement', e.target.value)}
-                className={`${inputBaseClasses} appearance-none pr-10 font-medium`}
-              >
-                <option value="concise">
-                  ⚡ Concise - Minimal context, faster processing
-                </option>
-                <option value="standard">
-                  ⭐ Standard - Balanced context and detail
-                </option>
-                <option value="detailed">
-                  🔬 Detailed - Maximum context and metadata
-                </option>
-              </select>
-              <ChevronDown className="w-4 h-4 text-neutral-400 dark:text-neutral-500 absolute right-3.5 top-1/2 -tranneutral-y-1/2 pointer-events-none" />
+
+            {options.enableSmartOptimization && (
+              <div className="space-y-3 pt-2">
+                <div className="space-y-2">
+                  <label className="text-xs font-medium text-neutral-700 dark:text-neutral-300">
+                    Max Token Budget: {options.maxTotalTokens.toLocaleString()}
+                  </label>
+                  <input
+                    type="range"
+                    min="10000"
+                    max="200000"
+                    step="10000"
+                    value={options.maxTotalTokens}
+                    onChange={(e) => onChange('maxTotalTokens', parseInt(e.target.value))}
+                    className="w-full h-2 bg-neutral-200 dark:bg-neutral-700 rounded-lg appearance-none cursor-pointer accent-emerald-600"
+                  />
+                  <div className="flex justify-between text-xs text-neutral-500 dark:text-neutral-400">
+                    <span>10k</span>
+                    <span>200k</span>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 gap-2 pl-1">
+                  <div className="flex items-center">
+                    <input
+                      type="checkbox"
+                      id="prioritizeDocumentation"
+                      checked={options.prioritizeDocumentation}
+                      onChange={(e) => onChange('prioritizeDocumentation', e.target.checked)}
+                      className={checkboxBaseClasses}
+                    />
+                    <label htmlFor="prioritizeDocumentation" className={`ml-2.5 ${labelBaseClasses} text-xs`}>
+                      📚 Prioritize documentation files
+                    </label>
+                  </div>
+
+                  <div className="flex items-center">
+                    <input
+                      type="checkbox"
+                      id="includeStructureMap"
+                      checked={options.includeStructureMap}
+                      onChange={(e) => onChange('includeStructureMap', e.target.checked)}
+                      className={checkboxBaseClasses}
+                    />
+                    <label htmlFor="includeStructureMap" className={`ml-2.5 ${labelBaseClasses} text-xs`}>
+                      🗺️ Generate project structure map
+                    </label>
+                  </div>
+
+                  <div className="flex items-center">
+                    <input
+                      type="checkbox"
+                      id="extractCodeSignatures"
+                      checked={options.extractCodeSignatures}
+                      onChange={(e) => onChange('extractCodeSignatures', e.target.checked)}
+                      className={checkboxBaseClasses}
+                    />
+                    <label htmlFor="extractCodeSignatures" className={`ml-2.5 ${labelBaseClasses} text-xs`}>
+                      🔍 Extract code signatures & types
+                    </label>
+                  </div>
+
+                  <div className="flex items-center">
+                    <input
+                      type="checkbox"
+                      id="adaptiveCompression"
+                      checked={options.adaptiveCompression}
+                      onChange={(e) => onChange('adaptiveCompression', e.target.checked)}
+                      className={checkboxBaseClasses}
+                    />
+                    <label htmlFor="adaptiveCompression" className={`ml-2.5 ${labelBaseClasses} text-xs`}>
+                      ⚡ Adaptive compression & summarization
+                    </label>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <div className="pt-2 border-t border-emerald-200 dark:border-emerald-800">
+              <p className="text-xs text-neutral-600 dark:text-neutral-400">
+                {options.enableSmartOptimization
+                  ? '🧠 AI analyzes each file and optimizes context intelligently based on type, role, and relevance'
+                  : '💡 Enable to automatically optimize context with file-aware intelligence'}
+              </p>
             </div>
-            <p className="text-xs text-neutral-600 dark:text-neutral-400">
-              {options.contextEnhancement === 'concise' &&
-                '💡 Best for quick queries and simple tasks'}
-              {options.contextEnhancement === 'standard' &&
-                '💡 Recommended for most use cases'}
-              {options.contextEnhancement === 'detailed' &&
-                '💡 Best for complex analysis and comprehensive reviews'}
-            </p>
           </div>
 
           {/* Context7 Documentation Import */}
@@ -307,49 +385,13 @@ const AdvancedOptionsPanel: React.FC<AdvancedOptionsPanelProps> = memo(
             )}
           </div>
 
-          {/* Advanced Options */}
+          {/* Basic Transformations */}
           <div className="space-y-2.5 p-4 rounded-lg bg-neutral-50 dark:bg-neutral-800/40 ring-1 ring-neutral-200 dark:ring-neutral-700/50">
             <h3 className="text-sm font-semibold text-neutral-800 dark:text-neutral-100 flex items-center mb-2">
               <Settings className="w-4 h-4 mr-2 text-neutral-500 dark:text-neutral-400" />
-              Advanced Settings
+              Basic Transformations
             </h3>
             <div className="pl-1 space-y-2.5">
-              <div className="flex items-center">
-                <input
-                  type="checkbox"
-                  id="includeFileMetadata"
-                  checked={options.includeFileMetadata}
-                  onChange={(e) =>
-                    onChange('includeFileMetadata', e.target.checked)
-                  }
-                  className={checkboxBaseClasses}
-                />
-                <label
-                  htmlFor="includeFileMetadata"
-                  className={`ml-2.5 ${labelBaseClasses}`}
-                >
-                  Include file metadata (size, lines, dates)
-                </label>
-              </div>
-
-              <div className="flex items-center">
-                <input
-                  type="checkbox"
-                  id="includeProjectStructure"
-                  checked={options.includeProjectStructure}
-                  onChange={(e) =>
-                    onChange('includeProjectStructure', e.target.checked)
-                  }
-                  className={checkboxBaseClasses}
-                />
-                <label
-                  htmlFor="includeProjectStructure"
-                  className={`ml-2.5 ${labelBaseClasses}`}
-                >
-                  Include project structure overview
-                </label>
-              </div>
-
               <div className="flex items-center">
                 <input
                   type="checkbox"
@@ -382,19 +424,22 @@ const AdvancedOptionsPanel: React.FC<AdvancedOptionsPanelProps> = memo(
                 </label>
               </div>
             </div>
+            <p className="text-xs text-neutral-500 dark:text-neutral-400 pt-1">
+              ⚠️ These apply before Smart Optimization (if enabled)
+            </p>
           </div>
 
           {/* Tips */}
           <div className="text-xs text-neutral-500 dark:text-neutral-400 space-y-1 bg-blue-50 dark:bg-blue-950/20 p-3 rounded-lg">
             <p className="font-semibold text-blue-700 dark:text-blue-400">
-              💡 Context Engineering Tips:
+              💡 Smart Optimization Tips:
             </p>
             <ul className="space-y-1 pl-4 list-disc">
               <li>Use templates as a starting point for common tasks</li>
               <li>Add Context7 docs to provide framework/library references</li>
-              <li>Choose detail level based on complexity of your task</li>
-              <li>Enable metadata for architectural analysis</li>
-              <li>Minify code only when token count is critical</li>
+              <li>Enable Smart Optimizer for intelligent, file-aware context</li>
+              <li>Adjust token budget based on your AI model's capacity</li>
+              <li>Use adaptive compression for large codebases</li>
             </ul>
           </div>
         </div>
