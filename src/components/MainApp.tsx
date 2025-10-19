@@ -3,6 +3,11 @@ import type React from 'react';
 import { useCallback, useEffect, useState } from 'react';
 import { useTheme } from '../context/ThemeContext';
 import { type Context7Doc, Context7Service } from '../services/context7Service';
+import {
+  SmartContextService,
+  type FileAnalysis,
+  type SmartContextOptions,
+} from '../services/smartContextService';
 import type { GitHubFile, GitHubRepoInfo } from '../services/githubService';
 import AdvancedOptionsPanel from './AdvancedOptionsPanel';
 import FileSelector from './FileSelector';
@@ -48,9 +53,13 @@ const MainApp: React.FC = () => {
     minifyOutput: false,
     includeContext7Docs: false,
     context7Docs: [] as Context7Doc[],
-    contextEnhancement: 'standard' as 'standard' | 'detailed' | 'concise',
-    includeFileMetadata: true,
-    includeProjectStructure: true,
+    // Smart Context Optimizer options
+    enableSmartOptimization: true,
+    maxTotalTokens: 100000,
+    prioritizeDocumentation: true,
+    includeStructureMap: true,
+    extractCodeSignatures: true,
+    adaptiveCompression: true,
   });
 
   useEffect(() => {
@@ -139,7 +148,7 @@ const MainApp: React.FC = () => {
     try {
       let outputText = '';
 
-      // Add preamble based on context enhancement level
+      // Add preamble
       if (options.includePreamble && options.preambleText.trim()) {
         outputText += options.preambleText.trim() + '\n\n';
       }
@@ -164,97 +173,149 @@ const MainApp: React.FC = () => {
           ? `${githubRepoInfo.owner}/${githubRepoInfo.repo}`
           : 'Project';
 
-      // Add project structure based on context enhancement level
-      if (options.includeProjectStructure) {
-        outputText += '# Project Overview\n';
-        outputText += `**Project:** ${projectName}\n`;
+      // Add basic project info
+      outputText += '# Project Overview\n';
+      outputText += `**Project:** ${projectName}\n`;
+      outputText += `**Total Size:** ${(totalSize / 1024).toFixed(2)} KB\n`;
+      outputText += `**Total Lines:** ${totalLines.toLocaleString()}\n`;
+      outputText += `**Files Selected:** ${selectedFiles.size}\n`;
 
-        if (options.includeFileMetadata) {
-          outputText += `**Total Size:** ${(totalSize / 1024).toFixed(2)} KB\n`;
-          outputText += `**Total Lines:** ${totalLines.toLocaleString()}\n`;
-          outputText += `**Files Included:** ${selectedFiles.size}\n`;
-        }
-
-        if (options.contextEnhancement === 'detailed') {
-          outputText += '\n## File Structure\n';
-          const sortedFiles = Array.from(selectedFiles).sort();
-          sortedFiles.forEach((filePath) => {
-            const file = folderHandle
-              ? fileHandles.find((f) => f.path === filePath)
-              : githubFiles.find((f) => f.path === filePath);
-            if (file && options.includeFileMetadata) {
-              outputText += `- ${filePath} (${(file.size / 1024).toFixed(2)} KB, ${file.lines} lines)\n`;
-            } else {
-              outputText += `- ${filePath}\n`;
-            }
-          });
-        }
-        outputText += '\n';
+      if (options.enableSmartOptimization) {
+        outputText += `**Smart Optimization:** ✅ Enabled\n`;
       }
+      outputText += '\n';
 
-      // Add file contents
-      const separator =
-        options.contextEnhancement === 'concise'
-          ? '\n---\n'
-          : '\n═══════════════════════════════════════\n';
+      // Collect and analyze all files
+      const fileAnalyses: FileAnalysis[] = [];
+      const fileContents = new Map<string, string>();
 
       for (const filePath of selectedFiles) {
         let content = '';
+        let metadata = { size: 0, lines: 0 };
 
         if (folderHandle) {
-          // Local file
           const fileHandle = fileHandles.find((f) => f.path === filePath);
           if (fileHandle) {
             const file = await fileHandle.handle.getFile();
             content = await file.text();
+            metadata = { size: fileHandle.size, lines: fileHandle.lines };
           }
         } else {
-          // GitHub file
           const githubFile = githubFiles.find((f) => f.path === filePath);
           if (githubFile && githubFile.file.download_url) {
             content = await fetch(githubFile.file.download_url).then((r) =>
               r.text(),
             );
+            metadata = { size: githubFile.size, lines: githubFile.lines };
           }
         }
 
         if (content) {
-          // Apply transformations if options are set
+          // Apply basic transformations
           if (options.removeComments) {
-            // Remove single-line comments
             content = content.replace(/\/\/.*$/gm, '');
-            // Remove multi-line comments
             content = content.replace(/\/\*[\s\S]*?\*\//g, '');
           }
 
           if (options.minifyOutput) {
-            // Simple minification: remove extra whitespace and newlines
             content = content.replace(/\s+/g, ' ').trim();
           }
 
-          // Format based on context enhancement level
-          if (options.contextEnhancement === 'detailed') {
-            const file = folderHandle
-              ? fileHandles.find((f) => f.path === filePath)
-              : githubFiles.find((f) => f.path === filePath);
-            outputText += `${separator}`;
-            outputText += `FILE: ${filePath}\n`;
-            if (file && options.includeFileMetadata) {
-              outputText += `Size: ${(file.size / 1024).toFixed(2)} KB | Lines: ${file.lines}\n`;
-            }
-            outputText += `${separator}\n${content}\n`;
-          } else if (options.contextEnhancement === 'concise') {
-            outputText += `${separator}${filePath}\n${content}\n`;
-          } else {
-            // Standard
-            outputText += `${separator}${filePath}${separator}\n${content}\n`;
+          fileContents.set(filePath, content);
+
+          // Analyze file with Smart Context Service
+          if (options.enableSmartOptimization) {
+            const analysis = SmartContextService.analyzeFile(
+              filePath,
+              content,
+              metadata,
+            );
+            fileAnalyses.push(analysis);
           }
+        }
+      }
+
+      // Generate structure map if enabled
+      if (options.enableSmartOptimization && options.includeStructureMap && fileAnalyses.length > 0) {
+        outputText += SmartContextService.generateStructureMap(fileAnalyses);
+        outputText += '\n';
+      }
+
+      // Optimize context budget if enabled
+      let filesToInclude = Array.from(selectedFiles);
+      if (options.enableSmartOptimization && options.adaptiveCompression) {
+        const smartOptions: SmartContextOptions = {
+          maxTotalTokens: options.maxTotalTokens,
+          prioritizeDocumentation: options.prioritizeDocumentation,
+          includeStructureMap: options.includeStructureMap,
+          extractCodeSignatures: options.extractCodeSignatures,
+          adaptiveCompression: options.adaptiveCompression,
+        };
+
+        const optimizedAnalyses = SmartContextService.optimizeContextBudget(
+          fileAnalyses,
+          options.maxTotalTokens,
+          smartOptions,
+        );
+
+        if (optimizedAnalyses.length < fileAnalyses.length) {
+          outputText += `**⚡ Smart Optimization:** Included ${optimizedAnalyses.length} of ${fileAnalyses.length} files based on priority and token budget\n\n`;
+        }
+
+        filesToInclude = optimizedAnalyses.map((a) => a.path);
+      }
+
+      // Add file contents with smart formatting
+      outputText += '# File Contents\n\n';
+
+      for (const filePath of filesToInclude) {
+        const content = fileContents.get(filePath);
+        if (!content) continue;
+
+        if (options.enableSmartOptimization) {
+          const analysis = fileAnalyses.find((a) => a.path === filePath);
+          if (analysis) {
+            const smartOptions: SmartContextOptions = {
+              maxTotalTokens: options.maxTotalTokens,
+              prioritizeDocumentation: options.prioritizeDocumentation,
+              includeStructureMap: options.includeStructureMap,
+              extractCodeSignatures: options.extractCodeSignatures,
+              adaptiveCompression: options.adaptiveCompression,
+            };
+            const strategy = SmartContextService.determineStrategy(
+              analysis,
+              smartOptions,
+            );
+            outputText += SmartContextService.formatContent(
+              filePath,
+              content,
+              analysis,
+              strategy,
+            );
+          } else {
+            // Fallback to standard format
+            outputText += `\n═════════════════════════════════════════\n`;
+            outputText += `${filePath}\n`;
+            outputText += `═════════════════════════════════════════\n\n`;
+            outputText += content + '\n';
+          }
+        } else {
+          // Standard format without smart optimization
+          outputText += `\n═════════════════════════════════════════\n`;
+          outputText += `${filePath}\n`;
+          outputText += `═════════════════════════════════════════\n\n`;
+          outputText += content + '\n';
         }
       }
 
       setOutput(outputText);
       setShowOutput(true);
-      showMessage('Context generated successfully!', 'success');
+      showMessage(
+        options.enableSmartOptimization
+          ? '🎯 Smart context generated successfully!'
+          : 'Context generated successfully!',
+        'success',
+      );
     } catch (error) {
       showMessage(
         `Error generating context: ${error instanceof Error ? error.message : 'Unknown error'}`,
