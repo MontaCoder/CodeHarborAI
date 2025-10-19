@@ -44,6 +44,9 @@ CodeHarborAI is a modern, privacy-first web application that helps developers tr
 - **Real-time Statistics** - Track file count, size, and line count
 
 ### 🧠 Advanced Context Management
+- **Smart Context Optimizer** - AI-powered intelligent context generation with file-aware optimization
+- **Adaptive Token Management** - Automatic compression and summarization based on file importance
+- **File Intelligence** - Auto-detects file types, roles, and relevance scores
 - **Smart Token Tracking** - Real-time token count for GPT-4, Claude, and other models
 - **Comment Removal** - Strip comments to reduce context size and token usage
 - **File Filtering** - Intelligent filtering with customizable patterns
@@ -65,10 +68,16 @@ Pre-optimized prompts for common development tasks:
 - 🔄 **Migration** - Framework/library migration planning
 
 ### 🎯 Context Engineering
+- **Smart Context Optimizer** - AI-powered context intelligence system (NEW!)
+  - Automatic file analysis and role detection
+  - Adaptive formatting based on file type and importance
+  - Progressive summarization for large files
+  - Token budget management with priority queuing
+  - Cross-file dependency mapping
 - **Context7 Integration** - Import external documentation to enrich AI context
-- **3 Detail Levels** - Concise, Standard, or Detailed context formatting
-- **Smart File Prioritization** - Automatic prioritization of documentation and key files
-- **Metadata Options** - Include file sizes, line counts, and project structure
+- **Intelligent File Prioritization** - ML-based scoring of file relevance and importance
+- **Adaptive Compression** - Smart truncation at function/class boundaries
+- **Code Signature Extraction** - Auto-extract types, interfaces, and key functions
 - **Token Optimization** - Minification and comment stripping to maximize context efficiency
 
 ### 🎨 User Experience
@@ -157,11 +166,11 @@ yarn preview
    - Select individual files or use "Select All"
 
 5. **Configure Advanced Options (Optional)**
+   - **Smart Optimizer**: Enable AI-powered context intelligence
+   - **Token Budget**: Set maximum context size for your AI model
    - **Context7 Docs**: Add external documentation for framework references
-   - **Detail Level**: Choose Concise, Standard, or Detailed output
    - **Remove Comments**: Strip comments to reduce token usage
    - **Minify Code**: Compress code for maximum context efficiency
-   - **Include Metadata**: Add file sizes, line counts, and project structure
 
 6. **Generate AI Context**
    - Click "Generate AI Context" button
@@ -186,20 +195,34 @@ Add external documentation to enrich AI understanding:
 - Library references (Express, FastAPI)
 - API specifications (OpenAPI, GraphQL)
 
-#### Detail Levels
-- **Concise**: Minimal tokens, quick tasks (~50% reduction)
-- **Standard**: Balanced approach (recommended)
-- **Detailed**: Maximum context for complex analysis
+#### Smart Context Optimizer (NEW!)
+Intelligent, file-aware context optimization that automatically:
+- **Analyzes** each file's type, role, and importance
+- **Prioritizes** critical files (entry points, configs, docs)
+- **Adapts** formatting based on file characteristics
+- **Summarizes** large files while preserving key information
+- **Optimizes** token usage with progressive enhancement
+
+Configuration options:
+- **Token Budget**: Set max context size (10k-200k tokens)
+- **Documentation Priority**: Always include docs even if over budget
+- **Structure Map**: Generate intelligent project overview
+- **Code Signatures**: Extract types, interfaces, and exports
+- **Adaptive Compression**: Smart summarization for large codebases
 
 #### Preset Management
 - Save your file selections and configurations
 - Quickly switch between different project setups
 - Export/import presets for team collaboration
 
-#### Token Optimization
-- **Remove Comments**: Strip single-line and multi-line comments
-- **Minify Code**: Remove whitespace and optimize formatting
-- **Smart Truncation**: Automatically handle files exceeding token limits
+#### Smart Context Optimization
+- **File Type Detection**: Auto-identify source, config, docs, tests, etc.
+- **Role Analysis**: Detect entry points, services, components, utilities
+- **Relevance Scoring**: ML-based importance calculation
+- **Adaptive Formatting**: Different strategies per file type
+- **Token Budget Management**: Intelligent file selection within constraints
+- **Progressive Summarization**: Extract key elements from large files
+- **Structure Mapping**: Visual project overview with priority indicators
 
 ---
 
