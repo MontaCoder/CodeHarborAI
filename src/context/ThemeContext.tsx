@@ -1,5 +1,13 @@
 /* eslint-disable react-refresh/only-export-components */
-import React, { createContext, useContext, useEffect, useState, ReactNode, useMemo } from 'react';
+import type React from 'react';
+import {
+  createContext,
+  type ReactNode,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react';
 
 type Theme = 'light' | 'dark';
 
@@ -21,20 +29,23 @@ interface ThemeProviderProps {
 
 export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
   const [theme, setTheme] = useState<Theme>('light');
-  
+
   useEffect(() => {
     // Check for dark mode preference in localStorage or system preference
     const savedTheme = localStorage.getItem('theme');
 
     if (savedTheme === 'dark' || savedTheme === 'light') {
       setTheme(savedTheme);
-    } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+    } else if (
+      window.matchMedia &&
+      window.matchMedia('(prefers-color-scheme: dark)').matches
+    ) {
       setTheme('dark');
     } else {
       setTheme('light');
     }
   }, []);
-  
+
   useEffect(() => {
     // Apply theme to document
     if (theme === 'dark') {
@@ -42,19 +53,22 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
     } else {
       document.documentElement.classList.remove('dark');
     }
-    
+
     // Save preference to localStorage
     localStorage.setItem('theme', theme);
   }, [theme]);
-  
+
   const toggleTheme = () => {
-    setTheme(prevTheme => (prevTheme === 'dark' ? 'light' : 'dark'));
+    setTheme((prevTheme) => (prevTheme === 'dark' ? 'light' : 'dark'));
   };
-  
-  const contextValue = useMemo(() => ({
-    theme,
-    toggleTheme,
-  }), [theme]);
+
+  const contextValue = useMemo(
+    () => ({
+      theme,
+      toggleTheme,
+    }),
+    [theme],
+  );
 
   return (
     <ThemeContext.Provider value={contextValue}>

@@ -1,5 +1,6 @@
-import React, { useEffect, useState } from 'react';
-import { CheckCircle, AlertCircle, X } from 'lucide-react';
+import { AlertCircle, CheckCircle, X } from 'lucide-react';
+import type React from 'react';
+import { useEffect, useState } from 'react';
 
 interface MessageDisplayProps {
   message: string;
@@ -22,28 +23,34 @@ const MessageDisplay: React.FC<MessageDisplayProps> = ({ message, type }) => {
     }
   }, [message, type]); // Re-trigger on new message or type change
 
-  const baseClasses = "fixed top-5 left-1/2 transform -translate-x-1/2 z-[100] w-auto max-w-md px-5 py-3.5 rounded-xl shadow-2xl flex items-center space-x-3 transition-all duration-300 ease-out";
-  
+  const baseClasses =
+    'fixed top-5 left-1/2 transform -translate-x-1/2 z-[100] w-auto max-w-md px-5 py-3.5 rounded-xl shadow-2xl flex items-center space-x-3 transition-all duration-300 ease-out';
+
   let typeClasses = '';
   let IconComponent = AlertCircle;
 
   if (type === 'success') {
-    typeClasses = 'bg-emerald-500 border border-emerald-600/50 text-white dark:bg-emerald-600 dark:border-emerald-700/50';
+    typeClasses =
+      'bg-emerald-500 border border-emerald-600/50 text-white dark:bg-emerald-600 dark:border-emerald-700/50';
     IconComponent = CheckCircle;
-  } else { // error
-    typeClasses = 'bg-red-500 border border-red-600/50 text-white dark:bg-red-600 dark:border-red-700/50';
+  } else {
+    // error
+    typeClasses =
+      'bg-red-500 border border-red-600/50 text-white dark:bg-red-600 dark:border-red-700/50';
     IconComponent = AlertCircle;
   }
 
-  const animationClass = exiting ? 'opacity-0 -translate-y-full' : 'opacity-100 translate-y-0';
+  const animationClass = exiting
+    ? 'opacity-0 -translate-y-full'
+    : 'opacity-100 translate-y-0';
 
   if (!visible && !exiting) return null; // Don't render if not visible and not in process of exiting
   if (!message) return null; // Don't render if no message
 
   return (
-    <div 
+    <div
       role="alert"
-      aria-live={type === 'error' ? "assertive" : "polite"}
+      aria-live={type === 'error' ? 'assertive' : 'polite'}
       className={`${baseClasses} ${typeClasses} ${animationClass}`}
     >
       <IconComponent className="h-6 w-6 flex-shrink-0 opacity-90" />

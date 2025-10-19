@@ -9,7 +9,7 @@ export interface PrioritizedFile {
  * Higher priority = more important for AI context
  */
 export function prioritizeFiles(filePaths: string[]): PrioritizedFile[] {
-  const prioritized = filePaths.map(path => {
+  const prioritized = filePaths.map((path) => {
     const fileName = path.toLowerCase();
     let priority = 0;
     let category: PrioritizedFile['category'] = 'other';
@@ -149,7 +149,7 @@ export function prioritizeFiles(filePaths: string[]): PrioritizedFile[] {
     return {
       path,
       priority,
-      category
+      category,
     };
   });
 
@@ -160,14 +160,19 @@ export function prioritizeFiles(filePaths: string[]): PrioritizedFile[] {
 /**
  * Group files by category for better organization
  */
-export function groupFilesByCategory(files: PrioritizedFile[]): Record<string, PrioritizedFile[]> {
-  return files.reduce((acc, file) => {
-    if (!acc[file.category]) {
-      acc[file.category] = [];
-    }
-    acc[file.category].push(file);
-    return acc;
-  }, {} as Record<string, PrioritizedFile[]>);
+export function groupFilesByCategory(
+  files: PrioritizedFile[],
+): Record<string, PrioritizedFile[]> {
+  return files.reduce(
+    (acc, file) => {
+      if (!acc[file.category]) {
+        acc[file.category] = [];
+      }
+      acc[file.category].push(file);
+      return acc;
+    },
+    {} as Record<string, PrioritizedFile[]>,
+  );
 }
 
 /**
@@ -176,14 +181,14 @@ export function groupFilesByCategory(files: PrioritizedFile[]): Record<string, P
 export function filterFilesByPatterns(
   filePaths: string[],
   includePatterns?: string[],
-  excludePatterns?: string[]
+  excludePatterns?: string[],
 ): string[] {
   let filtered = [...filePaths];
 
   // Apply exclude patterns first
   if (excludePatterns && excludePatterns.length > 0) {
-    filtered = filtered.filter(path => {
-      return !excludePatterns.some(pattern => {
+    filtered = filtered.filter((path) => {
+      return !excludePatterns.some((pattern) => {
         const regex = new RegExp(pattern.replace(/\*/g, '.*'));
         return regex.test(path);
       });
@@ -192,8 +197,8 @@ export function filterFilesByPatterns(
 
   // Apply include patterns
   if (includePatterns && includePatterns.length > 0) {
-    filtered = filtered.filter(path => {
-      return includePatterns.some(pattern => {
+    filtered = filtered.filter((path) => {
+      return includePatterns.some((pattern) => {
         const regex = new RegExp(pattern.replace(/\*/g, '.*'));
         return regex.test(path);
       });
@@ -210,17 +215,21 @@ export function getSuggestedFiles(
   allFiles: string[],
   templatePriorities?: string[],
   includePatterns?: string[],
-  excludePatterns?: string[]
+  excludePatterns?: string[],
 ): string[] {
   // Filter by patterns first
-  let filtered = filterFilesByPatterns(allFiles, includePatterns, excludePatterns);
+  const filtered = filterFilesByPatterns(
+    allFiles,
+    includePatterns,
+    excludePatterns,
+  );
 
   // Prioritize files
   const prioritized = prioritizeFiles(filtered);
 
   // If template has specific priorities, boost those files
   if (templatePriorities && templatePriorities.length > 0) {
-    prioritized.forEach(file => {
+    prioritized.forEach((file) => {
       for (const pattern of templatePriorities) {
         if (file.path.includes(pattern)) {
           file.priority += 20;
@@ -231,6 +240,5 @@ export function getSuggestedFiles(
     prioritized.sort((a, b) => b.priority - a.priority);
   }
 
-  return prioritized.map(f => f.path);
+  return prioritized.map((f) => f.path);
 }
-
