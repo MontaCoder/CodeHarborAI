@@ -26,8 +26,8 @@ export class GitHubService {
     try {
       // Handle various GitHub URL formats
       const patterns = [
-        /github\.com\/([^\/]+)\/([^\/]+)(?:\/tree\/([^\/]+))?/,
-        /github\.com\/([^\/]+)\/([^\/]+)/
+        /github\.com\/([^/]+)\/([^/]+)(?:\/tree\/([^/]+))?/,
+        /github\.com\/([^/]+)\/([^/]+)/,
       ];
 
       for (const pattern of patterns) {
@@ -37,7 +37,7 @@ export class GitHubService {
           return {
             owner,
             repo,
-            branch: branch || 'main' // Default to main branch
+            branch: branch || 'main', // Default to main branch
           };
         }
       }
@@ -54,33 +54,39 @@ export class GitHubService {
   static async fetchRepositoryContents(
     owner: string,
     repo: string,
-    branch: string = 'main'
+    branch: string = 'main',
   ): Promise<GitHubFile[]> {
     try {
       // Check cache first
-      const cacheKey = `${this.CACHE_PREFIX}${owner}_${repo}_${branch}`;
-      const cached = this.getFromCache(cacheKey);
+      const cacheKey = `${GitHubService.CACHE_PREFIX}${owner}_${repo}_${branch}`;
+      const cached = GitHubService.getFromCache(cacheKey);
       if (cached) {
         console.log('Using cached repository data');
         return cached;
       }
 
       // Use Git Tree API for fast, single-request fetch
-      const treeUrl = `${this.API_BASE}/repos/${owner}/${repo}/git/trees/${branch}?recursive=1`;
+      const treeUrl = `${GitHubService.API_BASE}/repos/${owner}/${repo}/git/trees/${branch}?recursive=1`;
       const response = await fetch(treeUrl);
 
       if (!response.ok) {
         if (response.status === 404) {
-          throw new Error(`Repository or branch not found. Please check the URL and branch name.`);
+          throw new Error(
+            `Repository or branch not found. Please check the URL and branch name.`,
+          );
         } else if (response.status === 403) {
-          throw new Error(`API rate limit exceeded or access denied. Please try again later.`);
+          throw new Error(
+            `API rate limit exceeded or access denied. Please try again later.`,
+          );
         } else {
-          throw new Error(`Failed to fetch repository contents: ${response.status} ${response.statusText}`);
+          throw new Error(
+            `Failed to fetch repository contents: ${response.status} ${response.statusText}`,
+          );
         }
       }
 
       const data = await response.json();
-      
+
       // Transform tree items to GitHubFile format
       const files: GitHubFile[] = data.tree
         .filter((item: any) => item.type === 'blob') // Only files, not trees
@@ -91,16 +97,21 @@ export class GitHubService {
           size: item.size || 0,
           download_url: `https://raw.githubusercontent.com/${owner}/${repo}/${branch}/${item.path}`,
           url: item.url,
-          sha: item.sha
+          sha: item.sha,
         }));
 
       // Cache the results
-      this.saveToCache(cacheKey, files);
+      GitHubService.saveToCache(cacheKey, files);
 
       return files;
     } catch (error) {
-      console.error(`Error fetching repository contents for ${owner}/${repo}:`, error);
-      throw new Error(`Failed to fetch repository contents: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      console.error(
+        `Error fetching repository contents for ${owner}/${repo}:`,
+        error,
+      );
+      throw new Error(
+        `Failed to fetch repository contents: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
     }
   }
 
@@ -115,7 +126,7 @@ export class GitHubService {
       const { data, timestamp } = JSON.parse(cached);
       const now = Date.now();
 
-      if (now - timestamp > this.CACHE_EXPIRY) {
+      if (now - timestamp > GitHubService.CACHE_EXPIRY) {
         localStorage.removeItem(key);
         return null;
       }
@@ -130,7 +141,7 @@ export class GitHubService {
     try {
       const cacheData = {
         data,
-        timestamp: Date.now()
+        timestamp: Date.now(),
       };
       localStorage.setItem(key, JSON.stringify(cacheData));
     } catch (error) {
@@ -144,8 +155,8 @@ export class GitHubService {
   static clearCache(): void {
     try {
       const keys = Object.keys(localStorage);
-      keys.forEach(key => {
-        if (key.startsWith(this.CACHE_PREFIX)) {
+      keys.forEach((key) => {
+        if (key.startsWith(GitHubService.CACHE_PREFIX)) {
           localStorage.removeItem(key);
         }
       });
@@ -162,30 +173,41 @@ export class GitHubService {
       const response = await fetch(downloadUrl);
 
       if (!response.ok) {
-        throw new Error(`Failed to download file: ${response.status} ${response.statusText}`);
+        throw new Error(
+          `Failed to download file: ${response.status} ${response.statusText}`,
+        );
       }
 
       return await response.text();
     } catch (error) {
       console.error('Error downloading file content:', error);
-      throw new Error(`Failed to download file content: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(
+        `Failed to download file content: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
     }
   }
 
   /**
    * Get file size and line count for a GitHub file
    */
-  static async getFileSizeAndLines(file: GitHubFile): Promise<{ size: number; lines: number }> {
+  static async getFileSizeAndLines(
+    file: GitHubFile,
+  ): Promise<{ size: number; lines: number }> {
     if (!file.download_url) {
       return { size: file.size, lines: 0 };
     }
 
     try {
-      const content = await this.downloadFileContent(file.download_url);
+      const content = await GitHubService.downloadFileContent(
+        file.download_url,
+      );
       const lines = content.split('\n').length;
       return { size: file.size, lines };
     } catch (error) {
-      console.warn(`Failed to get content for ${file.path}, using basic size info:`, error);
+      console.warn(
+        `Failed to get content for ${file.path}, using basic size info:`,
+        error,
+      );
       return { size: file.size, lines: 0 };
     }
   }
@@ -197,7 +219,7 @@ export class GitHubService {
     files: GitHubFile[],
     processor: (file: GitHubFile) => Promise<T>,
     onProgress?: (current: number, total: number, currentFile: string) => void,
-    concurrency: number = 10
+    concurrency: number = 10,
   ): Promise<T[]> {
     const results: T[] = [];
     const total = files.length;
@@ -214,7 +236,7 @@ export class GitHubService {
             onProgress(completed, total, file.path);
           }
           return result;
-        })
+        }),
       );
       results.push(...batchResults);
     }
@@ -225,9 +247,14 @@ export class GitHubService {
   /**
    * Check if repository exists and get default branch
    */
-  static async getRepositoryInfo(owner: string, repo: string): Promise<{ defaultBranch: string; exists: boolean }> {
+  static async getRepositoryInfo(
+    owner: string,
+    repo: string,
+  ): Promise<{ defaultBranch: string; exists: boolean }> {
     try {
-      const response = await fetch(`${this.API_BASE}/repos/${owner}/${repo}`);
+      const response = await fetch(
+        `${GitHubService.API_BASE}/repos/${owner}/${repo}`,
+      );
 
       if (!response.ok) {
         return { defaultBranch: 'main', exists: false };
@@ -236,7 +263,7 @@ export class GitHubService {
       const data = await response.json();
       return {
         defaultBranch: data.default_branch || 'main',
-        exists: true
+        exists: true,
       };
     } catch (error) {
       console.error('Error checking repository info:', error);

@@ -10,18 +10,22 @@ export interface Context7Doc {
 }
 
 export class Context7Service {
-  private static readonly allowedHosts = ['context7.ai', 'context7.com', 'ctx7.dev'];
+  private static readonly allowedHosts = [
+    'context7.ai',
+    'context7.com',
+    'ctx7.dev',
+  ];
 
   /**
    * Parse Context7 URL to extract documentation ID
    */
   static parseContext7Url(url: string): string | null {
-    const parsed = this.tryParseUrl(url);
-    if (!parsed || !this.isAllowedHost(parsed.hostname)) {
+    const parsed = Context7Service.tryParseUrl(url);
+    if (!parsed || !Context7Service.isAllowedHost(parsed.hostname)) {
       return null;
     }
 
-    return this.extractDocId(parsed.pathname);
+    return Context7Service.extractDocId(parsed.pathname);
   }
 
   /**
@@ -30,30 +34,38 @@ export class Context7Service {
    */
   static async fetchDocumentation(url: string): Promise<Context7Doc> {
     try {
-      const docId = this.parseContext7Url(url);
+      const docId = Context7Service.parseContext7Url(url);
       if (!docId) {
         throw new Error('Invalid Context7 URL format');
       }
-      const candidates = this.buildRequestCandidates(url);
+      const candidates = Context7Service.buildRequestCandidates(url);
       let lastError: unknown;
 
       for (const requestUrl of candidates) {
         try {
           const response = await fetch(requestUrl);
           if (!response.ok) {
-            lastError = new Error(`Failed to fetch documentation: ${response.status}`);
+            lastError = new Error(
+              `Failed to fetch documentation: ${response.status}`,
+            );
             continue;
           }
 
-          const contentType = (response.headers.get('content-type') ?? '').toLowerCase();
+          const contentType = (
+            response.headers.get('content-type') ?? ''
+          ).toLowerCase();
           const body = await response.text();
 
-          const { title, content } = this.processResponse(body, contentType, docId);
+          const { title, content } = Context7Service.processResponse(
+            body,
+            contentType,
+            docId,
+          );
 
           return {
             title,
             content,
-            url
+            url,
           };
         } catch (error) {
           lastError = error;
@@ -63,10 +75,12 @@ export class Context7Service {
       throw new Error(
         `Failed to fetch Context7 documentation: ${
           lastError instanceof Error ? lastError.message : 'Unknown error'
-        }`
+        }`,
       );
     } catch (error) {
-      throw new Error(`Failed to fetch Context7 documentation: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(
+        `Failed to fetch Context7 documentation: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
     }
   }
 
@@ -77,20 +91,20 @@ export class Context7Service {
     // Remove script and style tags
     let text = html.replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '');
     text = text.replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '');
-    
+
     // Remove HTML tags
     text = text.replace(/<[^>]+>/g, ' ');
-    
+
     // Decode HTML entities
     text = text.replace(/&nbsp;/g, ' ');
     text = text.replace(/&amp;/g, '&');
     text = text.replace(/&lt;/g, '<');
     text = text.replace(/&gt;/g, '>');
     text = text.replace(/&quot;/g, '"');
-    
+
     // Clean up whitespace
     text = text.replace(/\s+/g, ' ').trim();
-    
+
     return text;
   }
 
@@ -112,12 +126,12 @@ ${doc.content}
    * Validate Context7 URL
    */
   static isValidUrl(url: string): boolean {
-    const parsed = this.tryParseUrl(url);
+    const parsed = Context7Service.tryParseUrl(url);
     if (!parsed) {
       return false;
     }
 
-    return this.isAllowedHost(parsed.hostname);
+    return Context7Service.isAllowedHost(parsed.hostname);
   }
 
   private static tryParseUrl(url: string): URL | null {
@@ -130,7 +144,9 @@ ${doc.content}
 
   private static isAllowedHost(hostname: string): boolean {
     const lowerHost = hostname.toLowerCase();
-    return this.allowedHosts.some(host => lowerHost === host || lowerHost.endsWith(`.${host}`));
+    return Context7Service.allowedHosts.some(
+      (host) => lowerHost === host || lowerHost.endsWith(`.${host}`),
+    );
   }
 
   private static extractDocId(pathname: string): string | null {
@@ -155,14 +171,18 @@ ${doc.content}
     return candidates;
   }
 
-  private static processResponse(body: string, contentType: string, fallbackTitle: string): { title: string; content: string } {
+  private static processResponse(
+    body: string,
+    contentType: string,
+    fallbackTitle: string,
+  ): { title: string; content: string } {
     let title = fallbackTitle;
     let content = body;
 
     if (contentType.includes('text/html')) {
       const titleMatch = body.match(/<title>(.*?)<\/title>/i);
       title = titleMatch ? titleMatch[1] : title;
-      content = this.extractTextFromHtml(body);
+      content = Context7Service.extractTextFromHtml(body);
     } else if (contentType.includes('application/json')) {
       try {
         const parsedJson = JSON.parse(body);
@@ -185,4 +205,3 @@ ${doc.content}
     return { title, content };
   }
 }
-

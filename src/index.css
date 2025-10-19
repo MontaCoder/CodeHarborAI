@@ -11,27 +11,27 @@
   --color-bg-secondary: #ffffff;
   --color-bg-tertiary: #f5f5f5;
   --color-bg-hover: #f0f0f0;
-  
+
   --color-surface-primary: #ffffff;
   --color-surface-secondary: #fafafa;
   --color-surface-elevated: #ffffff;
-  
+
   --color-border-light: #e5e5e5;
   --color-border-medium: #d4d4d4;
-  
+
   /* Dark theme - Rich, layered dark palette */
   --color-dark-bg-primary: #0a0a0a;
   --color-dark-bg-secondary: #171717;
   --color-dark-bg-tertiary: #0f0f0f;
   --color-dark-bg-hover: #262626;
-  
+
   --color-dark-surface-primary: #171717;
   --color-dark-surface-secondary: #1a1a1a;
   --color-dark-surface-elevated: #262626;
-  
+
   --color-dark-border-light: #262626;
   --color-dark-border-medium: #404040;
-  
+
   /* Accent colors */
   --color-accent-primary: #10b981;
   --color-accent-secondary: #0ea5e9;
@@ -41,12 +41,14 @@
 /* Base layer                                                                 */
 /* -------------------------------------------------------------------------- */
 @layer base {
-  html { @apply antialiased; }
-  body { 
-    @apply min-h-screen; 
+  html {
+    @apply antialiased;
+  }
+  body {
+    @apply min-h-screen;
     background-color: var(--color-bg-primary);
   }
-  
+
   .dark body {
     background-color: var(--color-dark-bg-primary);
   }
@@ -56,61 +58,102 @@
 /* Custom utilities                                                           */
 /* -------------------------------------------------------------------------- */
 @layer utilities {
-  .animate-fade-in   { animation: fadeIn 0.6s ease-out; }
-  .animate-fade-in-delay { animation: fadeIn 0.8s ease-out 0.2s backwards; }
-  .animate-fade-down { animation: fadeDown 0.3s ease-in-out; }
-  .animate-slide-in { animation: slideIn 0.5s ease-out backwards; }
-  .animate-gradient { 
+  .animate-fade-in {
+    animation: fadeIn 0.6s ease-out;
+  }
+  .animate-fade-in-delay {
+    animation: fadeIn 0.8s ease-out 0.2s backwards;
+  }
+  .animate-fade-down {
+    animation: fadeDown 0.3s ease-in-out;
+  }
+  .animate-slide-in {
+    animation: slideIn 0.5s ease-out backwards;
+  }
+  .animate-gradient {
     background-size: 200% auto;
     animation: gradientShift 3s ease infinite;
   }
-  .animate-pulse-slow { animation: pulseSlow 3s ease-in-out infinite; }
-  .animate-bounce-slow { animation: bounceSlow 3s ease-in-out infinite; }
-  .animate-shimmer { animation: shimmer 2s ease-in-out infinite; }
+  .animate-pulse-slow {
+    animation: pulseSlow 3s ease-in-out infinite;
+  }
+  .animate-bounce-slow {
+    animation: bounceSlow 3s ease-in-out infinite;
+  }
+  .animate-shimmer {
+    animation: shimmer 2s ease-in-out infinite;
+  }
 
   @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to   { opacity: 1; transform: translateY(0); }
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
 
   @keyframes fadeDown {
-    from { opacity: 0; transform: translate(-50%, -20px); }
-    to   { opacity: 1; transform: translate(-50%, 0); }
+    from {
+      opacity: 0;
+      transform: translate(-50%, -20px);
+    }
+    to {
+      opacity: 1;
+      transform: translate(-50%, 0);
+    }
   }
 
   @keyframes slideIn {
-    from { 
-      opacity: 0; 
+    from {
+      opacity: 0;
       transform: translateX(-20px);
     }
-    to   { 
-      opacity: 1; 
+    to {
+      opacity: 1;
       transform: translateX(0);
     }
   }
 
   @keyframes gradientShift {
-    0%, 100% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
+    0%,
+    100% {
+      background-position: 0% 50%;
+    }
+    50% {
+      background-position: 100% 50%;
+    }
   }
 
   @keyframes pulseSlow {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.5; }
+    0%,
+    100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.5;
+    }
   }
 
   @keyframes bounceSlow {
-    0%, 100% { 
+    0%,
+    100% {
       transform: translateY(0);
     }
-    50% { 
+    50% {
       transform: translateY(-10px);
     }
   }
 
   @keyframes shimmer {
-    0% { transform: translateX(-100%); }
-    100% { transform: translateX(100%); }
+    0% {
+      transform: translateX(-100%);
+    }
+    100% {
+      transform: translateX(100%);
+    }
   }
 }
 
@@ -135,12 +178,12 @@
 /* -------------------------------------------------------------------------- */
 /* Checkbox                                                                   */
 /* -------------------------------------------------------------------------- */
-input[type='checkbox'] {
+input[type="checkbox"] {
   @apply rounded border-neutral-300 text-emerald-500 shadow-sm
          focus:border-emerald-300 focus:ring focus:ring-offset-0
          focus:ring-emerald-200/50;
 }
 
-.dark input[type='checkbox'] {
+.dark input[type="checkbox"] {
   @apply border-neutral-700 bg-neutral-800;
 }
