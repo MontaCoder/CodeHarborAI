@@ -11,7 +11,7 @@ import {
   Zap,
 } from 'lucide-react';
 import type React from 'react';
-import { memo, useId, useState } from 'react';
+import { memo, useState } from 'react';
 import { type Context7Doc, Context7Service } from '../services/context7Service';
 import TemplateSelector from './TemplateSelector';
 import Button from './ui/Button';
@@ -26,7 +26,7 @@ interface AdvancedOptionsPanelProps {
     minifyOutput: boolean;
     includeContext7Docs: boolean;
     context7Docs: Context7Doc[];
-    performanceProfile: 'throughput' | 'balanced' | 'deep_analysis';
+    contextEnhancement: 'standard' | 'detailed' | 'concise';
     includeFileMetadata: boolean;
     includeProjectStructure: boolean;
   };
@@ -38,12 +38,6 @@ const AdvancedOptionsPanel: React.FC<AdvancedOptionsPanelProps> = memo(
     const [context7Url, setContext7Url] = useState('');
     const [isLoadingDoc, setIsLoadingDoc] = useState(false);
     const [docError, setDocError] = useState('');
-    const includePreambleId = useId();
-    const includeGoalId = useId();
-    const includeFileMetadataId = useId();
-    const includeProjectStructureId = useId();
-    const removeCommentsId = useId();
-    const minifyOutputId = useId();
 
     const handleTemplateApply = (templateData: {
       preambleText: string;
@@ -122,39 +116,39 @@ const AdvancedOptionsPanel: React.FC<AdvancedOptionsPanelProps> = memo(
           {/* Template Selector */}
           <TemplateSelector onTemplateApply={handleTemplateApply} />
 
-          {/* Performance Profile */}
+          {/* Context Enhancement Level */}
           <div className="p-4 rounded-lg bg-gradient-to-br from-sky-50 to-indigo-50 dark:from-sky-950/20 dark:to-indigo-950/20 ring-1 ring-sky-200 dark:ring-sky-800/50 space-y-3">
             <div className="flex items-center">
               <Zap className="w-4 h-4 mr-2 text-sky-600 dark:text-sky-400" />
               <label className="text-sm font-semibold text-neutral-800 dark:text-neutral-100">
-                Performance Profile
+                Context Detail Level
               </label>
             </div>
             <div className="relative">
               <select
-                value={options.performanceProfile}
-                onChange={(e) => onChange('performanceProfile', e.target.value)}
+                value={options.contextEnhancement}
+                onChange={(e) => onChange('contextEnhancement', e.target.value)}
                 className={`${inputBaseClasses} appearance-none pr-10 font-medium`}
               >
-                <option value="throughput">
-                  🚀 High Throughput – squeeze tokens for maximum speed
+                <option value="concise">
+                  ⚡ Concise - Minimal context, faster processing
                 </option>
-                <option value="balanced">
-                  ⚖️ Balanced Delivery – smart blend of fidelity and speed
+                <option value="standard">
+                  ⭐ Standard - Balanced context and detail
                 </option>
-                <option value="deep_analysis">
-                  🔍 Deep Analysis – preserve full structure for audits
+                <option value="detailed">
+                  🔬 Detailed - Maximum context and metadata
                 </option>
               </select>
-              <ChevronDown className="w-4 h-4 text-neutral-400 dark:text-neutral-500 absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+              <ChevronDown className="w-4 h-4 text-neutral-400 dark:text-neutral-500 absolute right-3.5 top-1/2 -tranneutral-y-1/2 pointer-events-none" />
             </div>
             <p className="text-xs text-neutral-600 dark:text-neutral-400">
-              {options.performanceProfile === 'throughput' &&
-                '💡 Use when latency and token budgets are critical.'}
-              {options.performanceProfile === 'balanced' &&
-                '💡 Recommended default: keeps useful cues without bloating output.'}
-              {options.performanceProfile === 'deep_analysis' &&
-                '💡 Ideal for code reviews and deep debugging sessions.'}
+              {options.contextEnhancement === 'concise' &&
+                '💡 Best for quick queries and simple tasks'}
+              {options.contextEnhancement === 'standard' &&
+                '💡 Recommended for most use cases'}
+              {options.contextEnhancement === 'detailed' &&
+                '💡 Best for complex analysis and comprehensive reviews'}
             </p>
           </div>
 
@@ -175,7 +169,7 @@ const AdvancedOptionsPanel: React.FC<AdvancedOptionsPanelProps> = memo(
             <div className="space-y-2">
               <div className="flex gap-2">
                 <div className="relative flex-1">
-                  <LinkIcon className="w-4 h-4 text-neutral-400 dark:text-neutral-500 absolute left-3 top-1/2 -translate-y-1/2" />
+                  <LinkIcon className="w-4 h-4 text-neutral-400 dark:text-neutral-500 absolute left-3 top-1/2 -tranneutral-y-1/2" />
                   <input
                     type="url"
                     placeholder="https://context7.ai/docs/..."
@@ -256,13 +250,13 @@ const AdvancedOptionsPanel: React.FC<AdvancedOptionsPanelProps> = memo(
             <div className="flex items-center">
               <input
                 type="checkbox"
-                id={includePreambleId}
+                id="includePreamble"
                 checked={options.includePreamble}
                 onChange={(e) => onChange('includePreamble', e.target.checked)}
                 className={checkboxBaseClasses}
               />
               <label
-                htmlFor={includePreambleId}
+                htmlFor="includePreamble"
                 className={`ml-2.5 ${labelBaseClasses}`}
               >
                 Custom Preamble
@@ -287,13 +281,13 @@ const AdvancedOptionsPanel: React.FC<AdvancedOptionsPanelProps> = memo(
             <div className="flex items-center">
               <input
                 type="checkbox"
-                id={includeGoalId}
+                id="includeGoal"
                 checked={options.includeGoal}
                 onChange={(e) => onChange('includeGoal', e.target.checked)}
                 className={checkboxBaseClasses}
               />
               <label
-                htmlFor={includeGoalId}
+                htmlFor="includeGoal"
                 className={`ml-2.5 ${labelBaseClasses}`}
               >
                 Specific Task/Goal
@@ -323,7 +317,7 @@ const AdvancedOptionsPanel: React.FC<AdvancedOptionsPanelProps> = memo(
               <div className="flex items-center">
                 <input
                   type="checkbox"
-                  id={includeFileMetadataId}
+                  id="includeFileMetadata"
                   checked={options.includeFileMetadata}
                   onChange={(e) =>
                     onChange('includeFileMetadata', e.target.checked)
@@ -331,7 +325,7 @@ const AdvancedOptionsPanel: React.FC<AdvancedOptionsPanelProps> = memo(
                   className={checkboxBaseClasses}
                 />
                 <label
-                  htmlFor={includeFileMetadataId}
+                  htmlFor="includeFileMetadata"
                   className={`ml-2.5 ${labelBaseClasses}`}
                 >
                   Include file metadata (size, lines, dates)
@@ -341,7 +335,7 @@ const AdvancedOptionsPanel: React.FC<AdvancedOptionsPanelProps> = memo(
               <div className="flex items-center">
                 <input
                   type="checkbox"
-                  id={includeProjectStructureId}
+                  id="includeProjectStructure"
                   checked={options.includeProjectStructure}
                   onChange={(e) =>
                     onChange('includeProjectStructure', e.target.checked)
@@ -349,7 +343,7 @@ const AdvancedOptionsPanel: React.FC<AdvancedOptionsPanelProps> = memo(
                   className={checkboxBaseClasses}
                 />
                 <label
-                  htmlFor={includeProjectStructureId}
+                  htmlFor="includeProjectStructure"
                   className={`ml-2.5 ${labelBaseClasses}`}
                 >
                   Include project structure overview
@@ -359,13 +353,13 @@ const AdvancedOptionsPanel: React.FC<AdvancedOptionsPanelProps> = memo(
               <div className="flex items-center">
                 <input
                   type="checkbox"
-                  id={removeCommentsId}
+                  id="removeComments"
                   checked={options.removeComments}
                   onChange={(e) => onChange('removeComments', e.target.checked)}
                   className={checkboxBaseClasses}
                 />
                 <label
-                  htmlFor={removeCommentsId}
+                  htmlFor="removeComments"
                   className={`ml-2.5 ${labelBaseClasses}`}
                 >
                   Strip code comments (reduce tokens)
@@ -375,13 +369,13 @@ const AdvancedOptionsPanel: React.FC<AdvancedOptionsPanelProps> = memo(
               <div className="flex items-center">
                 <input
                   type="checkbox"
-                  id={minifyOutputId}
+                  id="minifyOutput"
                   checked={options.minifyOutput}
                   onChange={(e) => onChange('minifyOutput', e.target.checked)}
                   className={checkboxBaseClasses}
                 />
                 <label
-                  htmlFor={minifyOutputId}
+                  htmlFor="minifyOutput"
                   className={`ml-2.5 ${labelBaseClasses}`}
                 >
                   Minify code (reduce tokens significantly)
