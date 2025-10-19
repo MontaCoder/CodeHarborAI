@@ -1,8 +1,8 @@
 import { useState } from 'react';
-import { ThemeProvider } from './context/ThemeContext';
+import Footer from './components/Footer';
 import LandingPage from './components/LandingPage';
 import MainApp from './components/MainApp';
-import Footer from './components/Footer';
+import { ThemeProvider } from './context/ThemeContext';
 
 function App() {
   const [showApp, setShowApp] = useState(false);
