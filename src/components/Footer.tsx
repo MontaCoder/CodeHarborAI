@@ -1,5 +1,5 @@
-import React from 'react';
-import { Github, Twitter, Linkedin, Mail, Code2, Heart } from 'lucide-react';
+import { Code2, Github, Heart, Linkedin, Mail, Twitter } from 'lucide-react';
+import type React from 'react';
 
 const Footer: React.FC = () => {
   return (
@@ -9,11 +9,19 @@ const Footer: React.FC = () => {
           {/* Brand Section */}
           <div className="col-span-1 md:col-span-2">
             <div className="flex items-center space-x-3 mb-4">
-              <img src="/codeharborai_logo.svg" alt="CodeHarborAI Logo" className="h-10 w-10" />
-              <h3 className="text-xl font-bold text-neutral-900 dark:text-white">CodeHarborAI</h3>
+              <img
+                src="/codeharborai_logo.svg"
+                alt="CodeHarborAI Logo"
+                className="h-10 w-10"
+              />
+              <h3 className="text-xl font-bold text-neutral-900 dark:text-white">
+                CodeHarborAI
+              </h3>
             </div>
             <p className="text-neutral-600 dark:text-neutral-400 text-sm leading-relaxed max-w-md mb-4">
-              Transform your codebase into AI-ready context. Securely process files locally, optimize for any AI model, and streamline your development workflow.
+              Transform your codebase into AI-ready context. Securely process
+              files locally, optimize for any AI model, and streamline your
+              development workflow.
             </p>
             <div className="flex items-center space-x-2 text-sm text-neutral-600 dark:text-neutral-400">
               <span>Made with</span>
@@ -24,11 +32,13 @@ const Footer: React.FC = () => {
 
           {/* Quick Links */}
           <div>
-            <h4 className="font-semibold text-neutral-900 dark:text-white mb-4">Quick Links</h4>
+            <h4 className="font-semibold text-neutral-900 dark:text-white mb-4">
+              Quick Links
+            </h4>
             <ul className="space-y-2.5 text-sm">
               <li>
-                <a 
-                  href="#features" 
+                <a
+                  href="#features"
                   className="text-neutral-600 dark:text-neutral-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors inline-flex items-center group"
                 >
                   <Code2 className="h-3.5 w-3.5 mr-1.5 opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -36,8 +46,8 @@ const Footer: React.FC = () => {
                 </a>
               </li>
               <li>
-                <a 
-                  href="#documentation" 
+                <a
+                  href="#documentation"
                   className="text-neutral-600 dark:text-neutral-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors inline-flex items-center group"
                 >
                   <Code2 className="h-3.5 w-3.5 mr-1.5 opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -45,10 +55,10 @@ const Footer: React.FC = () => {
                 </a>
               </li>
               <li>
-                <a 
-                  href="https://github.com/MontaCoder" 
-                  target="_blank" 
-                  rel="noopener noreferrer" 
+                <a
+                  href="https://github.com/MontaCoder"
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="text-neutral-600 dark:text-neutral-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors inline-flex items-center group"
                 >
                   <Code2 className="h-3.5 w-3.5 mr-1.5 opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -56,8 +66,8 @@ const Footer: React.FC = () => {
                 </a>
               </li>
               <li>
-                <a 
-                  href="#changelog" 
+                <a
+                  href="#changelog"
                   className="text-neutral-600 dark:text-neutral-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors inline-flex items-center group"
                 >
                   <Code2 className="h-3.5 w-3.5 mr-1.5 opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -69,11 +79,13 @@ const Footer: React.FC = () => {
 
           {/* Connect Section */}
           <div>
-            <h4 className="font-semibold text-neutral-900 dark:text-white mb-4">Connect</h4>
+            <h4 className="font-semibold text-neutral-900 dark:text-white mb-4">
+              Connect
+            </h4>
             <div className="flex flex-col space-y-3">
-              <a 
-                href="https://github.com/MontaCoder" 
-                target="_blank" 
+              <a
+                href="https://github.com/MontaCoder"
+                target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center space-x-2 text-neutral-600 dark:text-neutral-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors group"
               >
@@ -82,9 +94,9 @@ const Footer: React.FC = () => {
                 </div>
                 <span className="text-sm font-medium">GitHub</span>
               </a>
-              <a 
-                href="" 
-                target="_blank" 
+              <a
+                href=""
+                target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center space-x-2 text-neutral-600 dark:text-neutral-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors group"
               >
@@ -93,9 +105,9 @@ const Footer: React.FC = () => {
                 </div>
                 <span className="text-sm font-medium">Twitter</span>
               </a>
-              <a 
-                href="https://github.com/MontaCoder" 
-                target="_blank" 
+              <a
+                href="https://github.com/MontaCoder"
+                target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center space-x-2 text-neutral-600 dark:text-neutral-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors group"
               >
@@ -104,8 +116,8 @@ const Footer: React.FC = () => {
                 </div>
                 <span className="text-sm font-medium">LinkedIn</span>
               </a>
-              <a 
-                href="mailto:github.com/MontaCoder" 
+              <a
+                href="mailto:github.com/MontaCoder"
                 className="inline-flex items-center space-x-2 text-neutral-600 dark:text-neutral-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors group"
               >
                 <div className="p-2 rounded-lg bg-neutral-100 dark:bg-neutral-800 group-hover:bg-emerald-50 dark:group-hover:bg-emerald-500/10 transition-colors">
@@ -121,25 +133,28 @@ const Footer: React.FC = () => {
         <div className="pt-8 border-t border-neutral-200 dark:border-neutral-800">
           <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
             <div className="text-sm text-neutral-500 dark:text-neutral-400">
-              <p>&copy; {new Date().getFullYear()} Montassar Hajri. All rights reserved.</p>
+              <p>
+                &copy; {new Date().getFullYear()} Montassar Hajri. All rights
+                reserved.
+              </p>
             </div>
             <div className="flex items-center space-x-6 text-xs text-neutral-500 dark:text-neutral-400">
-              <a 
-                href="#privacy" 
+              <a
+                href="#privacy"
                 className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors"
               >
                 Privacy Policy
               </a>
               <span className="text-neutral-300 dark:text-neutral-700">•</span>
-              <a 
-                href="#terms" 
+              <a
+                href="#terms"
                 className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors"
               >
                 Terms of Service
               </a>
               <span className="text-neutral-300 dark:text-neutral-700">•</span>
-              <a 
-                href="#opensource" 
+              <a
+                href="#opensource"
                 className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors"
               >
                 Open Source

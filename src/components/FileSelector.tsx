@@ -1,16 +1,41 @@
-import React, { useState, useEffect, memo, useMemo } from 'react';
-import { FolderOpen, RefreshCw, Filter, X, CheckSquare, ChevronDown, Github, ArrowUpDown } from 'lucide-react';
-import Button from './ui/Button';
-import FileTree from './FileTree';
-import GitHubLoader from './GitHubLoader';
-import GitHubFileTree from './GitHubFileTree';
-import { GitHubFile, GitHubRepoInfo } from '../services/githubService';
+import {
+  ArrowUpDown,
+  CheckSquare,
+  ChevronDown,
+  Filter,
+  FolderOpen,
+  Github,
+  RefreshCw,
+  X,
+} from 'lucide-react';
+import type React from 'react';
+import { memo, useEffect, useMemo, useState } from 'react';
+import type { GitHubFile, GitHubRepoInfo } from '../services/githubService';
 import { prioritizeFiles } from '../utils/filePrioritization';
+import FileTree from './FileTree';
+import GitHubFileTree from './GitHubFileTree';
+import GitHubLoader from './GitHubLoader';
+import Button from './ui/Button';
 
 interface FileSelectorProps {
   onFolderSelected: (handle: FileSystemDirectoryHandle) => void;
-  onFilesSelected: (files: Array<{handle: FileSystemFileHandle, path: string, size: number, lines: number}>) => void;
-  onGitHubFilesSelected: (files: Array<{file: GitHubFile, path: string, size: number, lines: number}>, repoInfo: GitHubRepoInfo) => void;
+  onFilesSelected: (
+    files: Array<{
+      handle: FileSystemFileHandle;
+      path: string;
+      size: number;
+      lines: number;
+    }>,
+  ) => void;
+  onGitHubFilesSelected: (
+    files: Array<{
+      file: GitHubFile;
+      path: string;
+      size: number;
+      lines: number;
+    }>,
+    repoInfo: GitHubRepoInfo,
+  ) => void;
   onSelectFile: (path: string, selected: boolean) => void;
   onSelectAll: (paths: string[]) => void;
   selectedFiles: Set<string>;
@@ -24,50 +49,94 @@ const FileSelector: React.FC<FileSelectorProps> = ({
   onSelectFile,
   onSelectAll,
   selectedFiles,
-  isLoading
+  isLoading,
 }) => {
   const [sourceType, setSourceType] = useState<'local' | 'github'>('local');
-  const [folderHandle, setFolderHandle] = useState<FileSystemDirectoryHandle | null>(null);
+  const [folderHandle, setFolderHandle] =
+    useState<FileSystemDirectoryHandle | null>(null);
   const [filterText, setFilterText] = useState<string>('');
-  const [fileHandles, setFileHandles] = useState<Array<{handle: FileSystemFileHandle, path: string, size: number, lines: number}>>([]);
-  const [githubFiles, setGithubFiles] = useState<Array<{file: GitHubFile, path: string, size: number, lines: number}>>([]);
-  const [githubRepoInfo, setGithubRepoInfo] = useState<GitHubRepoInfo | null>(null);
+  const [fileHandles, setFileHandles] = useState<
+    Array<{
+      handle: FileSystemFileHandle;
+      path: string;
+      size: number;
+      lines: number;
+    }>
+  >([]);
+  const [githubFiles, setGithubFiles] = useState<
+    Array<{ file: GitHubFile; path: string; size: number; lines: number }>
+  >([]);
+  const [githubRepoInfo, setGithubRepoInfo] = useState<GitHubRepoInfo | null>(
+    null,
+  );
   const [gitignoreStatus, setGitignoreStatus] = useState<string>('');
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
   const [filteredPaths, setFilteredPaths] = useState<string[]>([]);
   const [githubError, setGithubError] = useState<string>('');
   const [isPrioritized, setIsPrioritized] = useState<boolean>(false);
-  
+
   const fileTypeFilters = {
-    'JavaScript': ['.js', '.mjs', '.cjs'],
-    'React': ['.jsx', '.tsx'],
-    'TypeScript': ['.ts', '.tsx'],
-    'JSON': ['.json'],
-    'Markdown': ['.md'],
-    'Python': ['.py'],
-    'Go': ['.go'],
-    'Java': ['.java'],
-    'Ruby': ['.rb'],
-    'PHP': ['.php'],
-    'Rust': ['.rs'],
+    JavaScript: ['.js', '.mjs', '.cjs'],
+    React: ['.jsx', '.tsx'],
+    TypeScript: ['.ts', '.tsx'],
+    JSON: ['.json'],
+    Markdown: ['.md'],
+    Python: ['.py'],
+    Go: ['.go'],
+    Java: ['.java'],
+    Ruby: ['.rb'],
+    PHP: ['.php'],
+    Rust: ['.rs'],
   };
 
   const isTextFile = (name: string) => {
     const textExtensions = [
-      '.txt', '.md', '.csv', '.js', '.css', '.html', 
-      '.json', '.xml', '.yaml', '.yml', '.ini', '.log',
-      '.sh', '.bash', '.py', '.java', '.cpp', '.c', '.h',
-      '.config', '.env', '.gitignore', '.sql', '.ts',
-      '.tsx', '.schema', '.mjs', '.cjs', '.jsx', '.rs',
-      '.go', '.php', '.rb', '.toml', '.prisma', '.bat', '.ps1',
-      '.svelte', '.lock'
+      '.txt',
+      '.md',
+      '.csv',
+      '.js',
+      '.css',
+      '.html',
+      '.json',
+      '.xml',
+      '.yaml',
+      '.yml',
+      '.ini',
+      '.log',
+      '.sh',
+      '.bash',
+      '.py',
+      '.java',
+      '.cpp',
+      '.c',
+      '.h',
+      '.config',
+      '.env',
+      '.gitignore',
+      '.sql',
+      '.ts',
+      '.tsx',
+      '.schema',
+      '.mjs',
+      '.cjs',
+      '.jsx',
+      '.rs',
+      '.go',
+      '.php',
+      '.rb',
+      '.toml',
+      '.prisma',
+      '.bat',
+      '.ps1',
+      '.svelte',
+      '.lock',
     ];
     const exactMatches = ['Makefile', 'Dockerfile'];
 
     if (exactMatches.includes(name)) {
       return true;
     }
-    return textExtensions.some(ext => name.toLowerCase().endsWith(ext));
+    return textExtensions.some((ext) => name.toLowerCase().endsWith(ext));
   };
 
   const hasGitignore = async (dirHandle: FileSystemDirectoryHandle) => {
@@ -85,12 +154,12 @@ const FileSelector: React.FC<FileSelectorProps> = ({
     const file = await fileHandle.getFile();
     const size = file.size;
     let lines = 0;
-    
+
     if (isTextFile(fileHandle.name)) {
       const content = await file.text();
       lines = content.split('\n').length;
     }
-    
+
     return { size, lines };
   };
 
@@ -106,22 +175,32 @@ const FileSelector: React.FC<FileSelectorProps> = ({
       /\.DS_Store$/,
       /^\.env/,
     ];
-    
-    return patterns.some(pattern => pattern.test(path));
+
+    return patterns.some((pattern) => pattern.test(path));
   };
 
   const scanFolder = async (handle: FileSystemDirectoryHandle, path = '') => {
     setIsProcessing(true);
-    
-    const files: Array<{handle: FileSystemFileHandle, path: string, size: number, lines: number}> = [];
-    
-    const scanRecursive = async (dirHandle: FileSystemDirectoryHandle, currentPath = '') => {
+
+    const files: Array<{
+      handle: FileSystemFileHandle;
+      path: string;
+      size: number;
+      lines: number;
+    }> = [];
+
+    const scanRecursive = async (
+      dirHandle: FileSystemDirectoryHandle,
+      currentPath = '',
+    ) => {
       // @ts-expect-error File System Access API may not be fully typed in all environments
       for await (const entry of dirHandle.values()) {
-        const entryPath = currentPath ? `${currentPath}/${entry.name}` : entry.name;
-        
+        const entryPath = currentPath
+          ? `${currentPath}/${entry.name}`
+          : entry.name;
+
         if (shouldIgnore(entryPath)) continue;
-        
+
         if (entry.kind === 'file') {
           if (isTextFile(entry.name)) {
             const fileHandle = entry as FileSystemFileHandle;
@@ -133,14 +212,14 @@ const FileSelector: React.FC<FileSelectorProps> = ({
         }
       }
     };
-    
+
     await hasGitignore(handle);
     await scanRecursive(handle, path);
-    
+
     setFileHandles(files);
     onFilesSelected(files);
     setIsProcessing(false);
-    
+
     return files;
   };
 
@@ -173,8 +252,10 @@ const FileSelector: React.FC<FileSelectorProps> = ({
 
   const handleSelectAll = () => {
     // If all filtered files are selected, deselect all, otherwise select all
-    const allFilteredSelected = filteredPaths.every(path => selectedFiles.has(path));
-    
+    const allFilteredSelected = filteredPaths.every((path) =>
+      selectedFiles.has(path),
+    );
+
     if (allFilteredSelected) {
       // Create a new set excluding the filtered paths
       const newSelectedFiles = new Set<string>();
@@ -196,15 +277,25 @@ const FileSelector: React.FC<FileSelectorProps> = ({
 
   const applyFileTypeFilter = (extensions: string[]) => {
     const paths = fileHandles
-      .filter(file => extensions.some(ext => file.path.toLowerCase().endsWith(ext)))
-      .map(file => file.path);
-      
+      .filter((file) =>
+        extensions.some((ext) => file.path.toLowerCase().endsWith(ext)),
+      )
+      .map((file) => file.path);
+
     const newSelectedFiles = new Set(selectedFiles);
-    paths.forEach(path => newSelectedFiles.add(path));
+    paths.forEach((path) => newSelectedFiles.add(path));
     onSelectAll(Array.from(newSelectedFiles));
   };
 
-  const handleGitHubRepositoryLoaded = (files: Array<{file: GitHubFile, path: string, size: number, lines: number}>, repoInfo: GitHubRepoInfo) => {
+  const handleGitHubRepositoryLoaded = (
+    files: Array<{
+      file: GitHubFile;
+      path: string;
+      size: number;
+      lines: number;
+    }>,
+    repoInfo: GitHubRepoInfo,
+  ) => {
     setGithubFiles(files);
     setGithubRepoInfo(repoInfo);
     setGithubError('');
@@ -236,7 +327,7 @@ const FileSelector: React.FC<FileSelectorProps> = ({
   // Apply prioritization to files
   const sortedFileHandles = useMemo(() => {
     if (!isPrioritized) return fileHandles;
-    const paths = fileHandles.map(f => f.path);
+    const paths = fileHandles.map((f) => f.path);
     const prioritized = prioritizeFiles(paths);
     const pathOrder = new Map(prioritized.map((p, i) => [p.path, i]));
     return [...fileHandles].sort((a, b) => {
@@ -248,7 +339,7 @@ const FileSelector: React.FC<FileSelectorProps> = ({
 
   const sortedGithubFiles = useMemo(() => {
     if (!isPrioritized) return githubFiles;
-    const paths = githubFiles.map(f => f.path);
+    const paths = githubFiles.map((f) => f.path);
     const prioritized = prioritizeFiles(paths);
     const pathOrder = new Map(prioritized.map((p, i) => [p.path, i]));
     return [...githubFiles].sort((a, b) => {
@@ -262,11 +353,11 @@ const FileSelector: React.FC<FileSelectorProps> = ({
     // Update filtered paths whenever filter text changes
     const currentFiles = sourceType === 'local' ? fileHandles : githubFiles;
     if (filterText.trim() === '') {
-      setFilteredPaths(currentFiles.map(f => f.path));
+      setFilteredPaths(currentFiles.map((f) => f.path));
     } else {
       const filtered = currentFiles
-        .filter(f => f.path.toLowerCase().includes(filterText.toLowerCase()))
-        .map(f => f.path);
+        .filter((f) => f.path.toLowerCase().includes(filterText.toLowerCase()))
+        .map((f) => f.path);
       setFilteredPaths(filtered);
     }
   }, [filterText, fileHandles, githubFiles, sourceType]);
@@ -314,7 +405,11 @@ const FileSelector: React.FC<FileSelectorProps> = ({
 
           {folderHandle && (
             <Button
-              icon={<RefreshCw className={`h-4 w-4 ${isProcessing ? 'animate-spin' : ''}`} />}
+              icon={
+                <RefreshCw
+                  className={`h-4 w-4 ${isProcessing ? 'animate-spin' : ''}`}
+                />
+              }
               onClick={handleRefresh}
               disabled={isProcessing || isLoading}
               secondary
@@ -326,8 +421,15 @@ const FileSelector: React.FC<FileSelectorProps> = ({
 
           {folderHandle && (
             <span className="text-sm text-neutral-600 dark:text-neutral-400 flex-1 min-w-0 truncate">
-              <strong className="font-medium text-neutral-700 dark:text-neutral-300">Project:</strong> {folderHandle.name}
-              {gitignoreStatus && <span className="text-xs ml-1 p-1 rounded-md bg-neutral-100 dark:bg-neutral-700">({gitignoreStatus})</span>}
+              <strong className="font-medium text-neutral-700 dark:text-neutral-300">
+                Project:
+              </strong>{' '}
+              {folderHandle.name}
+              {gitignoreStatus && (
+                <span className="text-xs ml-1 p-1 rounded-md bg-neutral-100 dark:bg-neutral-700">
+                  ({gitignoreStatus})
+                </span>
+              )}
             </span>
           )}
         </div>
@@ -343,7 +445,11 @@ const FileSelector: React.FC<FileSelectorProps> = ({
           />
           {githubRepoInfo && (
             <div className="text-sm text-neutral-600 dark:text-neutral-400 text-center">
-              <strong className="font-medium text-neutral-700 dark:text-neutral-300">Repository:</strong> {githubRepoInfo.owner}/{githubRepoInfo.repo} ({githubRepoInfo.branch})
+              <strong className="font-medium text-neutral-700 dark:text-neutral-300">
+                Repository:
+              </strong>{' '}
+              {githubRepoInfo.owner}/{githubRepoInfo.repo} (
+              {githubRepoInfo.branch})
             </div>
           )}
         </div>
@@ -354,7 +460,9 @@ const FileSelector: React.FC<FileSelectorProps> = ({
         <div className="space-y-4">
           {githubError && (
             <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
-              <p className="text-red-700 dark:text-red-400 text-sm">{githubError}</p>
+              <p className="text-red-700 dark:text-red-400 text-sm">
+                {githubError}
+              </p>
             </div>
           )}
 
@@ -388,7 +496,10 @@ const FileSelector: React.FC<FileSelectorProps> = ({
               secondary
               className="w-full sm:w-auto text-sm px-4 py-2.5 whitespace-nowrap"
             >
-              {filteredPaths.every(path => selectedFiles.has(path)) && filteredPaths.length > 0 ? 'Deselect Filtered' : 'Select Filtered'}
+              {filteredPaths.every((path) => selectedFiles.has(path)) &&
+              filteredPaths.length > 0
+                ? 'Deselect Filtered'
+                : 'Select Filtered'}
             </Button>
             <Button
               icon={<ArrowUpDown className="h-4 w-4" />}
@@ -402,22 +513,35 @@ const FileSelector: React.FC<FileSelectorProps> = ({
           </div>
 
           <div className="flex flex-wrap gap-2 items-center">
-            <span className="text-sm font-medium text-neutral-700 dark:text-neutral-300 mr-2">Quick Filters:</span>
-            {Object.entries(fileTypeFilters).slice(0, 5).map(([typeName, extensions]) => (
-              <button
-                key={typeName}
-                onClick={() => applyFileTypeFilter(extensions)}
-                disabled={isProcessing || isLoading}
-                className="px-3 py-1 text-xs font-medium rounded-full transition-colors duration-150
+            <span className="text-sm font-medium text-neutral-700 dark:text-neutral-300 mr-2">
+              Quick Filters:
+            </span>
+            {Object.entries(fileTypeFilters)
+              .slice(0, 5)
+              .map(([typeName, extensions]) => (
+                <button
+                  key={typeName}
+                  onClick={() => applyFileTypeFilter(extensions)}
+                  disabled={isProcessing || isLoading}
+                  className="px-3 py-1 text-xs font-medium rounded-full transition-colors duration-150
                           bg-neutral-100 text-neutral-700 hover:bg-emerald-100 hover:text-emerald-700
                           dark:bg-neutral-700/80 dark:text-neutral-200 dark:hover:bg-emerald-500/30 dark:hover:text-emerald-300
                           focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
-              >
-                {typeName}
-              </button>
-            ))}
+                >
+                  {typeName}
+                </button>
+              ))}
             {Object.keys(fileTypeFilters).length > 5 && (
-              <Button secondary className="text-xs px-3 py-1" onClick={() => { /* TODO: Implement more filters dropdown */ }}> <ChevronDown className="h-3 w-3 mr-1" /> More</Button>
+              <Button
+                secondary
+                className="text-xs px-3 py-1"
+                onClick={() => {
+                  /* TODO: Implement more filters dropdown */
+                }}
+              >
+                {' '}
+                <ChevronDown className="h-3 w-3 mr-1" /> More
+              </Button>
             )}
           </div>
 
@@ -425,7 +549,9 @@ const FileSelector: React.FC<FileSelectorProps> = ({
             <div className="text-center py-10">
               <RefreshCw className="h-8 w-8 text-emerald-500 animate-spin mx-auto mb-3" />
               <p className="text-neutral-600 dark:text-neutral-400">
-                {sourceType === 'local' ? 'Scanning folder...' : 'Loading repository...'}
+                {sourceType === 'local'
+                  ? 'Scanning folder...'
+                  : 'Loading repository...'}
               </p>
             </div>
           ) : sourceType === 'local' && fileHandles.length > 0 ? (

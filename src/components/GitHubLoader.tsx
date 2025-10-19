@@ -1,12 +1,22 @@
-import React, { useState, useCallback } from 'react';
-import { Github, Loader2, AlertCircle, CheckCircle } from 'lucide-react';
-import { GitHubService, GitHubFile, GitHubRepoInfo } from '../services/githubService';
+import { AlertCircle, CheckCircle, Github, Loader2 } from 'lucide-react';
+import type React from 'react';
+import { useCallback, useState } from 'react';
+import {
+  type GitHubFile,
+  type GitHubRepoInfo,
+  GitHubService,
+} from '../services/githubService';
 import Button from './ui/Button';
 
 interface GitHubLoaderProps {
   onRepositoryLoaded: (
-    files: Array<{file: GitHubFile, path: string, size: number, lines: number}>,
-    repoInfo: GitHubRepoInfo
+    files: Array<{
+      file: GitHubFile;
+      path: string;
+      size: number;
+      lines: number;
+    }>,
+    repoInfo: GitHubRepoInfo,
   ) => void;
   onError: (error: string) => void;
   isLoading: boolean;
@@ -15,14 +25,20 @@ interface GitHubLoaderProps {
 const GitHubLoader: React.FC<GitHubLoaderProps> = ({
   onRepositoryLoaded,
   onError,
-  isLoading
+  isLoading,
 }) => {
   const [githubUrl, setGithubUrl] = useState<string>('');
   const [branch, setBranch] = useState<string>('');
   const [isValidating, setIsValidating] = useState<boolean>(false);
-  const [validationStatus, setValidationStatus] = useState<'idle' | 'validating' | 'valid' | 'invalid'>('idle');
+  const [validationStatus, setValidationStatus] = useState<
+    'idle' | 'validating' | 'valid' | 'invalid'
+  >('idle');
   const [repoInfo, setRepoInfo] = useState<GitHubRepoInfo | null>(null);
-  const [loadingProgress, setLoadingProgress] = useState<{ current: number; total: number; file?: string }>({ current: 0, total: 0 });
+  const [loadingProgress, setLoadingProgress] = useState<{
+    current: number;
+    total: number;
+    file?: string;
+  }>({ current: 0, total: 0 });
 
   const validateRepository = useCallback(async () => {
     if (!githubUrl.trim()) {
@@ -42,7 +58,10 @@ const GitHubLoader: React.FC<GitHubLoaderProps> = ({
       }
 
       // Check if repository exists and get default branch
-      const repoCheck = await GitHubService.getRepositoryInfo(parsed.owner, parsed.repo);
+      const repoCheck = await GitHubService.getRepositoryInfo(
+        parsed.owner,
+        parsed.repo,
+      );
 
       if (!repoCheck.exists) {
         setValidationStatus('invalid');
@@ -66,18 +85,24 @@ const GitHubLoader: React.FC<GitHubLoaderProps> = ({
     }
   }, [githubUrl, branch]);
 
-  const handleUrlChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    setGithubUrl(e.target.value);
-    setValidationStatus('idle');
-    setRepoInfo(null);
-  }, []);
+  const handleUrlChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      setGithubUrl(e.target.value);
+      setValidationStatus('idle');
+      setRepoInfo(null);
+    },
+    [],
+  );
 
-  const handleBranchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    setBranch(e.target.value);
-    if (repoInfo) {
-      setRepoInfo({ ...repoInfo, branch: e.target.value });
-    }
-  }, [repoInfo]);
+  const handleBranchChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      setBranch(e.target.value);
+      if (repoInfo) {
+        setRepoInfo({ ...repoInfo, branch: e.target.value });
+      }
+    },
+    [repoInfo],
+  );
 
   const handleLoadRepository = useCallback(async () => {
     if (!repoInfo || isLoading) return;
@@ -90,27 +115,66 @@ const GitHubLoader: React.FC<GitHubLoaderProps> = ({
       const githubFiles = await GitHubService.fetchRepositoryContents(
         repoInfo.owner,
         repoInfo.repo,
-        repoInfo.branch
+        repoInfo.branch,
       );
 
       // Filter to text files only
       const textExtensions = [
-        '.txt', '.md', '.csv', '.js', '.css', '.html',
-        '.json', '.xml', '.yaml', '.yml', '.ini', '.log',
-        '.sh', '.bash', '.py', '.java', '.cpp', '.c', '.h',
-        '.config', '.env', '.gitignore', '.sql', '.ts',
-        '.tsx', '.schema', '.mjs', '.cjs', '.jsx', '.rs',
-        '.go', '.php', '.rb', '.toml', '.prisma', '.bat', '.ps1',
-        '.svelte', '.lock', '.vue', '.dart', '.kt', '.swift', '.m'
+        '.txt',
+        '.md',
+        '.csv',
+        '.js',
+        '.css',
+        '.html',
+        '.json',
+        '.xml',
+        '.yaml',
+        '.yml',
+        '.ini',
+        '.log',
+        '.sh',
+        '.bash',
+        '.py',
+        '.java',
+        '.cpp',
+        '.c',
+        '.h',
+        '.config',
+        '.env',
+        '.gitignore',
+        '.sql',
+        '.ts',
+        '.tsx',
+        '.schema',
+        '.mjs',
+        '.cjs',
+        '.jsx',
+        '.rs',
+        '.go',
+        '.php',
+        '.rb',
+        '.toml',
+        '.prisma',
+        '.bat',
+        '.ps1',
+        '.svelte',
+        '.lock',
+        '.vue',
+        '.dart',
+        '.kt',
+        '.swift',
+        '.m',
       ];
 
       const exactMatches = ['Makefile', 'Dockerfile', 'Procfile', 'Rakefile'];
 
-      const textFiles = githubFiles.filter(file =>
-        file.type === 'file' && (
-          exactMatches.includes(file.name) ||
-          textExtensions.some(ext => file.name.toLowerCase().endsWith(ext))
-        )
+      const textFiles = githubFiles.filter(
+        (file) =>
+          file.type === 'file' &&
+          (exactMatches.includes(file.name) ||
+            textExtensions.some((ext) =>
+              file.name.toLowerCase().endsWith(ext),
+            )),
       );
 
       // Use batch processing with progress tracking
@@ -122,19 +186,20 @@ const GitHubLoader: React.FC<GitHubLoaderProps> = ({
             file,
             path: file.path,
             size,
-            lines
+            lines,
           };
         },
         (current, total, currentFile) => {
           setLoadingProgress({ current, total, file: currentFile });
         },
-        15 // Process 15 files concurrently
+        15, // Process 15 files concurrently
       );
 
       setLoadingProgress({ current: 0, total: 0 });
       onRepositoryLoaded(fileDetails, repoInfo);
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Failed to load repository';
+      const errorMessage =
+        error instanceof Error ? error.message : 'Failed to load repository';
       onError(errorMessage);
       setLoadingProgress({ current: 0, total: 0 });
     }
@@ -156,7 +221,9 @@ const GitHubLoader: React.FC<GitHubLoaderProps> = ({
   const getValidationMessage = () => {
     switch (validationStatus) {
       case 'valid':
-        return repoInfo ? `Repository: ${repoInfo.owner}/${repoInfo.repo} (${repoInfo.branch})` : '';
+        return repoInfo
+          ? `Repository: ${repoInfo.owner}/${repoInfo.repo} (${repoInfo.branch})`
+          : '';
       case 'invalid':
         return 'Invalid repository URL or repository not found';
       default:
@@ -175,7 +242,10 @@ const GitHubLoader: React.FC<GitHubLoaderProps> = ({
 
       <div className="space-y-4">
         <div>
-          <label htmlFor="github-url" className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
+          <label
+            htmlFor="github-url"
+            className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2"
+          >
             GitHub Repository URL
           </label>
           <div className="relative">
@@ -195,14 +265,19 @@ const GitHubLoader: React.FC<GitHubLoaderProps> = ({
             )}
           </div>
           {getValidationMessage() && (
-            <p className={`mt-1 text-sm ${validationStatus === 'valid' ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+            <p
+              className={`mt-1 text-sm ${validationStatus === 'valid' ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}
+            >
               {getValidationMessage()}
             </p>
           )}
         </div>
 
         <div>
-          <label htmlFor="branch" className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
+          <label
+            htmlFor="branch"
+            className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2"
+          >
             Branch (optional)
           </label>
           <input
@@ -267,7 +342,7 @@ const GitHubLoader: React.FC<GitHubLoaderProps> = ({
               <div
                 className="bg-emerald-500 h-2 transition-all duration-300 ease-out"
                 style={{
-                  width: `${(loadingProgress.current / loadingProgress.total) * 100}%`
+                  width: `${(loadingProgress.current / loadingProgress.total) * 100}%`,
                 }}
               />
             </div>

@@ -1,6 +1,13 @@
-import React, { useMemo, useState } from 'react';
-import { ChevronRight, ChevronDown, FileText, Folder, FolderOpen as FolderOpenIcon } from 'lucide-react';
-import { GitHubFile } from '../services/githubService';
+import {
+  ChevronDown,
+  ChevronRight,
+  FileText,
+  Folder,
+  FolderOpen as FolderOpenIcon,
+} from 'lucide-react';
+import type React from 'react';
+import { useMemo, useState } from 'react';
+import type { GitHubFile } from '../services/githubService';
 
 interface TreeNode {
   name: string;
@@ -14,7 +21,7 @@ interface TreeNode {
 }
 
 interface GitHubFileTreeProps {
-  files: Array<{file: GitHubFile, path: string, size: number, lines: number}>;
+  files: Array<{ file: GitHubFile; path: string; size: number; lines: number }>;
   selectedFiles: Set<string>;
   onSelectFile: (path: string, selected: boolean) => void;
   filterText: string;
@@ -28,7 +35,7 @@ const GitHubFileTree: React.FC<GitHubFileTreeProps> = ({
   onSelectFile,
   filterText,
   isLoading,
-  filteredPaths
+  filteredPaths,
 }) => {
   const [expandedDirs, setExpandedDirs] = useState<Set<string>>(new Set([''])); // Root is expanded by default
   const [hoveredPath, setHoveredPath] = useState<string | null>(null); // For hover effects
@@ -39,11 +46,11 @@ const GitHubFileTree: React.FC<GitHubFileTreeProps> = ({
       path: '',
       children: {},
       type: 'directory',
-      isExpanded: true
+      isExpanded: true,
     };
 
     // Build tree structure
-    files.forEach(fileItem => {
+    files.forEach((fileItem) => {
       const parts = fileItem.path.split('/');
       let current = root;
 
@@ -57,7 +64,7 @@ const GitHubFileTree: React.FC<GitHubFileTreeProps> = ({
             name: part,
             path,
             children: {},
-            type: 'directory'
+            type: 'directory',
           };
         }
         current = current.children[part];
@@ -72,7 +79,7 @@ const GitHubFileTree: React.FC<GitHubFileTreeProps> = ({
         type: 'file',
         size: fileItem.size,
         lines: fileItem.lines,
-        githubFile: fileItem.file
+        githubFile: fileItem.file,
       };
     });
 
@@ -81,13 +88,22 @@ const GitHubFileTree: React.FC<GitHubFileTreeProps> = ({
 
   // Filter the tree based on the filter text
   const filteredAndSortedTree = useMemo(() => {
-    const filterNode = (node: TreeNode, currentPath: string): TreeNode | null => {
-      const isVisibleDueToFilter = filterText.trim() === '' ||
-                                   node.path.toLowerCase().includes(filterText.toLowerCase()) ||
-                                   (node.type === 'directory' && Object.values(node.children).some(child => filteredPaths.includes(child.path)));
+    const filterNode = (
+      node: TreeNode,
+      currentPath: string,
+    ): TreeNode | null => {
+      const isVisibleDueToFilter =
+        filterText.trim() === '' ||
+        node.path.toLowerCase().includes(filterText.toLowerCase()) ||
+        (node.type === 'directory' &&
+          Object.values(node.children).some((child) =>
+            filteredPaths.includes(child.path),
+          ));
 
       if (node.type === 'file') {
-        return isVisibleDueToFilter && filteredPaths.includes(node.path) ? node : null;
+        return isVisibleDueToFilter && filteredPaths.includes(node.path)
+          ? node
+          : null;
       }
 
       const visibleChildren: Record<string, TreeNode> = {};
@@ -102,8 +118,12 @@ const GitHubFileTree: React.FC<GitHubFileTreeProps> = ({
 
       if (isVisibleDueToFilter || hasVisibleChildren) {
         // Auto-expand directories if they or their children match the filter
-        if (filterText.trim() !== '' && (node.name.toLowerCase().includes(filterText.toLowerCase()) || hasVisibleChildren)) {
-          setExpandedDirs(prev => new Set(prev).add(node.path));
+        if (
+          filterText.trim() !== '' &&
+          (node.name.toLowerCase().includes(filterText.toLowerCase()) ||
+            hasVisibleChildren)
+        ) {
+          setExpandedDirs((prev) => new Set(prev).add(node.path));
         }
         return {
           ...node,
@@ -117,7 +137,7 @@ const GitHubFileTree: React.FC<GitHubFileTreeProps> = ({
   }, [treeData, filterText, filteredPaths]);
 
   const toggleDir = (path: string) => {
-    setExpandedDirs(prev => {
+    setExpandedDirs((prev) => {
       const newSet = new Set(prev);
       if (newSet.has(path)) {
         newSet.delete(path);
@@ -130,9 +150,9 @@ const GitHubFileTree: React.FC<GitHubFileTreeProps> = ({
 
   const getFilesInDirectory = (node: TreeNode): string[] => {
     let paths: string[] = [];
-    Object.values(node.children).forEach(child => {
+    Object.values(node.children).forEach((child) => {
       if (child.type === 'file') {
-        if(filteredPaths.includes(child.path)) paths.push(child.path);
+        if (filteredPaths.includes(child.path)) paths.push(child.path);
       } else {
         paths = [...paths, ...getFilesInDirectory(child)];
       }
@@ -140,29 +160,42 @@ const GitHubFileTree: React.FC<GitHubFileTreeProps> = ({
     return paths;
   };
 
-  const handleDirectoryCheckboxChange = (node: TreeNode, isChecked: boolean) => {
+  const handleDirectoryCheckboxChange = (
+    node: TreeNode,
+    isChecked: boolean,
+  ) => {
     const filesInDir = getFilesInDirectory(node);
-    filesInDir.forEach(filePath => {
+    filesInDir.forEach((filePath) => {
       onSelectFile(filePath, isChecked);
     });
   };
 
   const renderNode = (node: TreeNode, depth = 0): React.ReactElement | null => {
-    if (!node || (filterText.trim() !== '' && !filteredPaths.some(p => p.startsWith(node.path)) && node.path !== '') || isLoading) {
-        // If there's a filter and the node itself nor any of its children are in filteredPaths, don't render (unless it's the root)
-        return null;
+    if (
+      !node ||
+      (filterText.trim() !== '' &&
+        !filteredPaths.some((p) => p.startsWith(node.path)) &&
+        node.path !== '') ||
+      isLoading
+    ) {
+      // If there's a filter and the node itself nor any of its children are in filteredPaths, don't render (unless it's the root)
+      return null;
     }
 
     const isExpanded = expandedDirs.has(node.path);
-    const isSelected = node.type === 'file' ? selectedFiles.has(node.path) : false;
+    const isSelected =
+      node.type === 'file' ? selectedFiles.has(node.path) : false;
     const isHover = hoveredPath === node.path;
 
-    let dirCheckboxState: 'checked' | 'indeterminate' | 'unchecked' = 'unchecked';
+    let dirCheckboxState: 'checked' | 'indeterminate' | 'unchecked' =
+      'unchecked';
     let filesInCurrentFilteredDir: string[] = [];
 
     if (node.type === 'directory') {
       filesInCurrentFilteredDir = getFilesInDirectory(node);
-      const selectedFilesInDirCount = filesInCurrentFilteredDir.filter(p => selectedFiles.has(p)).length;
+      const selectedFilesInDirCount = filesInCurrentFilteredDir.filter((p) =>
+        selectedFiles.has(p),
+      ).length;
 
       if (filesInCurrentFilteredDir.length > 0) {
         if (selectedFilesInDirCount === filesInCurrentFilteredDir.length) {
@@ -176,10 +209,15 @@ const GitHubFileTree: React.FC<GitHubFileTreeProps> = ({
       }
     }
 
-    const baseRowClasses = "flex items-center py-2 px-2.5 rounded-md transition-colors duration-100 cursor-pointer";
-    const hoverClasses = "hover:bg-neutral-100 dark:hover:bg-neutral-700/60";
-    const selectedClasses = isSelected ? "bg-emerald-50 dark:bg-emerald-500/10" : "";
-    const interactionDisabledClass = isLoading ? "opacity-60 cursor-not-allowed" : "";
+    const baseRowClasses =
+      'flex items-center py-2 px-2.5 rounded-md transition-colors duration-100 cursor-pointer';
+    const hoverClasses = 'hover:bg-neutral-100 dark:hover:bg-neutral-700/60';
+    const selectedClasses = isSelected
+      ? 'bg-emerald-50 dark:bg-emerald-500/10'
+      : '';
+    const interactionDisabledClass = isLoading
+      ? 'opacity-60 cursor-not-allowed'
+      : '';
 
     return (
       <div
@@ -188,7 +226,9 @@ const GitHubFileTree: React.FC<GitHubFileTreeProps> = ({
         onMouseEnter={() => setHoveredPath(node.path)}
         onMouseLeave={() => setHoveredPath(null)}
       >
-        <div className={`${baseRowClasses} ${hoverClasses} ${selectedClasses} ${interactionDisabledClass}`}>
+        <div
+          className={`${baseRowClasses} ${hoverClasses} ${selectedClasses} ${interactionDisabledClass}`}
+        >
           {node.type === 'directory' ? (
             <>
               <button
@@ -197,40 +237,68 @@ const GitHubFileTree: React.FC<GitHubFileTreeProps> = ({
                 className="mr-1.5 p-0.5 rounded hover:bg-neutral-200 dark:hover:bg-neutral-600 text-neutral-500 dark:text-neutral-400"
                 aria-label={isExpanded ? 'Collapse folder' : 'Expand folder'}
               >
-                {isExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                {isExpanded ? (
+                  <ChevronDown className="h-4 w-4" />
+                ) : (
+                  <ChevronRight className="h-4 w-4" />
+                )}
               </button>
-              {isExpanded ? <FolderOpenIcon className="h-4 w-4 text-sky-500 dark:text-sky-400 mr-2 flex-shrink-0" /> : <Folder className="h-4 w-4 text-sky-500 dark:text-sky-400 mr-2 flex-shrink-0" />}
+              {isExpanded ? (
+                <FolderOpenIcon className="h-4 w-4 text-sky-500 dark:text-sky-400 mr-2 flex-shrink-0" />
+              ) : (
+                <Folder className="h-4 w-4 text-sky-500 dark:text-sky-400 mr-2 flex-shrink-0" />
+              )}
 
               {filesInCurrentFilteredDir.length > 0 && (
                 <input
                   type="checkbox"
                   checked={dirCheckboxState === 'checked'}
-                  ref={input => { // For indeterminate state
-                    if (input) input.indeterminate = dirCheckboxState === 'indeterminate';
+                  ref={(input) => {
+                    // For indeterminate state
+                    if (input)
+                      input.indeterminate =
+                        dirCheckboxState === 'indeterminate';
                   }}
-                  onChange={(e) => !isLoading && handleDirectoryCheckboxChange(node, e.target.checked)}
+                  onChange={(e) =>
+                    !isLoading &&
+                    handleDirectoryCheckboxChange(node, e.target.checked)
+                  }
                   className="mr-2 h-4 w-4 rounded border-neutral-300 dark:border-neutral-600 text-emerald-600 focus:ring-emerald-500 bg-white dark:bg-neutral-700 dark:checked:bg-emerald-600 dark:checked:border-emerald-600 shadow-sm transition-all"
                   disabled={isLoading}
                   aria-label={`Select all files in ${node.name || 'Project Root'}`}
                 />
               )}
-              <span className="text-sm text-neutral-700 dark:text-neutral-200 select-none truncate" onClick={() => !isLoading && toggleDir(node.path)}>
+              <span
+                className="text-sm text-neutral-700 dark:text-neutral-200 select-none truncate"
+                onClick={() => !isLoading && toggleDir(node.path)}
+              >
                 {node.name || 'Project Root'}
               </span>
             </>
           ) : (
             <>
-              <span style={{ width: `${1.5}rem` }} className="mr-1.5 flex-shrink-0"></span> {/* Spacer for file icon alignment */}
+              <span
+                style={{ width: `${1.5}rem` }}
+                className="mr-1.5 flex-shrink-0"
+              ></span>{' '}
+              {/* Spacer for file icon alignment */}
               <FileText className="h-4 w-4 text-neutral-500 dark:text-neutral-400 mr-2 flex-shrink-0" />
               <input
                 type="checkbox"
                 checked={isSelected}
-                onChange={e => !isLoading && onSelectFile(node.path, e.target.checked)}
+                onChange={(e) =>
+                  !isLoading && onSelectFile(node.path, e.target.checked)
+                }
                 className="mr-2 h-4 w-4 rounded border-neutral-300 dark:border-neutral-600 text-emerald-600 focus:ring-emerald-500 bg-white dark:bg-neutral-700 dark:checked:bg-emerald-600 dark:checked:border-emerald-600 shadow-sm transition-all"
                 disabled={isLoading}
                 aria-label={`Select file ${node.name}`}
               />
-              <span className="text-sm text-neutral-700 dark:text-neutral-200 select-none truncate" onClick={() => !isLoading && onSelectFile(node.path, !isSelected)}>
+              <span
+                className="text-sm text-neutral-700 dark:text-neutral-200 select-none truncate"
+                onClick={() =>
+                  !isLoading && onSelectFile(node.path, !isSelected)
+                }
+              >
                 {node.name}
               </span>
               {(isHover || isSelected) && (
@@ -249,8 +317,7 @@ const GitHubFileTree: React.FC<GitHubFileTreeProps> = ({
                 if (a.type !== b.type) return a.type === 'directory' ? -1 : 1;
                 return a.name.localeCompare(b.name);
               })
-              .map(child => renderNode(child, depth + 1))
-            }
+              .map((child) => renderNode(child, depth + 1))}
           </div>
         )}
       </div>
@@ -260,25 +327,30 @@ const GitHubFileTree: React.FC<GitHubFileTreeProps> = ({
   if (files.length === 0) {
     return (
       <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-        {filterText.trim() ?
-          'No files match your filter.' :
-          'Please load a GitHub repository to view files.'}
+        {filterText.trim()
+          ? 'No files match your filter.'
+          : 'Please load a GitHub repository to view files.'}
       </div>
     );
   }
 
   return (
     <div className="bg-neutral-50/50 dark:bg-neutral-800/30 rounded-lg p-3 space-y-1 max-h-[500px] overflow-y-auto ring-1 ring-neutral-200 dark:ring-neutral-700/50 shadow-inner">
-      {filteredAndSortedTree && Object.keys(filteredAndSortedTree.children).length > 0 ? (
+      {filteredAndSortedTree &&
+      Object.keys(filteredAndSortedTree.children).length > 0 ? (
         Object.values(filteredAndSortedTree.children)
           .sort((a, b) => {
             if (a.type !== b.type) return a.type === 'directory' ? -1 : 1;
             return a.name.localeCompare(b.name);
           })
-          .map(node => renderNode(node, 0))
+          .map((node) => renderNode(node, 0))
       ) : (
         <p className="text-sm text-center text-neutral-500 dark:text-neutral-400 py-8 px-4">
-          {filterText ? "No files or folders match your filter." : (files.length === 0 ? "No files loaded." : "Repository is empty or contains no text files.")}
+          {filterText
+            ? 'No files or folders match your filter.'
+            : files.length === 0
+              ? 'No files loaded.'
+              : 'Repository is empty or contains no text files.'}
         </p>
       )}
     </div>
