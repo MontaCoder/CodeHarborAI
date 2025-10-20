@@ -46,7 +46,7 @@ const MainApp: React.FC = () => {
       includeContext7Docs: false,
       context7Docs: [],
       enableSmartOptimization: true,
-      maxTotalTokens: 100000,
+      maxTotalTokens: 200000,
       prioritizeDocumentation: true,
       includeStructureMap: true,
       extractCodeSignatures: true,

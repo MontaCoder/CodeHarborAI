@@ -153,7 +153,7 @@ const AdvancedOptionsPanel: React.FC<AdvancedOptionsPanelProps> = memo(
                   <input
                     type="range"
                     min="10000"
-                    max="200000"
+                    max="2000000"
                     step="10000"
                     value={options.maxTotalTokens}
                     onChange={(e) => onChange('maxTotalTokens', parseInt(e.target.value))}
@@ -161,7 +161,7 @@ const AdvancedOptionsPanel: React.FC<AdvancedOptionsPanelProps> = memo(
                   />
                   <div className="flex justify-between text-xs text-neutral-500 dark:text-neutral-400">
                     <span>10k</span>
-                    <span>200k</span>
+                    <span>2M</span>
                   </div>
                 </div>
 
