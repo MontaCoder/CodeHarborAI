@@ -6,9 +6,9 @@
   **Transform Your Codebase Into Perfect AI Prompts**
   
   [![License: MIT](https://img.shields.io/badge/License-MIT-emerald.svg)](https://opensource.org/licenses/MIT)
-  [![React](https://img.shields.io/badge/React-18.2.0-61DAFB?logo=react&logoColor=white)](https://reactjs.org/)
-  [![TypeScript](https://img.shields.io/badge/TypeScript-5.0.0-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
-  [![Vite](https://img.shields.io/badge/Vite-5.0.0-646CFF?logo=vite&logoColor=white)](https://vitejs.dev/)
+  [![React](https://img.shields.io/badge/React-19.1.1-61DAFB?logo=react&logoColor=white)](https://react.dev/)
+  [![TypeScript](https://img.shields.io/badge/TypeScript-5.9.2-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+  [![Rspack](https://img.shields.io/badge/Rspack-1.5.8-FF6F00)](https://www.rspack.dev/)
   
   [Features](#-features) • [Getting Started](#-getting-started) • [Usage](#-usage) • [Contributing](#-contributing)
 </div>
@@ -17,7 +17,7 @@
 
 ## 🌟 Overview
 
-CodeHarborAI is a modern, privacy-first web application that helps developers transform their codebases into optimized AI prompts. Built with React, TypeScript, and Vite, it allows you to securely select and combine project files directly in your browser to create comprehensive, context-rich prompts for AI coding assistants like ChatGPT, Claude, and more.
+CodeHarborAI is a modern, privacy-first web application that helps developers transform their codebases into optimized AI prompts. Built with React, TypeScript, and Rspack, it allows you to securely select and combine project files directly in your browser to create comprehensive, context-rich prompts for AI coding assistants like ChatGPT, Claude, and more.
 
 ### Why CodeHarborAI?
 
@@ -120,7 +120,7 @@ Pre-optimized prompts for common development tasks:
    ```
 
 4. **Open your browser:**
-   Navigate to `http://localhost:5173`
+   Navigate to the URL printed by the Rspack dev server (default: `http://localhost:8080`)
 
 ---
 
@@ -260,8 +260,8 @@ Your code is **YOUR CODE**. Period.
 
 ## 🏗️ Tech Stack
 
-- **Frontend Framework**: [React 18](https://reactjs.org/) with TypeScript
-- **Build Tool**: [Vite 5](https://vitejs.dev/)
+- **Frontend Framework**: [React 19](https://react.dev/) with TypeScript
+- **Build Tool**: [Rspack 1.5](https://www.rspack.dev/)
 - **Styling**: [Tailwind CSS 4](https://tailwindcss.com/)
 - **Icons**: [Lucide React](https://lucide.dev/)
 - **State Management**: React Hooks (useState, useEffect, useCallback)
@@ -325,7 +325,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 Built with love using:
 - [React](https://reactjs.org/) - UI framework
 - [TypeScript](https://www.typescriptlang.org/) - Type safety
-- [Vite](https://vitejs.dev/) - Build tool
+- [Rspack](https://www.rspack.dev/) - Build tool
 - [Tailwind CSS](https://tailwindcss.com/) - Styling
 - [Lucide](https://lucide.dev/) - Icons
 - [File System Access API](https://web.dev/file-system-access/) - Local file access
