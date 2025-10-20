@@ -150,7 +150,20 @@ const MainApp: React.FC = () => {
 
           <div className="space-y-8">
             <div className="bg-white dark:bg-neutral-900 rounded-2xl shadow-lg border border-neutral-200 dark:border-neutral-800 p-6 md:p-8">
-              <StatsPanel totalSize={totalSize} totalLines={totalLines} />
+              <StatsPanel
+                totalSize={totalSize}
+                totalLines={totalLines}
+                maxTotalTokens={options.maxTotalTokens}
+                selectedFiles={selectedFiles}
+                fileHandles={fileHandles}
+                githubFiles={githubFiles}
+                smartOptions={{
+                  enableSmartOptimization: options.enableSmartOptimization,
+                  adaptiveCompression: options.adaptiveCompression,
+                  prioritizeDocumentation: options.prioritizeDocumentation,
+                  includeStructureMap: options.includeStructureMap,
+                }}
+              />
             </div>
             <div className="bg-white dark:bg-neutral-900 rounded-2xl shadow-lg border border-neutral-200 dark:border-neutral-800 p-6 md:p-8">
               <AdvancedOptionsPanel
