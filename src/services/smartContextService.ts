@@ -137,6 +137,7 @@ export class SmartContextService {
    */
   static determineStrategy(
     analysis: FileAnalysis,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     _options: SmartContextOptions,
   ): OptimizationStrategy {
     const { type, role, estimatedTokens } = analysis;
@@ -480,6 +481,7 @@ export class SmartContextService {
     return Math.ceil(content.length / 4);
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   private static extractExports(content: string, _path: string): string[] {
     const exports: string[] = [];
 
@@ -504,6 +506,7 @@ export class SmartContextService {
     return [...new Set(exports)].slice(0, 10); // Dedupe and limit
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   private static extractImports(content: string, _path: string): string[] {
     const imports: string[] = [];
     const importRegex = /import\s+.*?\s+from\s+['"](.+?)['"]/g;
@@ -518,6 +521,7 @@ export class SmartContextService {
     return [...new Set(imports)].slice(0, 15); // Dedupe and limit
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   private static extractMainFunctions(content: string, _path: string): string[] {
     const functions: string[] = [];
 
@@ -604,6 +608,7 @@ export class SmartContextService {
   private static generateSummary(
     content: string,
     analysis: FileAnalysis,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     _maxTokens?: number,
   ): string {
     let summary = '## Summary\n\n';

@@ -8,6 +8,14 @@ export interface GitHubFile {
   sha: string;
 }
 
+interface GitHubTreeItem {
+  path: string;
+  type: string;
+  size?: number;
+  url: string;
+  sha: string;
+}
+
 export interface GitHubRepoInfo {
   owner: string;
   repo: string;
@@ -89,8 +97,8 @@ export class GitHubService {
 
       // Transform tree items to GitHubFile format
       const files: GitHubFile[] = data.tree
-        .filter((item: any) => item.type === 'blob') // Only files, not trees
-        .map((item: any) => ({
+        .filter((item: GitHubTreeItem) => item.type === 'blob') // Only files, not trees
+        .map((item: GitHubTreeItem) => ({
           name: item.path.split('/').pop() || item.path,
           path: item.path,
           type: 'file' as const,

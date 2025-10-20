@@ -337,7 +337,7 @@ const MainApp: React.FC = () => {
   ]);
 
   const handleOptionChange = useCallback(
-    (key: string, value: string | boolean) => {
+    (key: string, value: string | boolean | number | Context7Doc[]) => {
       setOptions((prev) => ({
         ...prev,
         [key]: value,

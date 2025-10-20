@@ -32,7 +32,7 @@ interface AdvancedOptionsPanelProps {
     extractCodeSignatures: boolean;
     adaptiveCompression: boolean;
   };
-  onChange: (key: string, value: any) => void;
+  onChange: (key: string, value: string | boolean | number | Context7Doc[]) => void;
 }
 
 const AdvancedOptionsPanel: React.FC<AdvancedOptionsPanelProps> = memo(
