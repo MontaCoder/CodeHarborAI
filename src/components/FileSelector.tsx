@@ -10,32 +10,18 @@ import {
 } from 'lucide-react';
 import type React from 'react';
 import { memo, useEffect, useMemo, useState } from 'react';
-import type { GitHubFile, GitHubRepoInfo } from '../services/githubService';
+import type { GitHubRepoInfo } from '../services/githubService';
+import { scanLocalDirectory } from '../services/fileContentService';
 import { prioritizeFiles } from '../utils/filePrioritization';
+import type { GitHubFileEntry, LocalFileEntry } from '../types/files';
 import FileTree from './FileTree';
-import GitHubFileTree from './GitHubFileTree';
 import GitHubLoader from './GitHubLoader';
 import Button from './ui/Button';
 
 interface FileSelectorProps {
   onFolderSelected: (handle: FileSystemDirectoryHandle) => void;
-  onFilesSelected: (
-    files: Array<{
-      handle: FileSystemFileHandle;
-      path: string;
-      size: number;
-      lines: number;
-    }>,
-  ) => void;
-  onGitHubFilesSelected: (
-    files: Array<{
-      file: GitHubFile;
-      path: string;
-      size: number;
-      lines: number;
-    }>,
-    repoInfo: GitHubRepoInfo,
-  ) => void;
+  onFilesSelected: (files: LocalFileEntry[]) => void;
+  onGitHubFilesSelected: (files: GitHubFileEntry[], repoInfo: GitHubRepoInfo) => void;
   onSelectFile: (path: string, selected: boolean) => void;
   onSelectAll: (paths: string[]) => void;
   selectedFiles: Set<string>;
@@ -52,20 +38,10 @@ const FileSelector: React.FC<FileSelectorProps> = ({
   isLoading,
 }) => {
   const [sourceType, setSourceType] = useState<'local' | 'github'>('local');
-  const [folderHandle, setFolderHandle] =
-    useState<FileSystemDirectoryHandle | null>(null);
+  const [folderHandle, setFolderHandle] = useState<FileSystemDirectoryHandle | null>(null);
   const [filterText, setFilterText] = useState<string>('');
-  const [fileHandles, setFileHandles] = useState<
-    Array<{
-      handle: FileSystemFileHandle;
-      path: string;
-      size: number;
-      lines: number;
-    }>
-  >([]);
-  const [githubFiles, setGithubFiles] = useState<
-    Array<{ file: GitHubFile; path: string; size: number; lines: number }>
-  >([]);
+  const [fileHandles, setFileHandles] = useState<LocalFileEntry[]>([]);
+  const [githubFiles, setGithubFiles] = useState<GitHubFileEntry[]>([]);
   const [githubRepoInfo, setGithubRepoInfo] = useState<GitHubRepoInfo | null>(
     null,
   );
@@ -89,138 +65,20 @@ const FileSelector: React.FC<FileSelectorProps> = ({
     Rust: ['.rs'],
   };
 
-  const isTextFile = (name: string) => {
-    const textExtensions = [
-      '.txt',
-      '.md',
-      '.csv',
-      '.js',
-      '.css',
-      '.html',
-      '.json',
-      '.xml',
-      '.yaml',
-      '.yml',
-      '.ini',
-      '.log',
-      '.sh',
-      '.bash',
-      '.py',
-      '.java',
-      '.cpp',
-      '.c',
-      '.h',
-      '.config',
-      '.env',
-      '.gitignore',
-      '.sql',
-      '.ts',
-      '.tsx',
-      '.schema',
-      '.mjs',
-      '.cjs',
-      '.jsx',
-      '.rs',
-      '.go',
-      '.php',
-      '.rb',
-      '.toml',
-      '.prisma',
-      '.bat',
-      '.ps1',
-      '.svelte',
-      '.lock',
-    ];
-    const exactMatches = ['Makefile', 'Dockerfile'];
-
-    if (exactMatches.includes(name)) {
-      return true;
-    }
-    return textExtensions.some((ext) => name.toLowerCase().endsWith(ext));
-  };
-
-  const hasGitignore = async (dirHandle: FileSystemDirectoryHandle) => {
-    try {
-      await dirHandle.getFileHandle('.gitignore');
-      setGitignoreStatus('.gitignore found and applied');
-      return true;
-    } catch {
-      setGitignoreStatus('Using default ignore patterns');
-      return false;
-    }
-  };
-
-  const getFileSizeAndLines = async (fileHandle: FileSystemFileHandle) => {
-    const file = await fileHandle.getFile();
-    const size = file.size;
-    let lines = 0;
-
-    if (isTextFile(fileHandle.name)) {
-      const content = await file.text();
-      lines = content.split('\n').length;
-    }
-
-    return { size, lines };
-  };
-
-  const shouldIgnore = (path: string) => {
-    // Simple default ignore patterns
-    const patterns = [
-      /^\.git\//,
-      /^node_modules\//,
-      /^\.next\//,
-      /^build\//,
-      /^dist\//,
-      /^coverage\//,
-      /\.DS_Store$/,
-      /^\.env/,
-    ];
-
-    return patterns.some((pattern) => pattern.test(path));
-  };
-
-  const scanFolder = async (handle: FileSystemDirectoryHandle, path = '') => {
+  const scanFolder = async (handle: FileSystemDirectoryHandle) => {
     setIsProcessing(true);
 
-    const files: Array<{
-      handle: FileSystemFileHandle;
-      path: string;
-      size: number;
-      lines: number;
-    }> = [];
-
-    const scanRecursive = async (
-      dirHandle: FileSystemDirectoryHandle,
-      currentPath = '',
-    ) => {
-      // @ts-expect-error File System Access API may not be fully typed in all environments
-      for await (const entry of dirHandle.values()) {
-        const entryPath = currentPath
-          ? `${currentPath}/${entry.name}`
-          : entry.name;
-
-        if (shouldIgnore(entryPath)) continue;
-
-        if (entry.kind === 'file') {
-          if (isTextFile(entry.name)) {
-            const fileHandle = entry as FileSystemFileHandle;
-            const { size, lines } = await getFileSizeAndLines(fileHandle);
-            files.push({ handle: fileHandle, path: entryPath, size, lines });
-          }
-        } else if (entry.kind === 'directory') {
-          await scanRecursive(entry as FileSystemDirectoryHandle, entryPath);
-        }
-      }
-    };
-
-    await hasGitignore(handle);
-    await scanRecursive(handle, path);
-
-    setFileHandles(files);
-    onFilesSelected(files);
-    setIsProcessing(false);
-
-    return files;
+    try {
+      const { files, hasGitignore } = await scanLocalDirectory(handle);
+      setGitignoreStatus(
+        hasGitignore ? '.gitignore found and applied' : 'Using default ignore patterns',
+      );
+      setFileHandles(files);
+      onFilesSelected(files);
+      return files;
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   const handleFolderSelect = async () => {
@@ -276,7 +134,8 @@ const FileSelector: React.FC<FileSelectorProps> = ({
   };
 
   const applyFileTypeFilter = (extensions: string[]) => {
-    const paths = fileHandles
+    const activeFiles = sourceType === 'local' ? fileHandles : githubFiles;
+    const paths = activeFiles
       .filter((file) =>
         extensions.some((ext) => file.path.toLowerCase().endsWith(ext)),
       )
@@ -287,15 +146,7 @@ const FileSelector: React.FC<FileSelectorProps> = ({
     onSelectAll(Array.from(newSelectedFiles));
   };
 
-  const handleGitHubRepositoryLoaded = (
-    files: Array<{
-      file: GitHubFile;
-      path: string;
-      size: number;
-      lines: number;
-    }>,
-    repoInfo: GitHubRepoInfo,
-  ) => {
+  const handleGitHubRepositoryLoaded = (files: GitHubFileEntry[], repoInfo: GitHubRepoInfo) => {
     setGithubFiles(files);
     setGithubRepoInfo(repoInfo);
     setGithubError('');
@@ -564,7 +415,7 @@ const FileSelector: React.FC<FileSelectorProps> = ({
               filteredPaths={filteredPaths}
             />
           ) : sourceType === 'github' && githubFiles.length > 0 ? (
-            <GitHubFileTree
+            <FileTree
               files={sortedGithubFiles}
               filterText={filterText}
               selectedFiles={selectedFiles}

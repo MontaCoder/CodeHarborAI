@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import type React from 'react';
 import { useMemo, useState } from 'react';
+import type { FileSummary } from '../types/files';
 
 interface TreeNode {
   name: string;
@@ -19,12 +20,7 @@ interface TreeNode {
 }
 
 interface FileTreeProps {
-  files: Array<{
-    handle: FileSystemFileHandle;
-    path: string;
-    size: number;
-    lines: number;
-  }>;
+  files: FileSummary[];
   selectedFiles: Set<string>;
   onSelectFile: (path: string, selected: boolean) => void;
   filterText: string;
