@@ -247,7 +247,7 @@ const AdvancedOptionsPanel: React.FC<AdvancedOptionsPanelProps> = memo(
             <div className="space-y-2">
               <div className="flex gap-2">
                 <div className="relative flex-1">
-                  <LinkIcon className="w-4 h-4 text-neutral-400 dark:text-neutral-500 absolute left-3 top-1/2 -tranneutral-y-1/2" />
+                  <LinkIcon className="w-4 h-4 text-neutral-400 dark:text-neutral-500 absolute left-3 top-1/2 -translate-y-1/2" />
                   <input
                     type="url"
                     placeholder="https://context7.ai/docs/..."
