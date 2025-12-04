@@ -1,7 +1,7 @@
 import { AlertTriangle, BarChart2, CheckSquare, FileText } from 'lucide-react';
 import type React from 'react';
 import { memo } from 'react';
-import type { GitHubFileEntry, LocalFileEntry } from '../hooks/useFileSelection';
+import type { GitHubFileEntry, LocalFileEntry } from '../types/files';
 import type { PromptOptions } from '../hooks/usePromptBuilder';
 import { useStatsMetrics } from '../hooks/useStatsMetrics';
 
@@ -152,7 +152,7 @@ const StatsPanel: React.FC<StatsPanelProps> = memo(
                     </div>
                     <div className="flex items-center space-x-3 text-xs">
                       <span>{file.sizeKB.toFixed(1)} KB</span>
-                      <span className="text-neutral-400 dark:text-neutral-500">•</span>
+                      <span className="text-neutral-400 dark:text-neutral-500">|</span>
                       <span>{file.lines.toLocaleString()} lines</span>
                     </div>
                   </div>
@@ -167,3 +167,4 @@ const StatsPanel: React.FC<StatsPanelProps> = memo(
 );
 
 export default StatsPanel;
+

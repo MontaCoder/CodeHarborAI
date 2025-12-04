@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import type { GitHubFileEntry, LocalFileEntry } from './useFileSelection';
+import type { GitHubFileEntry, LocalFileEntry } from '../types/files';
 
 interface SmartOptionsSnapshot {
   enableSmartOptimization: boolean;

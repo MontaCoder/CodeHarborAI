@@ -1,19 +1,6 @@
 import { useCallback, useMemo, useState } from 'react';
-import type { GitHubFile, GitHubRepoInfo } from '../services/githubService';
-
-export type LocalFileEntry = {
-  handle: FileSystemFileHandle;
-  path: string;
-  size: number;
-  lines: number;
-};
-
-export type GitHubFileEntry = {
-  file: GitHubFile;
-  path: string;
-  size: number;
-  lines: number;
-};
+import type { GitHubRepoInfo } from '../services/githubService';
+import type { GitHubFileEntry, LocalFileEntry } from '../types/files';
 
 interface UseFileSelectionResult {
   folderHandle: FileSystemDirectoryHandle | null;
