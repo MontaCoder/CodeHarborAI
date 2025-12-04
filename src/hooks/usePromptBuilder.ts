@@ -1,11 +1,13 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Context7Service, type Context7Doc } from '../services/context7Service';
 import {
   SmartContextService,
   type FileAnalysis,
   type SmartContextOptions,
 } from '../services/smartContextService';
-import type { GitHubFileEntry, LocalFileEntry } from './useFileSelection';
+import { GitHubService } from '../services/githubService';
+import { readLocalFile } from '../services/fileContentService';
+import type { GitHubFileEntry, LocalFileEntry } from '../types/files';
 
 export interface PromptOptions {
   includePreamble: boolean;
@@ -47,9 +49,27 @@ interface UsePromptBuilderArgs {
 
 interface UsePromptBuilderResult extends PromptBuilderState {
   handleCombine: () => Promise<void>;
-  handleOptionChange: (key: keyof PromptOptions, value: PromptOptions[keyof PromptOptions]) => void;
+  handleOptionChange: (
+    key: keyof PromptOptions,
+    value: PromptOptions[keyof PromptOptions],
+  ) => void;
   options: PromptOptions;
 }
+
+const SEPARATOR = '-'.repeat(60);
+
+const buildSmartOptions = (options: PromptOptions): SmartContextOptions => ({
+  maxTotalTokens: options.maxTotalTokens,
+  prioritizeDocumentation: options.prioritizeDocumentation,
+  includeStructureMap: options.includeStructureMap,
+  extractCodeSignatures: options.extractCodeSignatures,
+  adaptiveCompression: options.adaptiveCompression,
+});
+
+const stripComments = (content: string): string =>
+  content.replace(/\/\/.*$/gm, '').replace(/\/\*[\s\S]*?\*\//g, '');
+
+const applyMinify = (content: string): string => content.replace(/\s+/g, ' ').trim();
 
 export const usePromptBuilder = ({
   options: initialOptions,
@@ -69,11 +89,51 @@ export const usePromptBuilder = ({
     message: null,
   });
 
+  const smartOptions = useMemo(() => buildSmartOptions(options), [options]);
+  const fileHandleMap = useMemo(
+    () => new Map(fileHandles.map((file) => [file.path, file])),
+    [fileHandles],
+  );
+  const githubFileMap = useMemo(
+    () => new Map(githubFiles.map((file) => [file.path, file])),
+    [githubFiles],
+  );
+
   const handleOptionChange = useCallback(
     (key: keyof PromptOptions, value: PromptOptions[keyof PromptOptions]) => {
       setOptions((prev) => ({ ...prev, [key]: value }));
     },
     [],
+  );
+
+  const loadContent = useCallback(
+    async (filePath: string): Promise<string> => {
+      if (folderHandle) {
+        const entry = fileHandleMap.get(filePath);
+        return entry ? readLocalFile(entry) : '';
+      }
+
+      const entry = githubFileMap.get(filePath);
+      if (!entry?.file.download_url) return '';
+      return GitHubService.downloadFileContent(entry.file.download_url);
+    },
+    [fileHandleMap, folderHandle, githubFileMap],
+  );
+
+  const buildOverview = useCallback(
+    (projectName: string): string => {
+      const overviewLines = [
+        '# Project Overview',
+        `**Project:** ${projectName}`,
+        `**Total Size:** ${(totalSize / 1024).toFixed(2)} KB`,
+        `**Total Lines:** ${totalLines.toLocaleString()}`,
+        `**Files Selected:** ${selectedFiles.size}`,
+        `**Smart Optimization:** ${options.enableSmartOptimization ? 'Enabled' : 'Disabled'}`,
+      ];
+
+      return overviewLines.join('\n') + '\n';
+    },
+    [options.enableSmartOptimization, selectedFiles.size, totalLines, totalSize],
   );
 
   const handleCombine = useCallback(async () => {
@@ -88,22 +148,23 @@ export const usePromptBuilder = ({
     setState((prev) => ({ ...prev, isLoading: true }));
 
     try {
-      let outputText = '';
+      const sections: string[] = [];
+      const fileAnalyses: FileAnalysis[] = [];
+      const fileContents = new Map<string, string>();
 
       if (options.includePreamble && options.preambleText.trim()) {
-        outputText += options.preambleText.trim() + '\n\n';
+        sections.push(options.preambleText.trim());
       }
 
       if (options.includeContext7Docs && options.context7Docs.length > 0) {
-        outputText += '# Referenced Documentation\n\n';
-        for (const doc of options.context7Docs) {
-          outputText += Context7Service.formatForPrompt(doc);
-        }
-        outputText += '\n';
+        const docs = options.context7Docs
+          .map((doc) => Context7Service.formatForPrompt(doc))
+          .join('\n');
+        sections.push(`# Referenced Documentation\n\n${docs}`);
       }
 
       if (options.includeGoal && options.goalText.trim()) {
-        outputText += '# Task Goal\n' + options.goalText.trim() + '\n\n';
+        sections.push(`# Task Goal\n${options.goalText.trim()}`);
       }
 
       const projectName = folderHandle
@@ -112,55 +173,25 @@ export const usePromptBuilder = ({
           ? `${githubRepoInfo.owner}/${githubRepoInfo.repo}`
           : 'Project';
 
-      outputText += '# Project Overview\n';
-      outputText += `**Project:** ${projectName}\n`;
-      outputText += `**Total Size:** ${(totalSize / 1024).toFixed(2)} KB\n`;
-      outputText += `**Total Lines:** ${totalLines.toLocaleString()}\n`;
-      outputText += `**Files Selected:** ${selectedFiles.size}\n`;
-
-      if (options.enableSmartOptimization) {
-        outputText += `**Smart Optimization:** ✅ Enabled\n`;
-      }
-      outputText += '\n';
-
-      const fileAnalyses: FileAnalysis[] = [];
-      const fileContents = new Map<string, string>();
+      sections.push(buildOverview(projectName));
 
       for (const filePath of selectedFiles) {
-        let content = '';
-        let metadata = { size: 0, lines: 0 };
+        const rawContent = await loadContent(filePath);
+        if (!rawContent) continue;
 
-        if (folderHandle) {
-          const match = fileHandles.find((f) => f.path === filePath);
-          if (match) {
-            const file = await match.handle.getFile();
-            content = await file.text();
-            metadata = { size: match.size, lines: match.lines };
-          }
-        } else {
-          const match = githubFiles.find((f) => f.path === filePath);
-          if (match && match.file.download_url) {
-            content = await fetch(match.file.download_url).then((r) => r.text());
-            metadata = { size: match.size, lines: match.lines };
-          }
-        }
-
-        if (!content) {
-          continue;
-        }
-
-        if (options.removeComments) {
-          content = content.replace(/\/\/.*$/gm, '');
-          content = content.replace(/\/\*[\s\S]*?\*\//g, '');
-        }
-
-        if (options.minifyOutput) {
-          content = content.replace(/\s+/g, ' ').trim();
-        }
+        let content = options.removeComments ? stripComments(rawContent) : rawContent;
+        content = options.minifyOutput ? applyMinify(content) : content;
 
         fileContents.set(filePath, content);
 
         if (options.enableSmartOptimization) {
+          const sourceMeta = folderHandle
+            ? fileHandleMap.get(filePath)
+            : githubFileMap.get(filePath);
+          const metadata = {
+            size: sourceMeta?.size ?? content.length,
+            lines: sourceMeta?.lines ?? content.split('\n').length,
+          };
           const analysis = SmartContextService.analyzeFile(filePath, content, metadata);
           fileAnalyses.push(analysis);
         }
@@ -171,77 +202,56 @@ export const usePromptBuilder = ({
         options.includeStructureMap &&
         fileAnalyses.length > 0
       ) {
-        outputText += SmartContextService.generateStructureMap(fileAnalyses);
-        outputText += '\n';
+        sections.push(SmartContextService.generateStructureMap(fileAnalyses));
       }
 
       let filesToInclude = Array.from(selectedFiles);
+      let analysesToRender = fileAnalyses;
       if (options.enableSmartOptimization && options.adaptiveCompression) {
-        const smartOptions: SmartContextOptions = {
-          maxTotalTokens: options.maxTotalTokens,
-          prioritizeDocumentation: options.prioritizeDocumentation,
-          includeStructureMap: options.includeStructureMap,
-          extractCodeSignatures: options.extractCodeSignatures,
-          adaptiveCompression: options.adaptiveCompression,
-        };
-
-        const optimizedAnalyses = SmartContextService.optimizeContextBudget(
+        analysesToRender = SmartContextService.optimizeContextBudget(
           fileAnalyses,
           options.maxTotalTokens,
           smartOptions,
         );
 
-        if (optimizedAnalyses.length < fileAnalyses.length) {
-          outputText += `**⚡ Smart Optimization:** Included ${optimizedAnalyses.length} of ${fileAnalyses.length} files based on priority and token budget\n\n`;
+        if (analysesToRender.length < fileAnalyses.length) {
+          sections.push(
+            `**Smart Optimization:** Included ${analysesToRender.length} of ${fileAnalyses.length} files based on priority and token budget.`,
+          );
         }
 
-        filesToInclude = optimizedAnalyses.map((analysis) => analysis.path);
+        filesToInclude = analysesToRender.map((analysis) => analysis.path);
       }
 
-      outputText += '# File Contents\n\n';
+      const fileOutput: string[] = ['# File Contents'];
 
       for (const filePath of filesToInclude) {
         const content = fileContents.get(filePath);
         if (!content) continue;
 
         if (options.enableSmartOptimization) {
-          const analysis = fileAnalyses.find((analysis) => analysis.path === filePath);
+          const analysis = analysesToRender.find((item) => item.path === filePath);
           if (analysis) {
-            const smartOptions: SmartContextOptions = {
-              maxTotalTokens: options.maxTotalTokens,
-              prioritizeDocumentation: options.prioritizeDocumentation,
-              includeStructureMap: options.includeStructureMap,
-              extractCodeSignatures: options.extractCodeSignatures,
-              adaptiveCompression: options.adaptiveCompression,
-            };
             const strategy = SmartContextService.determineStrategy(analysis, smartOptions);
-            outputText += SmartContextService.formatContent(
-              filePath,
-              content,
-              analysis,
-              strategy,
+            fileOutput.push(
+              SmartContextService.formatContent(filePath, content, analysis, strategy),
             );
-          } else {
-            outputText += `\n═════════════════════════════════════════\n`;
-            outputText += `${filePath}\n`;
-            outputText += `═════════════════════════════════════════\n\n`;
-            outputText += content + '\n';
+            continue;
           }
-        } else {
-          outputText += `\n═════════════════════════════════════════\n`;
-          outputText += `${filePath}\n`;
-          outputText += `═════════════════════════════════════════\n\n`;
-          outputText += content + '\n';
         }
+
+        fileOutput.push([SEPARATOR, filePath, SEPARATOR, '', content].join('\n'));
       }
 
+      sections.push(fileOutput.join('\n\n'));
+
       setState({
-        output: outputText,
+        output: sections.join('\n\n'),
         showOutput: true,
         isLoading: false,
         message: {
           text: options.enableSmartOptimization
-            ? '🎯 Smart context generated successfully!'
+            ? 'Smart context generated successfully.'
             : 'Context generated successfully!',
           type: 'success',
         },
@@ -261,11 +271,12 @@ export const usePromptBuilder = ({
     selectedFiles,
     options,
     folderHandle,
-    fileHandles,
-    githubFiles,
     githubRepoInfo,
-    totalSize,
-    totalLines,
+    loadContent,
+    fileHandleMap,
+    githubFileMap,
+    smartOptions,
+    buildOverview,
   ]);
 
   useEffect(() => {

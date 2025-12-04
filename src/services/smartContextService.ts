@@ -101,6 +101,8 @@ export class SmartContextService {
     'api',
   ];
 
+  private static readonly HEADER_DIVIDER = '-'.repeat(60);
+
   /**
    * Analyzes a file and determines its characteristics
    */
@@ -574,12 +576,12 @@ export class SmartContextService {
   ): string {
     const { type, role, priority, metadata } = analysis;
 
-    let header = '\n' + '═'.repeat(60) + '\n';
-    header += `📄 FILE: ${path}\n`;
-    header += `   Type: ${type} | Role: ${role} | Priority: ${this.getPriorityIndicator(priority)}\n`;
+    let header = `\n${this.HEADER_DIVIDER}\n`;
+    header += `FILE: ${path}\n`;
+    header += `Type: ${type} | Role: ${role} | Priority: ${this.getPriorityIndicator(priority)}\n`;
 
     if (metadata.size && metadata.lines) {
-      header += `   Size: ${(metadata.size / 1024).toFixed(2)} KB | Lines: ${metadata.lines}`;
+      header += `Size: ${(metadata.size / 1024).toFixed(2)} KB | Lines: ${metadata.lines}`;
       if (metadata.complexity) {
         header += ` | Complexity: ${metadata.complexity}`;
       }
@@ -587,7 +589,7 @@ export class SmartContextService {
     }
 
     if (metadata.exports && metadata.exports.length > 0) {
-      header += `   Exports: ${metadata.exports.slice(0, 5).join(', ')}`;
+      header += `Exports: ${metadata.exports.slice(0, 5).join(', ')}`;
       if (metadata.exports.length > 5) {
         header += ` +${metadata.exports.length - 5} more`;
       }
@@ -595,12 +597,12 @@ export class SmartContextService {
     }
 
     if (strategy.formatTemplate === 'summary') {
-      header += `   ⚡ Smart Summary (optimized for token efficiency)\n`;
+      header += 'Summary (optimized for token efficiency)\n';
     } else if (strategy.formatTemplate === 'structured') {
-      header += `   🔍 Structured View (key elements extracted)\n`;
+      header += 'Structured view (key elements extracted)\n';
     }
 
-    header += '═'.repeat(60) + '\n\n';
+    header += `${this.HEADER_DIVIDER}\n\n`;
 
     return header;
   }
@@ -722,23 +724,23 @@ export class SmartContextService {
 
   private static formatTypeName(type: FileType): string {
     const names: Record<FileType, string> = {
-      source: '📦 Source Code',
-      config: '⚙️ Configuration',
-      documentation: '📚 Documentation',
-      test: '🧪 Tests',
-      style: '🎨 Styles',
-      asset: '🖼️ Assets',
-      build: '🔧 Build',
-      other: '📂 Other',
+      source: 'Source Code',
+      config: 'Configuration',
+      documentation: 'Documentation',
+      test: 'Tests',
+      style: 'Styles',
+      asset: 'Assets',
+      build: 'Build',
+      other: 'Other',
     };
     return names[type] || type;
   }
 
   private static getPriorityIndicator(priority: number): string {
-    if (priority >= 250) return '🔴'; // Critical
-    if (priority >= 200) return '🟠'; // High
-    if (priority >= 150) return '🟡'; // Medium
-    if (priority >= 100) return '🟢'; // Normal
-    return '⚪'; // Low
+    if (priority >= 250) return '!!!';
+    if (priority >= 200) return '!!';
+    if (priority >= 150) return '!';
+    if (priority >= 100) return '~';
+    return '.';
   }
 }

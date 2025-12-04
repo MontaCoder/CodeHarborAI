@@ -1,23 +1,13 @@
 import { AlertCircle, CheckCircle, Github, Loader2 } from 'lucide-react';
 import type React from 'react';
 import { useCallback, useState } from 'react';
-import {
-  type GitHubFile,
-  type GitHubRepoInfo,
-  GitHubService,
-} from '../services/githubService';
+import { type GitHubRepoInfo, GitHubService } from '../services/githubService';
+import type { GitHubFileEntry } from '../types/files';
+import { isTextFileName } from '../utils/fileFilters';
 import Button from './ui/Button';
 
 interface GitHubLoaderProps {
-  onRepositoryLoaded: (
-    files: Array<{
-      file: GitHubFile;
-      path: string;
-      size: number;
-      lines: number;
-    }>,
-    repoInfo: GitHubRepoInfo,
-  ) => void;
+  onRepositoryLoaded: (files: GitHubFileEntry[], repoInfo: GitHubRepoInfo) => void;
   onError: (error: string) => void;
   isLoading: boolean;
 }
@@ -119,62 +109,8 @@ const GitHubLoader: React.FC<GitHubLoaderProps> = ({
       );
 
       // Filter to text files only
-      const textExtensions = [
-        '.txt',
-        '.md',
-        '.csv',
-        '.js',
-        '.css',
-        '.html',
-        '.json',
-        '.xml',
-        '.yaml',
-        '.yml',
-        '.ini',
-        '.log',
-        '.sh',
-        '.bash',
-        '.py',
-        '.java',
-        '.cpp',
-        '.c',
-        '.h',
-        '.config',
-        '.env',
-        '.gitignore',
-        '.sql',
-        '.ts',
-        '.tsx',
-        '.schema',
-        '.mjs',
-        '.cjs',
-        '.jsx',
-        '.rs',
-        '.go',
-        '.php',
-        '.rb',
-        '.toml',
-        '.prisma',
-        '.bat',
-        '.ps1',
-        '.svelte',
-        '.lock',
-        '.vue',
-        '.dart',
-        '.kt',
-        '.swift',
-        '.m',
-      ];
-
-      const exactMatches = ['Makefile', 'Dockerfile', 'Procfile', 'Rakefile'];
-
       const textFiles = githubFiles.filter(
-        (file) =>
-          file.type === 'file' &&
-          (exactMatches.includes(file.name) ||
-            textExtensions.some((ext) =>
-              file.name.toLowerCase().endsWith(ext),
-            )),
+        (file) => file.type === 'file' && isTextFileName(file.name),
       );
 
       // Use batch processing with progress tracking
@@ -356,12 +292,13 @@ const GitHubLoader: React.FC<GitHubLoaderProps> = ({
       )}
 
       <div className="text-xs text-neutral-500 dark:text-neutral-400 space-y-1">
-        <p>• Supports public GitHub repositories</p>
-        <p>• Only text files are loaded (code, config, documentation)</p>
-        <p>• Results are cached for 1 hour for faster reloading</p>
+        <p>- Supports public GitHub repositories</p>
+        <p>- Only text files are loaded (code, config, documentation)</p>
+        <p>- Results are cached for 1 hour for faster reloading</p>
       </div>
     </div>
   );
 };
 
 export default GitHubLoader;
+
