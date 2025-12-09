@@ -5,7 +5,7 @@ import {
   FileText as FileTextIcon,
 } from 'lucide-react';
 import type React from 'react';
-import { memo, useCallback, useState } from 'react';
+import { memo, useCallback, useEffect, useState } from 'react';
 import Button from './ui/Button';
 
 interface OutputPanelProps {
@@ -15,6 +15,7 @@ interface OutputPanelProps {
 const OutputPanel: React.FC<OutputPanelProps> = memo(({ output }) => {
   const [copied, setCopied] = useState(false);
   const [downloaded, setDownloaded] = useState(false);
+  const isMac = typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navigator.userAgent);
 
   const handleCopy = useCallback(async () => {
     try {
@@ -25,6 +26,20 @@ const OutputPanel: React.FC<OutputPanelProps> = memo(({ output }) => {
       console.error('Failed to copy text:', err);
     }
   }, [output]);
+
+  // Keyboard shortcut: Ctrl/Cmd + Shift + C to copy output
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const modKey = isMac ? e.metaKey : e.ctrlKey;
+      if (modKey && e.shiftKey && e.key.toLowerCase() === 'c') {
+        e.preventDefault();
+        handleCopy();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [handleCopy, isMac]);
 
   const handleDownload = useCallback(() => {
     const blob = new Blob([output], { type: 'text/plain;charset=utf-8' });
@@ -109,6 +124,9 @@ const OutputPanel: React.FC<OutputPanelProps> = memo(({ output }) => {
             aria-live="polite"
           >
             {copied ? 'Copied to Clipboard!' : 'Copy to Clipboard'}
+            <kbd className="hidden sm:inline-flex ml-2 px-1.5 py-0.5 text-[10px] font-mono bg-neutral-200 dark:bg-neutral-700 text-neutral-500 dark:text-neutral-400 rounded">
+              {isMac ? '⌘' : 'Ctrl'}+⇧+C
+            </kbd>
           </Button>
         </div>
       </div>
