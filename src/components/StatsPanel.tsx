@@ -4,6 +4,7 @@ import { memo } from 'react';
 import type { GitHubFileEntry, LocalFileEntry } from '../types/files';
 import type { PromptOptions } from '../hooks/usePromptBuilder';
 import { useStatsMetrics } from '../hooks/useStatsMetrics';
+import type { Context7Doc } from '../services/context7Service';
 
 interface StatsPanelProps {
   totalSize: number;
@@ -12,6 +13,8 @@ interface StatsPanelProps {
   selectedFiles: Set<string>;
   fileHandles: LocalFileEntry[];
   githubFiles: GitHubFileEntry[];
+  includeContext7Docs: boolean;
+  context7Docs: Context7Doc[];
   smartOptions: Pick<
     PromptOptions,
     'enableSmartOptimization' | 'adaptiveCompression' | 'prioritizeDocumentation' | 'includeStructureMap'
@@ -26,6 +29,8 @@ const StatsPanel: React.FC<StatsPanelProps> = memo(
     selectedFiles,
     fileHandles,
     githubFiles,
+    includeContext7Docs,
+    context7Docs,
     smartOptions,
   }) => {
     const metrics = useStatsMetrics({
@@ -35,6 +40,8 @@ const StatsPanel: React.FC<StatsPanelProps> = memo(
       selectedFiles,
       fileHandles,
       githubFiles,
+      includeContext7Docs,
+      context7Docs,
       smartOptions,
     });
 
@@ -130,6 +137,15 @@ const StatsPanel: React.FC<StatsPanelProps> = memo(
               <p className="text-xs text-neutral-600 dark:text-neutral-300 leading-snug">
                 {metrics.smartSummary}
               </p>
+            </div>
+            <div className="rounded-lg bg-neutral-100 dark:bg-neutral-800/40 px-3 py-2">
+              <p className="text-xs uppercase tracking-wide text-neutral-500 dark:text-neutral-500">
+                Context7 Docs
+              </p>
+              <p className="text-lg font-semibold text-neutral-800 dark:text-neutral-100">
+                {metrics.context7DocCount}
+              </p>
+              <p className="text-xs">{metrics.context7Included ? 'included' : 'disabled'}</p>
             </div>
           </div>
 
