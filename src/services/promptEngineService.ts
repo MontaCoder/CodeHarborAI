@@ -9,6 +9,7 @@ import type {
 } from './smartContextService';
 import { SmartContextService } from './smartContextService';
 import type { Context7Doc } from './context7Service';
+import { estimateTextTokens } from '../utils/tokenEstimator';
 
 export interface PromptSection {
   id: string;
@@ -503,8 +504,7 @@ Please analyze thoroughly and systematically.`;
    * Estimate tokens in text
    */
   private static estimateTotalTokens(text: string): number {
-    // Rough estimation: ~4 characters per token
-    return Math.ceil(text.length / 4);
+    return estimateTextTokens(text);
   }
 
   /**
