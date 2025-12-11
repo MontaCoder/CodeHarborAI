@@ -157,6 +157,8 @@ const MainApp: React.FC = () => {
                 selectedFiles={selectedFiles}
                 fileHandles={fileHandles}
                 githubFiles={githubFiles}
+                includeContext7Docs={options.includeContext7Docs}
+                context7Docs={options.context7Docs}
                 smartOptions={{
                   enableSmartOptimization: options.enableSmartOptimization,
                   adaptiveCompression: options.adaptiveCompression,
