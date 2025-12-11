@@ -4,6 +4,8 @@
  * Replaces the simple 3-level context enhancement with adaptive, file-aware optimization
  */
 
+import { estimateTextTokens } from '../utils/tokenEstimator';
+
 export interface FileAnalysis {
   path: string;
   type: FileType;
@@ -318,18 +320,19 @@ export class SmartContextService {
 
     for (const analysis of sorted) {
       const strategy = this.determineStrategy(analysis, options);
-      const estimatedSize =
-        strategy.maxTokens ?? analysis.estimatedTokens * 0.8;
+      // Use strategy-specific cost when present, otherwise a conservative 0.8 factor.
+      const estimatedSize = strategy.maxTokens ?? Math.ceil(analysis.estimatedTokens * 0.8);
 
       if (totalTokens + estimatedSize <= maxTokens) {
         selected.push(analysis);
         totalTokens += estimatedSize;
-      } else if (
-        analysis.type === 'documentation' &&
-        options.prioritizeDocumentation
-      ) {
-        // Always include documentation even if over budget
+        continue;
+      }
+
+      // Documentation prioritized: include but still account in total so later choices see the cost
+      if (analysis.type === 'documentation' && options.prioritizeDocumentation) {
         selected.push(analysis);
+        totalTokens += estimatedSize;
       }
     }
 
@@ -479,8 +482,7 @@ export class SmartContextService {
   }
 
   private static estimateTokens(content: string): number {
-    // Rough estimation: ~4 characters per token on average
-    return Math.ceil(content.length / 4);
+    return estimateTextTokens(content);
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
