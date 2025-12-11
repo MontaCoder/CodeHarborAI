@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import type { GitHubFileEntry, LocalFileEntry } from '../types/files';
+import { estimateTokensFromBytesLines } from '../utils/tokenEstimator';
 
 interface SmartOptionsSnapshot {
   enableSmartOptimization: boolean;
@@ -37,8 +38,6 @@ interface StatsMetricsResult {
   smartSummary: string;
 }
 
-const TOKENS_PER_BYTE = 0.25;
-const TOKENS_PER_LINE = 2.2;
 const CAUTION_THRESHOLD = 0.75;
 const CRITICAL_THRESHOLD = 0.95;
 
@@ -58,9 +57,7 @@ export const useStatsMetrics = ({
     const totalCount = activeFiles.length;
 
     const sizeKB = totalSize > 0 ? totalSize / 1024 : 0;
-    const tokenEstimateFromBytes = Math.ceil(totalSize * TOKENS_PER_BYTE);
-    const tokenEstimateFromLines = Math.ceil(totalLines * TOKENS_PER_LINE);
-    const estimatedTokens = Math.max(tokenEstimateFromBytes, tokenEstimateFromLines, 0);
+    const estimatedTokens = estimateTokensFromBytesLines(totalSize, totalLines);
     const budgetTokens = Math.max(maxTotalTokens, 1);
 
     const rawPercent = estimatedTokens / budgetTokens;
