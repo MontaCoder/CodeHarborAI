@@ -1,6 +1,8 @@
 import { useMemo } from 'react';
 import type { GitHubFileEntry, LocalFileEntry } from '../types/files';
-import { estimateTokensFromBytesLines } from '../utils/tokenEstimator';
+import type { Context7Doc } from '../services/context7Service';
+import { Context7Service } from '../services/context7Service';
+import { estimateTextTokens, estimateTokensFromBytesLines } from '../utils/tokenEstimator';
 
 interface SmartOptionsSnapshot {
   enableSmartOptimization: boolean;
@@ -16,6 +18,8 @@ interface UseStatsMetricsArgs {
   selectedFiles: Set<string>;
   fileHandles: LocalFileEntry[];
   githubFiles: GitHubFileEntry[];
+  includeContext7Docs: boolean;
+  context7Docs: Context7Doc[];
   smartOptions: SmartOptionsSnapshot;
 }
 
@@ -36,6 +40,8 @@ interface StatsMetricsResult {
   totalCount: number;
   topFiles: SelectedFileSummary[];
   smartSummary: string;
+  context7DocCount: number;
+  context7Included: boolean;
 }
 
 const CAUTION_THRESHOLD = 0.75;
@@ -48,6 +54,8 @@ export const useStatsMetrics = ({
   selectedFiles,
   fileHandles,
   githubFiles,
+  includeContext7Docs,
+  context7Docs,
   smartOptions,
 }: UseStatsMetricsArgs): StatsMetricsResult => {
   return useMemo(() => {
@@ -56,8 +64,17 @@ export const useStatsMetrics = ({
     const selectedCount = selectedPaths.size;
     const totalCount = activeFiles.length;
 
-    const sizeKB = totalSize > 0 ? totalSize / 1024 : 0;
-    const estimatedTokens = estimateTokensFromBytesLines(totalSize, totalLines);
+    const context7Included = includeContext7Docs && context7Docs.length > 0;
+    const context7DocCount = context7Included ? context7Docs.length : 0;
+
+    const docsText = context7Included
+      ? context7Docs.map((doc) => Context7Service.formatForPrompt(doc)).join('\n')
+      : '';
+    const docsBytes = docsText.length;
+    const docsTokens = context7Included ? estimateTextTokens(docsText) : 0;
+
+    const sizeKB = totalSize > 0 || docsBytes > 0 ? (totalSize + docsBytes) / 1024 : 0;
+    const estimatedTokens = estimateTokensFromBytesLines(totalSize, totalLines) + docsTokens;
     const budgetTokens = Math.max(maxTotalTokens, 1);
 
     const rawPercent = estimatedTokens / budgetTokens;
@@ -108,6 +125,8 @@ export const useStatsMetrics = ({
       totalCount,
       topFiles: selectedFileDetails,
       smartSummary,
+      context7DocCount,
+      context7Included,
     };
   }, [
     totalSize,
@@ -116,6 +135,8 @@ export const useStatsMetrics = ({
     selectedFiles,
     fileHandles,
     githubFiles,
+    includeContext7Docs,
+    context7Docs,
     smartOptions.enableSmartOptimization,
     smartOptions.adaptiveCompression,
     smartOptions.prioritizeDocumentation,
