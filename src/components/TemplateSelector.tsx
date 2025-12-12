@@ -4,6 +4,7 @@ import { useState } from 'react';
 import {
   applyTemplate,
   documentationTemplates,
+  getTemplateById,
 } from '../types/documentationTemplates';
 
 interface TemplateSelectorProps {
@@ -23,12 +24,14 @@ const TemplateSelector: React.FC<TemplateSelectorProps> = ({
 
   const handleTemplateSelect = (templateId: string) => {
     setSelectedTemplate(templateId);
-    const template = documentationTemplates.find((t) => t.id === templateId);
+    const template = getTemplateById(templateId);
     if (template) {
       const templateData = applyTemplate(template);
       onTemplateApply(templateData);
     }
   };
+
+  const activeTemplate = getTemplateById(selectedTemplate);
 
   const inputBaseClasses =
     'w-full py-2 px-3.5 border-0 ring-1 ring-inset ring-neutral-300 dark:ring-neutral-700 rounded-lg bg-white dark:bg-neutral-800/50 text-neutral-900 dark:text-neutral-100 focus:ring-2 focus:ring-inset focus:ring-emerald-500 transition-all duration-150 text-sm placeholder-neutral-400 dark:placeholder-neutral-500 shadow-sm';
@@ -77,11 +80,7 @@ const TemplateSelector: React.FC<TemplateSelectorProps> = ({
               <Info className="w-4 h-4 text-emerald-500 dark:text-emerald-400 mr-2 mt-0.5 flex-shrink-0" />
               <div className="flex-1">
                 <p className="text-xs text-neutral-600 dark:text-neutral-300 font-medium group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
-                  {
-                    documentationTemplates.find(
-                      (t) => t.id === selectedTemplate,
-                    )?.description
-                  }
+                  {activeTemplate?.description}
                 </p>
               </div>
             </button>
@@ -94,11 +93,7 @@ const TemplateSelector: React.FC<TemplateSelectorProps> = ({
                       Focus Areas:
                     </span>
                     <p className="mt-1 whitespace-pre-line pl-2">
-                      {
-                        documentationTemplates.find(
-                          (t) => t.id === selectedTemplate,
-                        )?.goal
-                      }
+                      {activeTemplate?.goal}
                     </p>
                   </div>
                 </div>
