@@ -118,6 +118,10 @@ const MainApp: React.FC = () => {
                 onGitHubFilesSelected={handleGitHubFilesSelected}
                 onSelectFile={handleSelectFile}
                 onSelectAll={handleSelectAll}
+                folderHandle={folderHandle}
+                fileHandles={fileHandles}
+                githubFiles={githubFiles}
+                githubRepoInfo={githubRepoInfo}
                 selectedFiles={selectedFiles}
                 isLoading={isLoading}
               />
