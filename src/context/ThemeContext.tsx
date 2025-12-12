@@ -27,24 +27,20 @@ interface ThemeProviderProps {
   children: ReactNode;
 }
 
+const getInitialTheme = (): Theme => {
+  if (typeof window === 'undefined') return 'light';
+  const savedTheme = localStorage.getItem('theme');
+  if (savedTheme === 'dark' || savedTheme === 'light') {
+    return savedTheme;
+  }
+
+  return window.matchMedia?.('(prefers-color-scheme: dark)')?.matches
+    ? 'dark'
+    : 'light';
+};
+
 export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
-  const [theme, setTheme] = useState<Theme>('light');
-
-  useEffect(() => {
-    // Check for dark mode preference in localStorage or system preference
-    const savedTheme = localStorage.getItem('theme');
-
-    if (savedTheme === 'dark' || savedTheme === 'light') {
-      setTheme(savedTheme);
-    } else if (
-      window.matchMedia &&
-      window.matchMedia('(prefers-color-scheme: dark)').matches
-    ) {
-      setTheme('dark');
-    } else {
-      setTheme('light');
-    }
-  }, []);
+  const [theme, setTheme] = useState<Theme>(getInitialTheme);
 
   useEffect(() => {
     // Apply theme to document

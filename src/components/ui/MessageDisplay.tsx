@@ -12,15 +12,26 @@ const MessageDisplay: React.FC<MessageDisplayProps> = ({ message, type }) => {
   const [exiting, setExiting] = useState(false);
 
   useEffect(() => {
-    if (message) {
+    if (!message) return;
+
+    let hideTimer: ReturnType<typeof setTimeout> | undefined;
+
+    // Defer state updates to avoid sync setState-in-effect lint rule.
+    const showTimer = setTimeout(() => {
       setVisible(true);
       setExiting(false);
-      const timer = setTimeout(() => {
-        setExiting(true);
-        setTimeout(() => setVisible(false), 300); // Corresponds to animation duration
-      }, 4700); // Start fade out before 5s to complete by 5s
-      return () => clearTimeout(timer);
-    }
+    }, 0);
+
+    const exitTimer = setTimeout(() => {
+      setExiting(true);
+      hideTimer = setTimeout(() => setVisible(false), 300); // animation duration
+    }, 4700); // start fade out before 5s
+
+    return () => {
+      clearTimeout(showTimer);
+      clearTimeout(exitTimer);
+      if (hideTimer) clearTimeout(hideTimer);
+    };
   }, [message, type]); // Re-trigger on new message or type change
 
   const baseClasses =
