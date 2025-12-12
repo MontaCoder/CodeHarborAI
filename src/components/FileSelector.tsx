@@ -18,12 +18,42 @@ import FileTree from './FileTree';
 import GitHubLoader from './GitHubLoader';
 import Button from './ui/Button';
 
+const FILE_TYPE_FILTERS: Record<string, string[]> = {
+  JavaScript: ['.js', '.mjs', '.cjs'],
+  React: ['.jsx', '.tsx'],
+  TypeScript: ['.ts', '.tsx'],
+  JSON: ['.json'],
+  Markdown: ['.md'],
+  Python: ['.py'],
+  Go: ['.go'],
+  Java: ['.java'],
+  Ruby: ['.rb'],
+  PHP: ['.php'],
+  Rust: ['.rs'],
+};
+
+const sortByPriority = <T extends { path: string }>(
+  files: T[],
+  enabled: boolean,
+): T[] => {
+  if (!enabled) return files;
+  const prioritized = prioritizeFiles(files.map((f) => f.path));
+  const order = new Map(prioritized.map((p, i) => [p.path, i]));
+  return [...files].sort(
+    (a, b) => (order.get(a.path) ?? Number.POSITIVE_INFINITY) - (order.get(b.path) ?? Number.POSITIVE_INFINITY),
+  );
+};
+
 interface FileSelectorProps {
-  onFolderSelected: (handle: FileSystemDirectoryHandle) => void;
+  onFolderSelected: (handle: FileSystemDirectoryHandle | null) => void;
   onFilesSelected: (files: LocalFileEntry[]) => void;
   onGitHubFilesSelected: (files: GitHubFileEntry[], repoInfo: GitHubRepoInfo) => void;
   onSelectFile: (path: string, selected: boolean) => void;
   onSelectAll: (paths: string[]) => void;
+  folderHandle: FileSystemDirectoryHandle | null;
+  fileHandles: LocalFileEntry[];
+  githubFiles: GitHubFileEntry[];
+  githubRepoInfo: GitHubRepoInfo | null;
   selectedFiles: Set<string>;
   isLoading: boolean;
 }
@@ -34,36 +64,20 @@ const FileSelector: React.FC<FileSelectorProps> = ({
   onGitHubFilesSelected,
   onSelectFile,
   onSelectAll,
+  folderHandle,
+  fileHandles,
+  githubFiles,
+  githubRepoInfo,
   selectedFiles,
   isLoading,
 }) => {
   const [sourceType, setSourceType] = useState<'local' | 'github'>('local');
-  const [folderHandle, setFolderHandle] = useState<FileSystemDirectoryHandle | null>(null);
   const [filterText, setFilterText] = useState<string>('');
-  const [fileHandles, setFileHandles] = useState<LocalFileEntry[]>([]);
-  const [githubFiles, setGithubFiles] = useState<GitHubFileEntry[]>([]);
-  const [githubRepoInfo, setGithubRepoInfo] = useState<GitHubRepoInfo | null>(
-    null,
-  );
   const [gitignoreStatus, setGitignoreStatus] = useState<string>('');
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
   const [filteredPaths, setFilteredPaths] = useState<string[]>([]);
   const [githubError, setGithubError] = useState<string>('');
   const [isPrioritized, setIsPrioritized] = useState<boolean>(false);
-
-  const fileTypeFilters = {
-    JavaScript: ['.js', '.mjs', '.cjs'],
-    React: ['.jsx', '.tsx'],
-    TypeScript: ['.ts', '.tsx'],
-    JSON: ['.json'],
-    Markdown: ['.md'],
-    Python: ['.py'],
-    Go: ['.go'],
-    Java: ['.java'],
-    Ruby: ['.rb'],
-    PHP: ['.php'],
-    Rust: ['.rs'],
-  };
 
   const scanFolder = async (handle: FileSystemDirectoryHandle) => {
     setIsProcessing(true);
@@ -73,7 +87,6 @@ const FileSelector: React.FC<FileSelectorProps> = ({
       setGitignoreStatus(
         hasGitignore ? '.gitignore found and applied' : 'Using default ignore patterns',
       );
-      setFileHandles(files);
       onFilesSelected(files);
       return files;
     } finally {
@@ -85,7 +98,6 @@ const FileSelector: React.FC<FileSelectorProps> = ({
     try {
       // @ts-expect-error File System Access API may not be fully typed in all environments
       const handle = await window.showDirectoryPicker();
-      setFolderHandle(handle);
       onFolderSelected(handle);
       await scanFolder(handle);
     } catch (err) {
@@ -146,9 +158,10 @@ const FileSelector: React.FC<FileSelectorProps> = ({
     onSelectAll(Array.from(newSelectedFiles));
   };
 
-  const handleGitHubRepositoryLoaded = (files: GitHubFileEntry[], repoInfo: GitHubRepoInfo) => {
-    setGithubFiles(files);
-    setGithubRepoInfo(repoInfo);
+  const handleGitHubRepositoryLoaded = (
+    files: GitHubFileEntry[],
+    repoInfo: GitHubRepoInfo,
+  ) => {
     setGithubError('');
     onGitHubFilesSelected(files, repoInfo);
   };
@@ -163,42 +176,23 @@ const FileSelector: React.FC<FileSelectorProps> = ({
     setGithubError('');
 
     if (type === 'local') {
-      // Clear GitHub data
-      setGithubFiles([]);
-      setGithubRepoInfo(null);
       onFilesSelected([]);
     } else {
-      // Clear local data
-      setFileHandles([]);
-      setFolderHandle(null);
+      onFolderSelected(null);
       onFilesSelected([]);
     }
   };
 
   // Apply prioritization to files
-  const sortedFileHandles = useMemo(() => {
-    if (!isPrioritized) return fileHandles;
-    const paths = fileHandles.map((f) => f.path);
-    const prioritized = prioritizeFiles(paths);
-    const pathOrder = new Map(prioritized.map((p, i) => [p.path, i]));
-    return [...fileHandles].sort((a, b) => {
-      const orderA = pathOrder.get(a.path) ?? 999999;
-      const orderB = pathOrder.get(b.path) ?? 999999;
-      return orderA - orderB;
-    });
-  }, [fileHandles, isPrioritized]);
+  const sortedFileHandles = useMemo(
+    () => sortByPriority(fileHandles, isPrioritized),
+    [fileHandles, isPrioritized],
+  );
 
-  const sortedGithubFiles = useMemo(() => {
-    if (!isPrioritized) return githubFiles;
-    const paths = githubFiles.map((f) => f.path);
-    const prioritized = prioritizeFiles(paths);
-    const pathOrder = new Map(prioritized.map((p, i) => [p.path, i]));
-    return [...githubFiles].sort((a, b) => {
-      const orderA = pathOrder.get(a.path) ?? 999999;
-      const orderB = pathOrder.get(b.path) ?? 999999;
-      return orderA - orderB;
-    });
-  }, [githubFiles, isPrioritized]);
+  const sortedGithubFiles = useMemo(
+    () => sortByPriority(githubFiles, isPrioritized),
+    [githubFiles, isPrioritized],
+  );
 
   useEffect(() => {
     // Update filtered paths whenever filter text changes
@@ -367,7 +361,7 @@ const FileSelector: React.FC<FileSelectorProps> = ({
             <span className="text-sm font-medium text-neutral-700 dark:text-neutral-300 mr-2">
               Quick Filters:
             </span>
-            {Object.entries(fileTypeFilters)
+            {Object.entries(FILE_TYPE_FILTERS)
               .slice(0, 5)
               .map(([typeName, extensions]) => (
                 <button
@@ -382,7 +376,7 @@ const FileSelector: React.FC<FileSelectorProps> = ({
                   {typeName}
                 </button>
               ))}
-            {Object.keys(fileTypeFilters).length > 5 && (
+            {Object.keys(FILE_TYPE_FILTERS).length > 5 && (
               <Button
                 secondary
                 className="text-xs px-3 py-1"

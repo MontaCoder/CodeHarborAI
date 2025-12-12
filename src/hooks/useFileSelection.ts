@@ -12,7 +12,7 @@ interface UseFileSelectionResult {
   totalLines: number;
   handleFilesSelected: (files: LocalFileEntry[]) => void;
   handleGitHubFilesSelected: (files: GitHubFileEntry[], repoInfo: GitHubRepoInfo) => void;
-  handleFolderSelected: (handle: FileSystemDirectoryHandle) => void;
+  handleFolderSelected: (handle: FileSystemDirectoryHandle | null) => void;
   handleSelectFile: (path: string, selected: boolean) => void;
   handleSelectAll: (paths: string[]) => void;
 }
@@ -57,7 +57,7 @@ export const useFileSelection = (): UseFileSelectionResult => {
     [],
   );
 
-  const handleFolderSelected = useCallback((handle: FileSystemDirectoryHandle) => {
+  const handleFolderSelected = useCallback((handle: FileSystemDirectoryHandle | null) => {
     setFolderHandle(handle);
   }, []);
 
