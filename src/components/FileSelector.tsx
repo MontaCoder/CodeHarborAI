@@ -10,10 +10,10 @@ import {
 } from 'lucide-react';
 import type React from 'react';
 import { memo, useEffect, useMemo, useState } from 'react';
-import type { GitHubRepoInfo } from '../services/githubService';
 import { scanLocalDirectory } from '../services/fileContentService';
-import { prioritizeFiles } from '../utils/filePrioritization';
+import type { GitHubRepoInfo } from '../services/githubService';
 import type { GitHubFileEntry, LocalFileEntry } from '../types/files';
+import { prioritizeFiles } from '../utils/filePrioritization';
 import FileTree from './FileTree';
 import GitHubLoader from './GitHubLoader';
 import Button from './ui/Button';
@@ -40,14 +40,19 @@ const sortByPriority = <T extends { path: string }>(
   const prioritized = prioritizeFiles(files.map((f) => f.path));
   const order = new Map(prioritized.map((p, i) => [p.path, i]));
   return [...files].sort(
-    (a, b) => (order.get(a.path) ?? Number.POSITIVE_INFINITY) - (order.get(b.path) ?? Number.POSITIVE_INFINITY),
+    (a, b) =>
+      (order.get(a.path) ?? Number.POSITIVE_INFINITY) -
+      (order.get(b.path) ?? Number.POSITIVE_INFINITY),
   );
 };
 
 interface FileSelectorProps {
   onFolderSelected: (handle: FileSystemDirectoryHandle | null) => void;
   onFilesSelected: (files: LocalFileEntry[]) => void;
-  onGitHubFilesSelected: (files: GitHubFileEntry[], repoInfo: GitHubRepoInfo) => void;
+  onGitHubFilesSelected: (
+    files: GitHubFileEntry[],
+    repoInfo: GitHubRepoInfo,
+  ) => void;
   onSelectFile: (path: string, selected: boolean) => void;
   onSelectAll: (paths: string[]) => void;
   folderHandle: FileSystemDirectoryHandle | null;
@@ -85,7 +90,9 @@ const FileSelector: React.FC<FileSelectorProps> = ({
     try {
       const { files, hasGitignore } = await scanLocalDirectory(handle);
       setGitignoreStatus(
-        hasGitignore ? '.gitignore found and applied' : 'Using default ignore patterns',
+        hasGitignore
+          ? '.gitignore found and applied'
+          : 'Using default ignore patterns',
       );
       onFilesSelected(files);
       return files;

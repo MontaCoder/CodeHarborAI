@@ -32,7 +32,10 @@ interface AdvancedOptionsPanelProps {
     extractCodeSignatures: boolean;
     adaptiveCompression: boolean;
   };
-  onChange: (key: string, value: string | boolean | number | Context7Doc[]) => void;
+  onChange: (
+    key: string,
+    value: string | boolean | number | Context7Doc[],
+  ) => void;
 }
 
 const AdvancedOptionsPanel: React.FC<AdvancedOptionsPanelProps> = memo(
@@ -132,7 +135,9 @@ const AdvancedOptionsPanel: React.FC<AdvancedOptionsPanelProps> = memo(
                   type="checkbox"
                   id="enableSmartOptimization"
                   checked={options.enableSmartOptimization}
-                  onChange={(e) => onChange('enableSmartOptimization', e.target.checked)}
+                  onChange={(e) =>
+                    onChange('enableSmartOptimization', e.target.checked)
+                  }
                   className={checkboxBaseClasses}
                 />
                 <label
@@ -156,7 +161,9 @@ const AdvancedOptionsPanel: React.FC<AdvancedOptionsPanelProps> = memo(
                     max="2000000"
                     step="10000"
                     value={options.maxTotalTokens}
-                    onChange={(e) => onChange('maxTotalTokens', parseInt(e.target.value))}
+                    onChange={(e) =>
+                      onChange('maxTotalTokens', parseInt(e.target.value))
+                    }
                     className="w-full h-2 bg-neutral-200 dark:bg-neutral-700 rounded-lg appearance-none cursor-pointer accent-emerald-600"
                   />
                   <div className="flex justify-between text-xs text-neutral-500 dark:text-neutral-400">
@@ -171,10 +178,15 @@ const AdvancedOptionsPanel: React.FC<AdvancedOptionsPanelProps> = memo(
                       type="checkbox"
                       id="prioritizeDocumentation"
                       checked={options.prioritizeDocumentation}
-                      onChange={(e) => onChange('prioritizeDocumentation', e.target.checked)}
+                      onChange={(e) =>
+                        onChange('prioritizeDocumentation', e.target.checked)
+                      }
                       className={checkboxBaseClasses}
                     />
-                    <label htmlFor="prioritizeDocumentation" className={`ml-2.5 ${labelBaseClasses} text-xs`}>
+                    <label
+                      htmlFor="prioritizeDocumentation"
+                      className={`ml-2.5 ${labelBaseClasses} text-xs`}
+                    >
                       📚 Prioritize documentation files
                     </label>
                   </div>
@@ -184,10 +196,15 @@ const AdvancedOptionsPanel: React.FC<AdvancedOptionsPanelProps> = memo(
                       type="checkbox"
                       id="includeStructureMap"
                       checked={options.includeStructureMap}
-                      onChange={(e) => onChange('includeStructureMap', e.target.checked)}
+                      onChange={(e) =>
+                        onChange('includeStructureMap', e.target.checked)
+                      }
                       className={checkboxBaseClasses}
                     />
-                    <label htmlFor="includeStructureMap" className={`ml-2.5 ${labelBaseClasses} text-xs`}>
+                    <label
+                      htmlFor="includeStructureMap"
+                      className={`ml-2.5 ${labelBaseClasses} text-xs`}
+                    >
                       🗺️ Generate project structure map
                     </label>
                   </div>
@@ -197,10 +214,15 @@ const AdvancedOptionsPanel: React.FC<AdvancedOptionsPanelProps> = memo(
                       type="checkbox"
                       id="extractCodeSignatures"
                       checked={options.extractCodeSignatures}
-                      onChange={(e) => onChange('extractCodeSignatures', e.target.checked)}
+                      onChange={(e) =>
+                        onChange('extractCodeSignatures', e.target.checked)
+                      }
                       className={checkboxBaseClasses}
                     />
-                    <label htmlFor="extractCodeSignatures" className={`ml-2.5 ${labelBaseClasses} text-xs`}>
+                    <label
+                      htmlFor="extractCodeSignatures"
+                      className={`ml-2.5 ${labelBaseClasses} text-xs`}
+                    >
                       🔍 Extract code signatures & types
                     </label>
                   </div>
@@ -210,10 +232,15 @@ const AdvancedOptionsPanel: React.FC<AdvancedOptionsPanelProps> = memo(
                       type="checkbox"
                       id="adaptiveCompression"
                       checked={options.adaptiveCompression}
-                      onChange={(e) => onChange('adaptiveCompression', e.target.checked)}
+                      onChange={(e) =>
+                        onChange('adaptiveCompression', e.target.checked)
+                      }
                       className={checkboxBaseClasses}
                     />
-                    <label htmlFor="adaptiveCompression" className={`ml-2.5 ${labelBaseClasses} text-xs`}>
+                    <label
+                      htmlFor="adaptiveCompression"
+                      className={`ml-2.5 ${labelBaseClasses} text-xs`}
+                    >
                       ⚡ Adaptive compression & summarization
                     </label>
                   </div>
@@ -437,7 +464,9 @@ const AdvancedOptionsPanel: React.FC<AdvancedOptionsPanelProps> = memo(
             <ul className="space-y-1 pl-4 list-disc">
               <li>Use templates as a starting point for common tasks</li>
               <li>Add Context7 docs to provide framework/library references</li>
-              <li>Enable Smart Optimizer for intelligent, file-aware context</li>
+              <li>
+                Enable Smart Optimizer for intelligent, file-aware context
+              </li>
               <li>Adjust token budget based on your AI model's capacity</li>
               <li>Use adaptive compression for large codebases</li>
             </ul>
