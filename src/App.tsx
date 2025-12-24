@@ -1,4 +1,4 @@
-import { Suspense, lazy, useState } from 'react';
+import { lazy, Suspense, useState } from 'react';
 import Footer from './components/Footer';
 import LandingPage from './components/LandingPage';
 import { ThemeProvider } from './context/ThemeContext';
