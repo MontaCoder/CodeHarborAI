@@ -15,7 +15,9 @@ interface OutputPanelProps {
 const OutputPanel: React.FC<OutputPanelProps> = memo(({ output }) => {
   const [copied, setCopied] = useState(false);
   const [downloaded, setDownloaded] = useState(false);
-  const isMac = typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navigator.userAgent);
+  const isMac =
+    typeof navigator !== 'undefined' &&
+    /Mac|iPhone|iPad/.test(navigator.userAgent);
 
   const handleCopy = useCallback(async () => {
     try {

@@ -1,10 +1,10 @@
 import { AlertTriangle, BarChart2, CheckSquare, FileText } from 'lucide-react';
 import type React from 'react';
 import { memo } from 'react';
-import type { GitHubFileEntry, LocalFileEntry } from '../types/files';
 import type { PromptOptions } from '../hooks/usePromptBuilder';
 import { useStatsMetrics } from '../hooks/useStatsMetrics';
 import type { Context7Doc } from '../services/context7Service';
+import type { GitHubFileEntry, LocalFileEntry } from '../types/files';
 
 interface StatsPanelProps {
   totalSize: number;
@@ -17,7 +17,10 @@ interface StatsPanelProps {
   context7Docs: Context7Doc[];
   smartOptions: Pick<
     PromptOptions,
-    'enableSmartOptimization' | 'adaptiveCompression' | 'prioritizeDocumentation' | 'includeStructureMap'
+    | 'enableSmartOptimization'
+    | 'adaptiveCompression'
+    | 'prioritizeDocumentation'
+    | 'includeStructureMap'
   >;
 }
 
@@ -53,7 +56,8 @@ const StatsPanel: React.FC<StatsPanelProps> = memo(
 
     const statusBadgeVariants: Record<typeof metrics.budgetStatus, string> = {
       safe: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300',
-      caution: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300',
+      caution:
+        'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300',
       critical: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300',
     };
 
@@ -97,7 +101,10 @@ const StatsPanel: React.FC<StatsPanelProps> = memo(
               ></div>
             </div>
             <div className="mt-2 flex justify-between text-xs text-neutral-500 dark:text-neutral-400">
-              <span>{metrics.estimatedTokens.toLocaleString()} tokens (~{metrics.sizeKB.toFixed(0)} KB)</span>
+              <span>
+                {metrics.estimatedTokens.toLocaleString()} tokens (~
+                {metrics.sizeKB.toFixed(0)} KB)
+              </span>
               <span>{metrics.budgetTokens.toLocaleString()} max tokens</span>
             </div>
             <div
@@ -145,7 +152,9 @@ const StatsPanel: React.FC<StatsPanelProps> = memo(
               <p className="text-lg font-semibold text-neutral-800 dark:text-neutral-100">
                 {metrics.context7DocCount}
               </p>
-              <p className="text-xs">{metrics.context7Included ? 'included' : 'disabled'}</p>
+              <p className="text-xs">
+                {metrics.context7Included ? 'included' : 'disabled'}
+              </p>
             </div>
           </div>
 
@@ -168,7 +177,9 @@ const StatsPanel: React.FC<StatsPanelProps> = memo(
                     </div>
                     <div className="flex items-center space-x-3 text-xs">
                       <span>{file.sizeKB.toFixed(1)} KB</span>
-                      <span className="text-neutral-400 dark:text-neutral-500">|</span>
+                      <span className="text-neutral-400 dark:text-neutral-500">
+                        |
+                      </span>
                       <span>{file.lines.toLocaleString()} lines</span>
                     </div>
                   </div>
@@ -183,4 +194,3 @@ const StatsPanel: React.FC<StatsPanelProps> = memo(
 );
 
 export default StatsPanel;
-

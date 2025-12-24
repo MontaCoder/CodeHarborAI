@@ -2,7 +2,10 @@ import { ArrowLeft, Moon, RefreshCw, Sun } from 'lucide-react';
 import type React from 'react';
 import { useTheme } from '../context/ThemeContext';
 import { useFileSelection } from '../hooks/useFileSelection';
-import { usePromptBuilder, type PromptOptions } from '../hooks/usePromptBuilder';
+import {
+  type PromptOptions,
+  usePromptBuilder,
+} from '../hooks/usePromptBuilder';
 import AdvancedOptionsPanel from './AdvancedOptionsPanel';
 import FileSelector from './FileSelector';
 import OutputPanel from './OutputPanel';
