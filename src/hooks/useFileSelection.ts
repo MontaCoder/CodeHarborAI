@@ -11,17 +11,23 @@ interface UseFileSelectionResult {
   totalSize: number;
   totalLines: number;
   handleFilesSelected: (files: LocalFileEntry[]) => void;
-  handleGitHubFilesSelected: (files: GitHubFileEntry[], repoInfo: GitHubRepoInfo) => void;
+  handleGitHubFilesSelected: (
+    files: GitHubFileEntry[],
+    repoInfo: GitHubRepoInfo,
+  ) => void;
   handleFolderSelected: (handle: FileSystemDirectoryHandle | null) => void;
   handleSelectFile: (path: string, selected: boolean) => void;
   handleSelectAll: (paths: string[]) => void;
 }
 
 export const useFileSelection = (): UseFileSelectionResult => {
-  const [folderHandle, setFolderHandle] = useState<FileSystemDirectoryHandle | null>(null);
+  const [folderHandle, setFolderHandle] =
+    useState<FileSystemDirectoryHandle | null>(null);
   const [fileHandles, setFileHandles] = useState<LocalFileEntry[]>([]);
   const [githubFiles, setGithubFiles] = useState<GitHubFileEntry[]>([]);
-  const [githubRepoInfo, setGithubRepoInfo] = useState<GitHubRepoInfo | null>(null);
+  const [githubRepoInfo, setGithubRepoInfo] = useState<GitHubRepoInfo | null>(
+    null,
+  );
   const [selectedFiles, setSelectedFiles] = useState<Set<string>>(new Set());
 
   const { totalSize, totalLines } = useMemo(() => {
@@ -57,9 +63,12 @@ export const useFileSelection = (): UseFileSelectionResult => {
     [],
   );
 
-  const handleFolderSelected = useCallback((handle: FileSystemDirectoryHandle | null) => {
-    setFolderHandle(handle);
-  }, []);
+  const handleFolderSelected = useCallback(
+    (handle: FileSystemDirectoryHandle | null) => {
+      setFolderHandle(handle);
+    },
+    [],
+  );
 
   const handleSelectFile = useCallback((path: string, selected: boolean) => {
     setSelectedFiles((prev) => {

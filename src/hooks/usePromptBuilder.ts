@@ -1,12 +1,12 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Context7Service, type Context7Doc } from '../services/context7Service';
+import { type Context7Doc, Context7Service } from '../services/context7Service';
+import { readLocalFile } from '../services/fileContentService';
+import { GitHubService } from '../services/githubService';
 import {
-  SmartContextService,
   type FileAnalysis,
   type SmartContextOptions,
+  SmartContextService,
 } from '../services/smartContextService';
-import { GitHubService } from '../services/githubService';
-import { readLocalFile } from '../services/fileContentService';
 import type { GitHubFileEntry, LocalFileEntry } from '../types/files';
 
 export interface PromptOptions {
@@ -69,7 +69,8 @@ const buildSmartOptions = (options: PromptOptions): SmartContextOptions => ({
 const stripComments = (content: string): string =>
   content.replace(/\/\/.*$/gm, '').replace(/\/\*[\s\S]*?\*\//g, '');
 
-const applyMinify = (content: string): string => content.replace(/\s+/g, ' ').trim();
+const applyMinify = (content: string): string =>
+  content.replace(/\s+/g, ' ').trim();
 
 export const usePromptBuilder = ({
   options: initialOptions,
@@ -133,7 +134,12 @@ export const usePromptBuilder = ({
 
       return overviewLines.join('\n') + '\n';
     },
-    [options.enableSmartOptimization, selectedFiles.size, totalLines, totalSize],
+    [
+      options.enableSmartOptimization,
+      selectedFiles.size,
+      totalLines,
+      totalSize,
+    ],
   );
 
   const handleCombine = useCallback(async () => {
@@ -179,7 +185,9 @@ export const usePromptBuilder = ({
         const rawContent = await loadContent(filePath);
         if (!rawContent) continue;
 
-        let content = options.removeComments ? stripComments(rawContent) : rawContent;
+        let content = options.removeComments
+          ? stripComments(rawContent)
+          : rawContent;
         content = options.minifyOutput ? applyMinify(content) : content;
 
         fileContents.set(filePath, content);
@@ -192,7 +200,11 @@ export const usePromptBuilder = ({
             size: sourceMeta?.size ?? content.length,
             lines: sourceMeta?.lines ?? content.split('\n').length,
           };
-          const analysis = SmartContextService.analyzeFile(filePath, content, metadata);
+          const analysis = SmartContextService.analyzeFile(
+            filePath,
+            content,
+            metadata,
+          );
           fileAnalyses.push(analysis);
         }
       }
@@ -230,17 +242,29 @@ export const usePromptBuilder = ({
         if (!content) continue;
 
         if (options.enableSmartOptimization) {
-          const analysis = analysesToRender.find((item) => item.path === filePath);
+          const analysis = analysesToRender.find(
+            (item) => item.path === filePath,
+          );
           if (analysis) {
-            const strategy = SmartContextService.determineStrategy(analysis, smartOptions);
+            const strategy = SmartContextService.determineStrategy(
+              analysis,
+              smartOptions,
+            );
             fileOutput.push(
-              SmartContextService.formatContent(filePath, content, analysis, strategy),
+              SmartContextService.formatContent(
+                filePath,
+                content,
+                analysis,
+                strategy,
+              ),
             );
             continue;
           }
         }
 
-        fileOutput.push([SEPARATOR, filePath, SEPARATOR, '', content].join('\n'));
+        fileOutput.push(
+          [SEPARATOR, filePath, SEPARATOR, '', content].join('\n'),
+        );
       }
 
       sections.push(fileOutput.join('\n\n'));

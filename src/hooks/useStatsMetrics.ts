@@ -1,8 +1,11 @@
 import { useMemo } from 'react';
-import type { GitHubFileEntry, LocalFileEntry } from '../types/files';
 import type { Context7Doc } from '../services/context7Service';
 import { Context7Service } from '../services/context7Service';
-import { estimateTextTokens, estimateTokensFromBytesLines } from '../utils/tokenEstimator';
+import type { GitHubFileEntry, LocalFileEntry } from '../types/files';
+import {
+  estimateTextTokens,
+  estimateTokensFromBytesLines,
+} from '../utils/tokenEstimator';
 
 interface SmartOptionsSnapshot {
   enableSmartOptimization: boolean;
@@ -68,13 +71,17 @@ export const useStatsMetrics = ({
     const context7DocCount = context7Included ? context7Docs.length : 0;
 
     const docsText = context7Included
-      ? context7Docs.map((doc) => Context7Service.formatForPrompt(doc)).join('\n')
+      ? context7Docs
+          .map((doc) => Context7Service.formatForPrompt(doc))
+          .join('\n')
       : '';
     const docsBytes = docsText.length;
     const docsTokens = context7Included ? estimateTextTokens(docsText) : 0;
 
-    const sizeKB = totalSize > 0 || docsBytes > 0 ? (totalSize + docsBytes) / 1024 : 0;
-    const estimatedTokens = estimateTokensFromBytesLines(totalSize, totalLines) + docsTokens;
+    const sizeKB =
+      totalSize > 0 || docsBytes > 0 ? (totalSize + docsBytes) / 1024 : 0;
+    const estimatedTokens =
+      estimateTokensFromBytesLines(totalSize, totalLines) + docsTokens;
     const budgetTokens = Math.max(maxTotalTokens, 1);
 
     const rawPercent = estimatedTokens / budgetTokens;
@@ -87,13 +94,17 @@ export const useStatsMetrics = ({
       budgetStatus = 'caution';
     }
 
-    let budgetMessage = 'Context size is comfortably within the configured token budget.';
+    let budgetMessage =
+      'Context size is comfortably within the configured token budget.';
     if (rawPercent >= 1) {
-      budgetMessage = 'Selection exceeds the configured token budget. Consider deselecting files or increasing the limit.';
+      budgetMessage =
+        'Selection exceeds the configured token budget. Consider deselecting files or increasing the limit.';
     } else if (budgetStatus === 'critical') {
-      budgetMessage = 'Approaching the configured token budget. Review selections or enable more compression.';
+      budgetMessage =
+        'Approaching the configured token budget. Review selections or enable more compression.';
     } else if (budgetStatus === 'caution') {
-      budgetMessage = 'Context size is approaching the caution range for the configured budget.';
+      budgetMessage =
+        'Context size is approaching the caution range for the configured budget.';
     }
 
     const selectedFileDetails = activeFiles
@@ -106,11 +117,18 @@ export const useStatsMetrics = ({
       .sort((a, b) => b.sizeKB - a.sizeKB)
       .slice(0, 3);
 
-    let smartSummary = 'Smart optimization is disabled. The entire selection will be included as-is.';
+    let smartSummary =
+      'Smart optimization is disabled. The entire selection will be included as-is.';
     if (smartOptions.enableSmartOptimization) {
-      const compression = smartOptions.adaptiveCompression ? 'Adaptive compression on.' : 'Adaptive compression off.';
-      const structure = smartOptions.includeStructureMap ? 'Structure map will be generated.' : 'Structure map disabled.';
-      const docs = smartOptions.prioritizeDocumentation ? 'Documentation prioritized.' : 'Documentation treated normally.';
+      const compression = smartOptions.adaptiveCompression
+        ? 'Adaptive compression on.'
+        : 'Adaptive compression off.';
+      const structure = smartOptions.includeStructureMap
+        ? 'Structure map will be generated.'
+        : 'Structure map disabled.';
+      const docs = smartOptions.prioritizeDocumentation
+        ? 'Documentation prioritized.'
+        : 'Documentation treated normally.';
       smartSummary = `${compression} ${structure} ${docs}`;
     }
 
