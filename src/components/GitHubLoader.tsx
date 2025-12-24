@@ -7,7 +7,10 @@ import { isTextFileName } from '../utils/fileFilters';
 import Button from './ui/Button';
 
 interface GitHubLoaderProps {
-  onRepositoryLoaded: (files: GitHubFileEntry[], repoInfo: GitHubRepoInfo) => void;
+  onRepositoryLoaded: (
+    files: GitHubFileEntry[],
+    repoInfo: GitHubRepoInfo,
+  ) => void;
   onError: (error: string) => void;
   isLoading: boolean;
 }
@@ -301,4 +304,3 @@ const GitHubLoader: React.FC<GitHubLoaderProps> = ({
 };
 
 export default GitHubLoader;
-

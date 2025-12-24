@@ -28,7 +28,10 @@ const PreviewCard: React.FC = () => {
 
           {/* File List with Animation */}
           <div className="space-y-3.5">
-            <div className="flex items-center space-x-2.5 animate-slide-in" style={{ animationDelay: '0.1s' }}>
+            <div
+              className="flex items-center space-x-2.5 animate-slide-in"
+              style={{ animationDelay: '0.1s' }}
+            >
               <div className="w-4 h-4 bg-emerald-50 dark:bg-emerald-500/10 rounded-sm flex items-center justify-center flex-shrink-0 animate-pulse-slow">
                 <svg
                   className="w-2.5 h-2.5 text-emerald-600 dark:text-emerald-400"
@@ -37,13 +40,21 @@ const PreviewCard: React.FC = () => {
                   stroke="currentColor"
                   strokeWidth={3}
                 >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M5 13l4 4L19 7"
+                  />
                 </svg>
               </div>
               <div className="h-4 bg-gradient-to-r from-neutral-100 to-neutral-200 dark:from-neutral-800 dark:to-neutral-700 rounded-md w-full"></div>
             </div>
 
-            <div className="flex items-center space-x-2.5 animate-slide-in" style={{ animationDelay: '0.2s' }}>
+            <div
+              className="flex items-center space-x-2.5 animate-slide-in"
+              style={{ animationDelay: '0.2s' }}
+            >
               <div
                 className="w-4 h-4 bg-emerald-50 dark:bg-emerald-500/10 rounded-sm flex items-center justify-center flex-shrink-0 animate-pulse-slow"
                 style={{ animationDelay: '0.5s' }}
@@ -55,13 +66,21 @@ const PreviewCard: React.FC = () => {
                   stroke="currentColor"
                   strokeWidth={3}
                 >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M5 13l4 4L19 7"
+                  />
                 </svg>
               </div>
               <div className="h-4 bg-gradient-to-r from-neutral-100 to-neutral-200 dark:from-neutral-800 dark:to-neutral-700 rounded-md w-10/12"></div>
             </div>
 
-            <div className="flex items-center space-x-2.5 animate-slide-in" style={{ animationDelay: '0.3s' }}>
+            <div
+              className="flex items-center space-x-2.5 animate-slide-in"
+              style={{ animationDelay: '0.3s' }}
+            >
               <div
                 className="w-4 h-4 bg-neutral-100 dark:bg-neutral-800 rounded-sm flex-shrink-0 animate-pulse-slow"
                 style={{ animationDelay: '1s' }}
@@ -76,8 +95,14 @@ const PreviewCard: React.FC = () => {
             >
               <div className="space-y-2">
                 <div className="h-2 bg-emerald-500/30 rounded w-3/4 animate-pulse-slow"></div>
-                <div className="h-2 bg-sky-500/30 rounded w-1/2 animate-pulse-slow" style={{ animationDelay: '0.3s' }}></div>
-                <div className="h-2 bg-purple-500/30 rounded w-2/3 animate-pulse-slow" style={{ animationDelay: '0.6s' }}></div>
+                <div
+                  className="h-2 bg-sky-500/30 rounded w-1/2 animate-pulse-slow"
+                  style={{ animationDelay: '0.3s' }}
+                ></div>
+                <div
+                  className="h-2 bg-purple-500/30 rounded w-2/3 animate-pulse-slow"
+                  style={{ animationDelay: '0.6s' }}
+                ></div>
               </div>
             </div>
 

@@ -17,8 +17,7 @@ interface HeroSectionProps {
 
 const stats = [
   {
-    iconWrapperClass:
-      'bg-emerald-100 dark:bg-emerald-500/20',
+    iconWrapperClass: 'bg-emerald-100 dark:bg-emerald-500/20',
     icon: <Shield className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />,
     label: '100% Private',
   },
@@ -38,11 +37,14 @@ const featureCards = [
   {
     iconWrapperClass:
       'bg-gradient-to-br from-emerald-50 to-emerald-100 dark:from-emerald-500/10 dark:to-emerald-500/20',
-    icon: <FileText className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />,
+    icon: (
+      <FileText className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
+    ),
     borderClass:
       'border-neutral-200 dark:border-neutral-800 hover:border-emerald-300 dark:hover:border-emerald-700 hover:shadow-lg hover:shadow-emerald-500/10',
     title: 'Select Any Files',
-    description: 'Choose files or entire folders from your local machine, with smart filtering.',
+    description:
+      'Choose files or entire folders from your local machine, with smart filtering.',
     chevronClass: 'group-hover:text-emerald-500',
   },
   {
@@ -52,7 +54,8 @@ const featureCards = [
     borderClass:
       'border-neutral-200 dark:border-neutral-800 hover:border-sky-300 dark:hover:border-sky-700 hover:shadow-lg hover:shadow-sky-500/10',
     title: 'Optimize Output',
-    description: 'Remove comments, minify code, and track token usage for different AI models.',
+    description:
+      'Remove comments, minify code, and track token usage for different AI models.',
     chevronClass: 'group-hover:text-sky-500',
   },
   {
@@ -62,7 +65,8 @@ const featureCards = [
     borderClass:
       'border-neutral-200 dark:border-neutral-800 hover:border-purple-300 dark:hover:border-purple-700 hover:shadow-lg hover:shadow-purple-500/10',
     title: 'Save Your Presets',
-    description: 'Store and reuse your file selections and settings for future prompt creation.',
+    description:
+      'Store and reuse your file selections and settings for future prompt creation.',
     chevronClass: 'group-hover:text-purple-500',
   },
 ];
@@ -109,7 +113,8 @@ const HeroSection: React.FC<HeroSectionProps> = ({ onGetStarted }) => {
       </h2>
 
       <p className="text-lg sm:text-xl text-neutral-600 dark:text-neutral-400 mb-8 leading-relaxed">
-        Securely select and combine your project files on your own machine to create optimized prompts for AI coding assistants.
+        Securely select and combine your project files on your own machine to
+        create optimized prompts for AI coding assistants.
       </p>
 
       {/* Stats */}
@@ -128,7 +133,14 @@ const HeroSection: React.FC<HeroSectionProps> = ({ onGetStarted }) => {
       {/* Feature Cards */}
       <div className="space-y-4 text-left mb-10">
         {featureCards.map(
-          ({ iconWrapperClass, icon, borderClass, title, description, chevronClass }) => (
+          ({
+            iconWrapperClass,
+            icon,
+            borderClass,
+            title,
+            description,
+            chevronClass,
+          }) => (
             <div
               key={title}
               className={`group flex items-start space-x-4 p-4 rounded-xl bg-white dark:bg-neutral-900 border ${borderClass} transition-all duration-300 cursor-default`}
