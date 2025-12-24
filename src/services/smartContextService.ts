@@ -63,13 +63,8 @@ export interface SmartContextOptions {
 }
 
 export class SmartContextService {
-  private static readonly FILE_TYPE_PATTERNS: Record<
-    FileType,
-    RegExp[]
-  > = {
-    source: [
-      /\.(ts|tsx|js|jsx|py|java|cpp|c|go|rs|rb|php|cs|swift|kt)$/i,
-    ],
+  private static readonly FILE_TYPE_PATTERNS: Record<FileType, RegExp[]> = {
+    source: [/\.(ts|tsx|js|jsx|py|java|cpp|c|go|rs|rb|php|cs|swift|kt)$/i],
     config: [
       /\.(json|yaml|yml|toml|ini|env|config)$/i,
       /(package\.json|tsconfig\.json|\.eslintrc|\.prettierrc|vite\.config|rspack\.config|webpack\.config)/i,
@@ -113,11 +108,20 @@ export class SmartContextService {
     content: string,
     metadata: FileMetadata,
   ): FileAnalysis {
-    const type = this.detectFileType(path);
-    const role = this.detectFileRole(path, content, type);
-    const relevanceScore = this.calculateRelevanceScore(path, content, type, role);
-    const estimatedTokens = this.estimateTokens(content);
-    const priority = this.calculatePriority(type, role, relevanceScore);
+    const type = SmartContextService.detectFileType(path);
+    const role = SmartContextService.detectFileRole(path, content, type);
+    const relevanceScore = SmartContextService.calculateRelevanceScore(
+      path,
+      content,
+      type,
+      role,
+    );
+    const estimatedTokens = SmartContextService.estimateTokens(content);
+    const priority = SmartContextService.calculatePriority(
+      type,
+      role,
+      relevanceScore,
+    );
 
     return {
       path,
@@ -128,10 +132,10 @@ export class SmartContextService {
       priority,
       metadata: {
         ...metadata,
-        exports: this.extractExports(content, path),
-        imports: this.extractImports(content, path),
-        mainFunctions: this.extractMainFunctions(content, path),
-        complexity: this.estimateComplexity(content),
+        exports: SmartContextService.extractExports(content, path),
+        imports: SmartContextService.extractImports(content, path),
+        mainFunctions: SmartContextService.extractMainFunctions(content, path),
+        complexity: SmartContextService.estimateComplexity(content),
       },
     };
   }
@@ -238,15 +242,19 @@ export class SmartContextService {
     let output = '';
 
     // Header with file info
-    output += this.formatHeader(path, analysis, strategy);
+    output += SmartContextService.formatHeader(path, analysis, strategy);
 
     // Content based on strategy
     if (strategy.includeFullContent) {
       output += content;
     } else if (strategy.summarize) {
-      output += this.generateSummary(content, analysis, strategy.maxTokens);
+      output += SmartContextService.generateSummary(
+        content,
+        analysis,
+        strategy.maxTokens,
+      );
     } else if (strategy.extractKeyElements) {
-      output += this.extractKeyElements(content, analysis);
+      output += SmartContextService.extractKeyElements(content, analysis);
     }
 
     return output;
@@ -256,7 +264,7 @@ export class SmartContextService {
    * Generates a project structure map with intelligent grouping
    */
   static generateStructureMap(analyses: FileAnalysis[]): string {
-    const grouped = this.groupByType(analyses);
+    const grouped = SmartContextService.groupByType(analyses);
     let output = '# Project Structure Overview\n\n';
 
     // Sort groups by importance
@@ -273,14 +281,16 @@ export class SmartContextService {
       const files = grouped[type];
       if (!files || files.length === 0) continue;
 
-      output += `## ${this.formatTypeName(type)} (${files.length})\n`;
+      output += `## ${SmartContextService.formatTypeName(type)} (${files.length})\n`;
 
       // Sort by priority within group
       const sorted = files.sort((a, b) => b.priority - a.priority);
       const topFiles = sorted.slice(0, 10); // Show top 10 per category
 
       for (const file of topFiles) {
-        const indicator = this.getPriorityIndicator(file.priority);
+        const indicator = SmartContextService.getPriorityIndicator(
+          file.priority,
+        );
         output += `${indicator} \`${file.path}\``;
 
         if (file.role !== 'other') {
@@ -319,9 +329,10 @@ export class SmartContextService {
     const selected: FileAnalysis[] = [];
 
     for (const analysis of sorted) {
-      const strategy = this.determineStrategy(analysis, options);
+      const strategy = SmartContextService.determineStrategy(analysis, options);
       // Use strategy-specific cost when present, otherwise a conservative 0.8 factor.
-      const estimatedSize = strategy.maxTokens ?? Math.ceil(analysis.estimatedTokens * 0.8);
+      const estimatedSize =
+        strategy.maxTokens ?? Math.ceil(analysis.estimatedTokens * 0.8);
 
       if (totalTokens + estimatedSize <= maxTokens) {
         selected.push(analysis);
@@ -330,7 +341,10 @@ export class SmartContextService {
       }
 
       // Documentation prioritized: include but still account in total so later choices see the cost
-      if (analysis.type === 'documentation' && options.prioritizeDocumentation) {
+      if (
+        analysis.type === 'documentation' &&
+        options.prioritizeDocumentation
+      ) {
         selected.push(analysis);
         totalTokens += estimatedSize;
       }
@@ -342,7 +356,9 @@ export class SmartContextService {
   // ============== Private Helper Methods ==============
 
   private static detectFileType(path: string): FileType {
-    for (const [type, patterns] of Object.entries(this.FILE_TYPE_PATTERNS)) {
+    for (const [type, patterns] of Object.entries(
+      SmartContextService.FILE_TYPE_PATTERNS,
+    )) {
       for (const pattern of patterns) {
         if (pattern.test(path)) {
           return type as FileType;
@@ -444,7 +460,7 @@ export class SmartContextService {
 
     // Path-based bonuses
     const lowerPath = path.toLowerCase();
-    for (const keyword of this.PRIORITY_KEYWORDS) {
+    for (const keyword of SmartContextService.PRIORITY_KEYWORDS) {
       if (lowerPath.includes(keyword)) {
         score += 20;
       }
@@ -456,7 +472,7 @@ export class SmartContextService {
     if (content.includes('export interface')) score += 8;
 
     // Documentation content bonus
-    for (const keyword of this.DOCUMENTATION_KEYWORDS) {
+    for (const keyword of SmartContextService.DOCUMENTATION_KEYWORDS) {
       if (lowerPath.includes(keyword)) {
         score += 25;
       }
@@ -526,7 +542,10 @@ export class SmartContextService {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  private static extractMainFunctions(content: string, _path: string): string[] {
+  private static extractMainFunctions(
+    content: string,
+    _path: string,
+  ): string[] {
     const functions: string[] = [];
 
     // Match function/method declarations
@@ -578,9 +597,9 @@ export class SmartContextService {
   ): string {
     const { type, role, priority, metadata } = analysis;
 
-    let header = `\n${this.HEADER_DIVIDER}\n`;
+    let header = `\n${SmartContextService.HEADER_DIVIDER}\n`;
     header += `FILE: ${path}\n`;
-    header += `Type: ${type} | Role: ${role} | Priority: ${this.getPriorityIndicator(priority)}\n`;
+    header += `Type: ${type} | Role: ${role} | Priority: ${SmartContextService.getPriorityIndicator(priority)}\n`;
 
     if (metadata.size && metadata.lines) {
       header += `Size: ${(metadata.size / 1024).toFixed(2)} KB | Lines: ${metadata.lines}`;
@@ -604,7 +623,7 @@ export class SmartContextService {
       header += 'Structured view (key elements extracted)\n';
     }
 
-    header += `${this.HEADER_DIVIDER}\n\n`;
+    header += `${SmartContextService.HEADER_DIVIDER}\n\n`;
 
     return header;
   }
@@ -670,9 +689,7 @@ export class SmartContextService {
 
     // For TypeScript/JavaScript files, extract interfaces and types
     if (analysis.path.match(/\.(ts|tsx|js|jsx)$/)) {
-      const interfaces = content.match(
-        /export\s+interface\s+\w+\s*{[^}]+}/g,
-      );
+      const interfaces = content.match(/export\s+interface\s+\w+\s*{[^}]+}/g);
       if (interfaces) {
         output += '## Type Definitions\n```typescript\n';
         output += interfaces.join('\n\n');
@@ -688,9 +705,7 @@ export class SmartContextService {
     }
 
     // Extract class definitions
-    const classes = content.match(
-      /export\s+class\s+\w+[\s\S]*?{[\s\S]*?^}/gm,
-    );
+    const classes = content.match(/export\s+class\s+\w+[\s\S]*?{[\s\S]*?^}/gm);
     if (classes) {
       output += '## Classes\n```\n';
       output += classes.join('\n\n');

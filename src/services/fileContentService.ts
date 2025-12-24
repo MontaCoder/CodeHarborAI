@@ -17,7 +17,9 @@ export const getFileMeta = async (
   return { size, lines: countLines(text) };
 };
 
-const hasGitignoreFile = async (dirHandle: FileSystemDirectoryHandle): Promise<boolean> => {
+const hasGitignoreFile = async (
+  dirHandle: FileSystemDirectoryHandle,
+): Promise<boolean> => {
   try {
     await dirHandle.getFileHandle('.gitignore');
     return true;
@@ -32,10 +34,15 @@ export const scanLocalDirectory = async (
   const files: LocalFileEntry[] = [];
   const hasGitignore = await hasGitignoreFile(handle);
 
-  const walk = async (dirHandle: FileSystemDirectoryHandle, currentPath = ''): Promise<void> => {
+  const walk = async (
+    dirHandle: FileSystemDirectoryHandle,
+    currentPath = '',
+  ): Promise<void> => {
     // @ts-expect-error File System Access API may not be fully typed in all environments
     for await (const entry of dirHandle.values()) {
-      const entryPath = currentPath ? `${currentPath}/${entry.name}` : entry.name;
+      const entryPath = currentPath
+        ? `${currentPath}/${entry.name}`
+        : entry.name;
 
       if (shouldIgnorePath(entryPath)) continue;
 
