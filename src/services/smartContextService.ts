@@ -541,9 +541,8 @@ export class SmartContextService {
     return [...new Set(imports)].slice(0, 15); // Dedupe and limit
   }
 
-  private static extractMainFunctions(
-    content: string,
-  ): string[] {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  private static extractMainFunctions(content: string, _path: string): string[] {
     const functions: string[] = [];
 
     // Match function/method declarations
