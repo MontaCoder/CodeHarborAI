@@ -1,3 +1,5 @@
+import { detectFileType } from './fileCategorization';
+
 export interface PrioritizedFile {
   path: string;
   priority: number;
@@ -122,16 +124,7 @@ export function prioritizeFiles(filePaths: string[]): PrioritizedFile[] {
       category = 'test';
     }
     // Source files
-    else if (
-      fileName.endsWith('.ts') ||
-      fileName.endsWith('.tsx') ||
-      fileName.endsWith('.js') ||
-      fileName.endsWith('.jsx') ||
-      fileName.endsWith('.py') ||
-      fileName.endsWith('.java') ||
-      fileName.endsWith('.go') ||
-      fileName.endsWith('.rs')
-    ) {
+    else if (detectFileType(fileName) === 'source') {
       priority = 40;
       category = 'source';
     }
@@ -155,90 +148,4 @@ export function prioritizeFiles(filePaths: string[]): PrioritizedFile[] {
 
   // Sort by priority (highest first)
   return prioritized.sort((a, b) => b.priority - a.priority);
-}
-
-/**
- * Group files by category for better organization
- */
-export function groupFilesByCategory(
-  files: PrioritizedFile[],
-): Record<string, PrioritizedFile[]> {
-  return files.reduce(
-    (acc, file) => {
-      if (!acc[file.category]) {
-        acc[file.category] = [];
-      }
-      acc[file.category].push(file);
-      return acc;
-    },
-    {} as Record<string, PrioritizedFile[]>,
-  );
-}
-
-/**
- * Filter files based on template patterns
- */
-export function filterFilesByPatterns(
-  filePaths: string[],
-  includePatterns?: string[],
-  excludePatterns?: string[],
-): string[] {
-  let filtered = [...filePaths];
-
-  // Apply exclude patterns first
-  if (excludePatterns && excludePatterns.length > 0) {
-    filtered = filtered.filter((path) => {
-      return !excludePatterns.some((pattern) => {
-        const regex = new RegExp(pattern.replace(/\*/g, '.*'));
-        return regex.test(path);
-      });
-    });
-  }
-
-  // Apply include patterns
-  if (includePatterns && includePatterns.length > 0) {
-    filtered = filtered.filter((path) => {
-      return includePatterns.some((pattern) => {
-        const regex = new RegExp(pattern.replace(/\*/g, '.*'));
-        return regex.test(path);
-      });
-    });
-  }
-
-  return filtered;
-}
-
-/**
- * Get suggested files for a specific context/template
- */
-export function getSuggestedFiles(
-  allFiles: string[],
-  templatePriorities?: string[],
-  includePatterns?: string[],
-  excludePatterns?: string[],
-): string[] {
-  // Filter by patterns first
-  const filtered = filterFilesByPatterns(
-    allFiles,
-    includePatterns,
-    excludePatterns,
-  );
-
-  // Prioritize files
-  const prioritized = prioritizeFiles(filtered);
-
-  // If template has specific priorities, boost those files
-  if (templatePriorities && templatePriorities.length > 0) {
-    prioritized.forEach((file) => {
-      for (const pattern of templatePriorities) {
-        if (file.path.includes(pattern)) {
-          file.priority += 20;
-        }
-      }
-    });
-    // Re-sort after boosting
-    prioritized.sort((a, b) => b.priority - a.priority);
-  }
-
-  return prioritized.map((f) => f.path);
 }

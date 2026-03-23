@@ -4,7 +4,17 @@
  * Replaces the simple 3-level context enhancement with adaptive, file-aware optimization
  */
 
+import {
+  calculatePriority as calculateFilePriority,
+  calculateRelevanceScore as calculateFileRelevanceScore,
+  detectFileRole as detectFileRoleFromPath,
+  detectFileType as detectFileTypeFromPath,
+  type FileRole,
+  type FileType,
+} from '../utils/fileCategorization';
 import { estimateTextTokens } from '../utils/tokenEstimator';
+
+export type { FileRole, FileType } from '../utils/fileCategorization';
 
 export interface FileAnalysis {
   path: string;
@@ -25,27 +35,6 @@ export interface FileMetadata {
   complexity?: number;
 }
 
-export type FileType =
-  | 'source'
-  | 'config'
-  | 'documentation'
-  | 'test'
-  | 'style'
-  | 'asset'
-  | 'build'
-  | 'other';
-
-export type FileRole =
-  | 'entry'
-  | 'core'
-  | 'utility'
-  | 'component'
-  | 'service'
-  | 'model'
-  | 'config'
-  | 'documentation'
-  | 'other';
-
 export interface OptimizationStrategy {
   includeFullContent: boolean;
   summarize: boolean;
@@ -63,41 +52,6 @@ export interface SmartContextOptions {
 }
 
 export class SmartContextService {
-  private static readonly FILE_TYPE_PATTERNS: Record<FileType, RegExp[]> = {
-    source: [/\.(ts|tsx|js|jsx|py|java|cpp|c|go|rs|rb|php|cs|swift|kt)$/i],
-    config: [
-      /\.(json|yaml|yml|toml|ini|env|config)$/i,
-      /(package\.json|tsconfig\.json|\.eslintrc|\.prettierrc|vite\.config|rspack\.config|webpack\.config)/i,
-    ],
-    documentation: [
-      /\.(md|txt|rst|adoc)$/i,
-      /(readme|changelog|contributing|license|docs?)/i,
-    ],
-    test: [/\.(test|spec)\.(ts|tsx|js|jsx|py)$/i, /__tests__/],
-    style: [/\.(css|scss|sass|less|styl)$/i],
-    asset: [/\.(png|jpg|jpeg|gif|svg|ico|woff|woff2|ttf|eot)$/i],
-    build: [/\.(lock|log|cache)$/i, /(dist|build|node_modules)/],
-    other: [/.*/],
-  };
-
-  private static readonly PRIORITY_KEYWORDS = [
-    'index',
-    'main',
-    'app',
-    'core',
-    'api',
-    'server',
-    'client',
-  ];
-
-  private static readonly DOCUMENTATION_KEYWORDS = [
-    'readme',
-    'doc',
-    'guide',
-    'tutorial',
-    'api',
-  ];
-
   private static readonly HEADER_DIVIDER = '-'.repeat(60);
 
   /**
@@ -108,20 +62,11 @@ export class SmartContextService {
     content: string,
     metadata: FileMetadata,
   ): FileAnalysis {
-    const type = SmartContextService.detectFileType(path);
-    const role = SmartContextService.detectFileRole(path, content, type);
-    const relevanceScore = SmartContextService.calculateRelevanceScore(
-      path,
-      content,
-      type,
-      role,
-    );
+    const type = detectFileTypeFromPath(path);
+    const role = detectFileRoleFromPath(path, content, type);
+    const relevanceScore = calculateFileRelevanceScore(path, content, type, role);
     const estimatedTokens = SmartContextService.estimateTokens(content);
-    const priority = SmartContextService.calculatePriority(
-      type,
-      role,
-      relevanceScore,
-    );
+    const priority = calculateFilePriority(type, role, relevanceScore);
 
     return {
       path,
@@ -351,150 +296,6 @@ export class SmartContextService {
     }
 
     return selected;
-  }
-
-  // ============== Private Helper Methods ==============
-
-  private static detectFileType(path: string): FileType {
-    for (const [type, patterns] of Object.entries(
-      SmartContextService.FILE_TYPE_PATTERNS,
-    )) {
-      for (const pattern of patterns) {
-        if (pattern.test(path)) {
-          return type as FileType;
-        }
-      }
-    }
-    return 'other';
-  }
-
-  private static detectFileRole(
-    path: string,
-    content: string,
-    type: FileType,
-  ): FileRole {
-    const lowerPath = path.toLowerCase();
-
-    if (type === 'documentation') return 'documentation';
-    if (type === 'config') return 'config';
-
-    // Check for entry points
-    if (
-      lowerPath.includes('index') ||
-      lowerPath.includes('main') ||
-      lowerPath.includes('app.')
-    ) {
-      return 'entry';
-    }
-
-    // Check for components
-    if (lowerPath.includes('component') || /\.tsx$/.test(lowerPath)) {
-      return 'component';
-    }
-
-    // Check for services
-    if (lowerPath.includes('service') || lowerPath.includes('api')) {
-      return 'service';
-    }
-
-    // Check for models
-    if (
-      lowerPath.includes('model') ||
-      lowerPath.includes('type') ||
-      lowerPath.includes('interface')
-    ) {
-      return 'model';
-    }
-
-    // Check for utilities
-    if (lowerPath.includes('util') || lowerPath.includes('helper')) {
-      return 'utility';
-    }
-
-    // Check content for core indicators
-    if (
-      content.includes('export class') ||
-      content.includes('export default') ||
-      content.includes('export const')
-    ) {
-      return 'core';
-    }
-
-    return 'other';
-  }
-
-  private static calculateRelevanceScore(
-    path: string,
-    content: string,
-    type: FileType,
-    role: FileRole,
-  ): number {
-    let score = 50; // Base score
-
-    // Type bonuses
-    const typeScores: Record<FileType, number> = {
-      documentation: 100,
-      config: 80,
-      source: 70,
-      test: 40,
-      style: 30,
-      asset: 10,
-      build: 5,
-      other: 20,
-    };
-    score += typeScores[type] || 0;
-
-    // Role bonuses
-    const roleScores: Record<FileRole, number> = {
-      entry: 100,
-      core: 80,
-      service: 70,
-      component: 60,
-      model: 60,
-      utility: 40,
-      config: 50,
-      documentation: 90,
-      other: 20,
-    };
-    score += roleScores[role] || 0;
-
-    // Path-based bonuses
-    const lowerPath = path.toLowerCase();
-    for (const keyword of SmartContextService.PRIORITY_KEYWORDS) {
-      if (lowerPath.includes(keyword)) {
-        score += 20;
-      }
-    }
-
-    // Content-based bonuses
-    if (content.includes('export default')) score += 15;
-    if (content.includes('export class')) score += 10;
-    if (content.includes('export interface')) score += 8;
-
-    // Documentation content bonus
-    for (const keyword of SmartContextService.DOCUMENTATION_KEYWORDS) {
-      if (lowerPath.includes(keyword)) {
-        score += 25;
-      }
-    }
-
-    return Math.min(score, 300); // Cap at 300
-  }
-
-  private static calculatePriority(
-    type: FileType,
-    role: FileRole,
-    relevanceScore: number,
-  ): number {
-    // Weighted combination
-    let priority = relevanceScore;
-
-    // Critical roles get boosted
-    if (role === 'entry') priority *= 1.5;
-    if (role === 'core') priority *= 1.3;
-    if (type === 'documentation') priority *= 1.4;
-
-    return Math.round(priority);
   }
 
   private static estimateTokens(content: string): number {
