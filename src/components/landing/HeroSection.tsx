@@ -64,9 +64,9 @@ const featureCards = [
     icon: <Save className="h-5 w-5 text-purple-600 dark:text-purple-400" />,
     borderClass:
       'border-neutral-200 dark:border-neutral-800 hover:border-purple-300 dark:hover:border-purple-700 hover:shadow-lg hover:shadow-purple-500/10',
-    title: 'Save Your Presets',
+    title: 'Smart Optimization',
     description:
-      'Store and reuse your file selections and settings for future prompt creation.',
+      'Adaptive token-aware context compression that prioritizes what matters most.',
     chevronClass: 'group-hover:text-purple-500',
   },
 ];
@@ -171,7 +171,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ onGetStarted }) => {
         <Button
           onClick={onGetStarted}
           icon={<Zap className="h-5 w-5" />}
-          primary
+          variant="primary"
           className="group relative px-8 py-4 text-base shadow-lg hover:shadow-2xl hover:shadow-emerald-500/30 w-full sm:w-auto transform hover:scale-105 transition-all duration-300 overflow-hidden"
         >
           <span className="relative z-10 flex items-center justify-center gap-2">

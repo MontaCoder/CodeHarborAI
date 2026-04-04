@@ -20,8 +20,8 @@ const highlights = [
     iconColor: 'text-purple-600 dark:text-purple-400',
   },
   {
-    title: 'Preset Management',
-    description: 'Save and load your favorite configurations',
+    title: 'Smart Optimization',
+    description: 'Adaptive token-aware context compression for AI prompts',
     iconClass: 'bg-amber-100 dark:bg-amber-500/20',
     iconColor: 'text-amber-600 dark:text-amber-400',
   },

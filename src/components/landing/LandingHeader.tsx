@@ -1,5 +1,6 @@
 import { Moon, Sun } from 'lucide-react';
 import type React from 'react';
+import { themeToggleClasses } from '../../styles/classes';
 
 interface LandingHeaderProps {
   theme: 'light' | 'dark';
@@ -25,7 +26,7 @@ const LandingHeader: React.FC<LandingHeaderProps> = ({
       </div>
       <button
         onClick={onToggleTheme}
-        className="p-2 rounded-full text-neutral-500 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-neutral-950 transition-colors duration-150"
+        className={themeToggleClasses}
         aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
       >
         {theme === 'dark' ? (
