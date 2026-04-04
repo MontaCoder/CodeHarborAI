@@ -25,7 +25,10 @@ const FILE_TYPE_PATTERNS: Record<FileType, RegExp[]> = {
     /\.(json|yaml|yml|toml|ini|env|config)$/i,
     /(package\.json|tsconfig\.json|\.eslintrc|\.prettierrc|vite\.config|rspack\.config|webpack\.config)/i,
   ],
-  documentation: [/\.(md|txt|rst|adoc)$/i, /(readme|changelog|contributing|license|docs?)/i],
+  documentation: [
+    /\.(md|txt|rst|adoc)$/i,
+    /(readme|changelog|contributing|license|docs?)/i,
+  ],
   test: [/\.(test|spec)\.(ts|tsx|js|jsx|py)$/i, /__tests__/],
   style: [/\.(css|scss|sass|less|styl)$/i],
   asset: [/\.(png|jpg|jpeg|gif|svg|ico|woff|woff2|ttf|eot)$/i],
@@ -33,7 +36,15 @@ const FILE_TYPE_PATTERNS: Record<FileType, RegExp[]> = {
   other: [/.*/],
 };
 
-const PRIORITY_KEYWORDS = ['index', 'main', 'app', 'core', 'api', 'server', 'client'];
+const PRIORITY_KEYWORDS = [
+  'index',
+  'main',
+  'app',
+  'core',
+  'api',
+  'server',
+  'client',
+];
 
 const DOCUMENTATION_KEYWORDS = ['readme', 'doc', 'guide', 'tutorial', 'api'];
 
