@@ -8,7 +8,8 @@
     "dev": "rspack dev",
     "format": "prettier --write .",
     "lint": "eslint .",
-    "preview": "rspack preview"
+    "preview": "rspack preview",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@tailwindcss/postcss": "^4.1.18",
