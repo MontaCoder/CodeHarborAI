@@ -47,7 +47,6 @@ export interface SmartContextOptions {
   maxTotalTokens?: number;
   prioritizeDocumentation: boolean;
   includeStructureMap: boolean;
-  extractCodeSignatures: boolean;
   adaptiveCompression: boolean;
 }
 
@@ -64,7 +63,12 @@ export class SmartContextService {
   ): FileAnalysis {
     const type = detectFileTypeFromPath(path);
     const role = detectFileRoleFromPath(path, content, type);
-    const relevanceScore = calculateFileRelevanceScore(path, content, type, role);
+    const relevanceScore = calculateFileRelevanceScore(
+      path,
+      content,
+      type,
+      role,
+    );
     const estimatedTokens = SmartContextService.estimateTokens(content);
     const priority = calculateFilePriority(type, role, relevanceScore);
 
@@ -343,7 +347,10 @@ export class SmartContextService {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  private static extractMainFunctions(content: string, _path: string): string[] {
+  private static extractMainFunctions(
+    content: string,
+    _path: string,
+  ): string[] {
     const functions: string[] = [];
 
     // Match function/method declarations

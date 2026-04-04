@@ -1,7 +1,8 @@
 import type { LocalFileEntry } from '../types/files';
 import { isTextFileName, shouldIgnorePath } from '../utils/fileFilters';
 
-const countLines = (content: string): number => content.split(/\r?\n/).length;
+const countLines = (content: string): number =>
+  content === '' ? 0 : content.split(/\r?\n/).length;
 
 export const getFileMeta = async (
   fileHandle: FileSystemFileHandle,
