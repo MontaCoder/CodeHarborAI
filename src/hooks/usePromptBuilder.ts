@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { type Context7Doc, Context7Service } from '../services/context7Service';
 import { readLocalFile } from '../services/fileContentService';
+import type { GitHubRepoInfo } from '../services/githubService';
 import { GitHubService } from '../services/githubService';
 import {
   type FileAnalysis,
@@ -22,7 +23,6 @@ export interface PromptOptions {
   maxTotalTokens: number;
   prioritizeDocumentation: boolean;
   includeStructureMap: boolean;
-  extractCodeSignatures: boolean;
   adaptiveCompression: boolean;
 }
 
@@ -42,7 +42,7 @@ interface UsePromptBuilderArgs {
   fileHandles: LocalFileEntry[];
   githubFiles: GitHubFileEntry[];
   folderHandle: FileSystemDirectoryHandle | null;
-  githubRepoInfo: { owner: string; repo: string } | null;
+  githubRepoInfo: GitHubRepoInfo | null;
   totalSize: number;
   totalLines: number;
 }
@@ -62,7 +62,6 @@ const buildSmartOptions = (options: PromptOptions): SmartContextOptions => ({
   maxTotalTokens: options.maxTotalTokens,
   prioritizeDocumentation: options.prioritizeDocumentation,
   includeStructureMap: options.includeStructureMap,
-  extractCodeSignatures: options.extractCodeSignatures,
   adaptiveCompression: options.adaptiveCompression,
 });
 
@@ -181,15 +180,30 @@ export const usePromptBuilder = ({
 
       sections.push(buildOverview(projectName));
 
-      for (const filePath of selectedFiles) {
-        const rawContent = await loadContent(filePath);
-        if (!rawContent) continue;
+      // Batch file reads with concurrency control (max 5 at a time)
+      const CONCURRENCY = 5;
+      const filePaths = Array.from(selectedFiles);
+      const results = new Map<string, string>();
 
+      for (let i = 0; i < filePaths.length; i += CONCURRENCY) {
+        const batch = filePaths.slice(i, i + CONCURRENCY);
+        const batchResults = await Promise.all(
+          batch.map(async (filePath) => {
+            const rawContent = await loadContent(filePath);
+            return { filePath, content: rawContent };
+          }),
+        );
+        for (const { filePath, content } of batchResults) {
+          if (content) results.set(filePath, content);
+        }
+      }
+
+      // Transform content (strip comments, minify)
+      for (const [filePath, rawContent] of results) {
         let content = options.removeComments
           ? stripComments(rawContent)
           : rawContent;
         content = options.minifyOutput ? applyMinify(content) : content;
-
         fileContents.set(filePath, content);
 
         if (options.enableSmartOptimization) {
