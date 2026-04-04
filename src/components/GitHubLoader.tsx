@@ -237,7 +237,7 @@ const GitHubLoader: React.FC<GitHubLoaderProps> = ({
           <Button
             onClick={validateRepository}
             disabled={!githubUrl.trim() || isLoading || isValidating}
-            secondary
+            variant="secondary"
             className="flex-1 sm:flex-none"
           >
             {isValidating ? (
@@ -253,7 +253,7 @@ const GitHubLoader: React.FC<GitHubLoaderProps> = ({
           <Button
             onClick={handleLoadRepository}
             disabled={validationStatus !== 'valid' || isLoading || !repoInfo}
-            primary
+            variant="primary"
             className="flex-1"
           >
             {isLoading ? (

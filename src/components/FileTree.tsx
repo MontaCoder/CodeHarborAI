@@ -6,7 +6,7 @@ import {
   FolderOpen as FolderOpenIcon,
 } from 'lucide-react';
 import type React from 'react';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import type { FileSummary } from '../types/files';
 
 interface TreeNode {
@@ -84,7 +84,44 @@ const FileTree: React.FC<FileTreeProps> = ({
     return root;
   }, [files]);
 
-  // Filter the tree based on the filter text
+  // Compute which directories should be auto-expanded based on filter text.
+  // This is a pure computation — no side effects during render.
+  const autoExpandedDirs = useMemo(() => {
+    if (filterText.trim() === '') return new Set<string>(['']);
+
+    const expanded = new Set<string>(['']);
+    const collectExpanded = (node: TreeNode) => {
+      if (node.type === 'directory') {
+        const hasMatchingDescendant = Object.values(node.children).some(
+          (child) =>
+            child.path.toLowerCase().includes(filterText.toLowerCase()) ||
+            (child.type === 'directory' &&
+              Object.values(child.children).some((gc) =>
+                gc.path.toLowerCase().includes(filterText.toLowerCase()),
+              )),
+        );
+        if (hasMatchingDescendant) {
+          expanded.add(node.path);
+        }
+        Object.values(node.children).forEach(collectExpanded);
+      }
+    };
+    collectExpanded(treeData);
+    return expanded;
+  }, [treeData, filterText]);
+
+  // Apply auto-expanded dirs to state after render
+  useEffect(() => {
+    if (filterText.trim() !== '') {
+      setExpandedDirs((prev) => {
+        const merged = new Set(prev);
+        for (const p of autoExpandedDirs) merged.add(p);
+        return merged;
+      });
+    }
+  }, [autoExpandedDirs, filterText]);
+
+  // Filter the tree based on the filter text — pure computation, no side effects
   const filteredAndSortedTree = useMemo(() => {
     const filterNode = (
       node: TreeNode,
@@ -115,14 +152,6 @@ const FileTree: React.FC<FileTreeProps> = ({
       });
 
       if (isVisibleDueToFilter || hasVisibleChildren) {
-        // Auto-expand directories if they or their children match the filter
-        if (
-          filterText.trim() !== '' &&
-          (node.name.toLowerCase().includes(filterText.toLowerCase()) ||
-            hasVisibleChildren)
-        ) {
-          setExpandedDirs((prev) => new Set(prev).add(node.path));
-        }
         return {
           ...node,
           children: visibleChildren,
@@ -146,17 +175,30 @@ const FileTree: React.FC<FileTreeProps> = ({
     });
   };
 
-  const getFilesInDirectory = (node: TreeNode): string[] => {
-    let paths: string[] = [];
-    Object.values(node.children).forEach((child) => {
-      if (child.type === 'file') {
-        if (filteredPaths.includes(child.path)) paths.push(child.path);
-      } else {
-        paths = [...paths, ...getFilesInDirectory(child)];
+  // Pre-compute directory → file paths map once per render (O(n) instead of O(n²))
+  const dirFileMap = useMemo(() => {
+    const map = new Map<string, string[]>();
+    const build = (node: TreeNode) => {
+      if (node.type === 'directory') {
+        const files: string[] = [];
+        Object.values(node.children).forEach((child) => {
+          if (child.type === 'file') {
+            if (filteredPaths.includes(child.path)) files.push(child.path);
+          } else {
+            build(child);
+            const childFiles = map.get(child.path) ?? [];
+            files.push(...childFiles);
+          }
+        });
+        map.set(node.path, files);
       }
-    });
-    return paths;
-  };
+    };
+    build(treeData);
+    return map;
+  }, [treeData, filteredPaths]);
+
+  const getFilesInDirectory = (node: TreeNode): string[] =>
+    dirFileMap.get(node.path) ?? [];
 
   const handleDirectoryCheckboxChange = (
     node: TreeNode,

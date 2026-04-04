@@ -6,6 +6,11 @@ import {
   type PromptOptions,
   usePromptBuilder,
 } from '../hooks/usePromptBuilder';
+import {
+  cardClasses,
+  headerClasses,
+  themeToggleClasses,
+} from '../styles/classes';
 import AdvancedOptionsPanel from './AdvancedOptionsPanel';
 import FileSelector from './FileSelector';
 import OutputPanel from './OutputPanel';
@@ -13,7 +18,11 @@ import StatsPanel from './StatsPanel';
 import Button from './ui/Button';
 import MessageDisplay from './ui/MessageDisplay';
 
-const MainApp: React.FC = () => {
+interface MainAppProps {
+  onBackToLanding: () => void;
+}
+
+const MainApp: React.FC<MainAppProps> = ({ onBackToLanding }) => {
   const { toggleTheme, theme } = useTheme();
   const {
     folderHandle,
@@ -52,7 +61,6 @@ const MainApp: React.FC = () => {
       maxTotalTokens: 200000,
       prioritizeDocumentation: true,
       includeStructureMap: true,
-      extractCodeSignatures: true,
       adaptiveCompression: true,
     },
     selectedFiles,
@@ -66,10 +74,10 @@ const MainApp: React.FC = () => {
 
   return (
     <div className="min-h-screen flex flex-col">
-      <header className="backdrop-blur-md bg-white/80 dark:bg-neutral-900/80 border-b border-neutral-200 dark:border-neutral-800 px-4 sm:px-8 py-3 flex justify-between items-center sticky top-0 z-20 shadow-sm">
+      <header className={headerClasses}>
         <div className="flex items-center space-x-4">
           <button
-            onClick={() => window.location.reload()}
+            onClick={onBackToLanding}
             className="p-2 rounded-full hover:bg-neutral-100 dark:hover:bg-neutral-800 text-neutral-500 dark:text-neutral-400 transition-colors duration-150"
             title="Return to landing page"
           >
@@ -97,7 +105,7 @@ const MainApp: React.FC = () => {
           )}
           <button
             onClick={toggleTheme}
-            className="p-2 rounded-full text-neutral-500 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-neutral-950 transition-colors duration-150"
+            className={themeToggleClasses}
             aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
           >
             {theme === 'dark' ? (
@@ -114,7 +122,7 @@ const MainApp: React.FC = () => {
       <main className="flex-1 max-w-7xl mx-auto w-full p-4 md:p-8">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <div className="md:col-span-2 space-y-8">
-            <div className="bg-white dark:bg-neutral-900 rounded-2xl shadow-lg border border-neutral-200 dark:border-neutral-800 p-6 md:p-8">
+            <div className={cardClasses}>
               <FileSelector
                 onFolderSelected={handleFolderSelected}
                 onFilesSelected={handleFilesSelected}
@@ -134,7 +142,7 @@ const MainApp: React.FC = () => {
               <Button
                 onClick={handleCombine}
                 disabled={selectedFiles.size === 0 || isLoading}
-                primary
+                variant="primary"
                 className="px-8 py-3 text-base shadow-xl hover:shadow-emerald-400/50 dark:hover:shadow-emerald-600/50 transform hover:scale-105 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-white dark:focus-visible:ring-offset-neutral-950"
               >
                 {isLoading ? (
@@ -149,7 +157,7 @@ const MainApp: React.FC = () => {
             </div>
 
             {showOutput && (
-              <div className="bg-white dark:bg-neutral-900 rounded-2xl shadow-lg border border-neutral-200 dark:border-neutral-800 p-6 md:p-8 mt-8">
+              <div className={cardClasses}>
                 <OutputPanel output={output} />
               </div>
             )}

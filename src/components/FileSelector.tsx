@@ -20,8 +20,8 @@ import Button from './ui/Button';
 
 const FILE_TYPE_FILTERS: Record<string, string[]> = {
   JavaScript: ['.js', '.mjs', '.cjs'],
+  TypeScript: ['.ts'],
   React: ['.jsx', '.tsx'],
-  TypeScript: ['.ts', '.tsx'],
   JSON: ['.json'],
   Markdown: ['.md'],
   Python: ['.py'],
@@ -91,7 +91,7 @@ const FileSelector: React.FC<FileSelectorProps> = ({
       const { files, hasGitignore } = await scanLocalDirectory(handle);
       setGitignoreStatus(
         hasGitignore
-          ? '.gitignore found and applied'
+          ? '.gitignore detected — using default ignore patterns'
           : 'Using default ignore patterns',
       );
       onFilesSelected(files);
@@ -128,22 +128,20 @@ const FileSelector: React.FC<FileSelectorProps> = ({
   };
 
   const handleSelectAll = () => {
-    // If all filtered files are selected, deselect all, otherwise select all
+    const filteredSet = new Set(filteredPaths);
     const allFilteredSelected = filteredPaths.every((path) =>
       selectedFiles.has(path),
     );
 
     if (allFilteredSelected) {
-      // Create a new set excluding the filtered paths
       const newSelectedFiles = new Set<string>();
       for (const path of selectedFiles) {
-        if (!filteredPaths.includes(path)) {
+        if (!filteredSet.has(path)) {
           newSelectedFiles.add(path);
         }
       }
       onSelectAll(Array.from(newSelectedFiles));
     } else {
-      // Add all filtered paths to current selection
       const newSelectedFiles = new Set(selectedFiles);
       for (const path of filteredPaths) {
         newSelectedFiles.add(path);
@@ -249,7 +247,7 @@ const FileSelector: React.FC<FileSelectorProps> = ({
             icon={<FolderOpen className="h-4 w-4" />}
             onClick={handleFolderSelect}
             disabled={isProcessing || isLoading}
-            primary
+            variant="primary"
             className="w-full sm:w-auto text-sm px-4 py-2 shadow-md hover:shadow-lg"
           >
             Select Project Folder
@@ -264,7 +262,7 @@ const FileSelector: React.FC<FileSelectorProps> = ({
               }
               onClick={handleRefresh}
               disabled={isProcessing || isLoading}
-              secondary
+              variant="secondary"
               className="w-full sm:w-auto text-sm px-4 py-2"
             >
               Refresh Folder
@@ -345,7 +343,7 @@ const FileSelector: React.FC<FileSelectorProps> = ({
               icon={<CheckSquare className="h-4 w-4" />}
               onClick={handleSelectAll}
               disabled={isProcessing || isLoading || filteredPaths.length === 0}
-              secondary
+              variant="secondary"
               className="w-full sm:w-auto text-sm px-4 py-2.5 whitespace-nowrap"
             >
               {filteredPaths.every((path) => selectedFiles.has(path)) &&
@@ -357,7 +355,7 @@ const FileSelector: React.FC<FileSelectorProps> = ({
               icon={<ArrowUpDown className="h-4 w-4" />}
               onClick={() => setIsPrioritized(!isPrioritized)}
               disabled={isProcessing || isLoading}
-              secondary
+              variant="secondary"
               className={`w-full sm:w-auto text-sm px-4 py-2.5 whitespace-nowrap ${isPrioritized ? 'ring-2 ring-emerald-500' : ''}`}
             >
               {isPrioritized ? '✨ Smart Sort' : 'Sort A-Z'}
@@ -385,7 +383,7 @@ const FileSelector: React.FC<FileSelectorProps> = ({
               ))}
             {Object.keys(FILE_TYPE_FILTERS).length > 5 && (
               <Button
-                secondary
+                variant="secondary"
                 className="text-xs px-3 py-1"
                 onClick={() => {
                   /* TODO: Implement more filters dropdown */

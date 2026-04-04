@@ -38,25 +38,7 @@ const Footer: React.FC = () => {
             <ul className="space-y-2.5 text-sm">
               <li>
                 <a
-                  href="#features"
-                  className="text-neutral-600 dark:text-neutral-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors inline-flex items-center group"
-                >
-                  <Code2 className="h-3.5 w-3.5 mr-1.5 opacity-0 group-hover:opacity-100 transition-opacity" />
-                  Features
-                </a>
-              </li>
-              <li>
-                <a
-                  href="#documentation"
-                  className="text-neutral-600 dark:text-neutral-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors inline-flex items-center group"
-                >
-                  <Code2 className="h-3.5 w-3.5 mr-1.5 opacity-0 group-hover:opacity-100 transition-opacity" />
-                  Documentation
-                </a>
-              </li>
-              <li>
-                <a
-                  href="https://github.com/MontaCoder"
+                  href="https://github.com/MontaCoder/CodeHarborAI"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-neutral-600 dark:text-neutral-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors inline-flex items-center group"
@@ -67,11 +49,13 @@ const Footer: React.FC = () => {
               </li>
               <li>
                 <a
-                  href="#changelog"
+                  href="https://github.com/MontaCoder/CodeHarborAI#readme"
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="text-neutral-600 dark:text-neutral-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors inline-flex items-center group"
                 >
                   <Code2 className="h-3.5 w-3.5 mr-1.5 opacity-0 group-hover:opacity-100 transition-opacity" />
-                  Changelog
+                  Documentation
                 </a>
               </li>
             </ul>
@@ -95,7 +79,7 @@ const Footer: React.FC = () => {
                 <span className="text-sm font-medium">GitHub</span>
               </a>
               <a
-                href=""
+                href="https://github.com/MontaCoder"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center space-x-2 text-neutral-600 dark:text-neutral-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors group"
@@ -117,7 +101,7 @@ const Footer: React.FC = () => {
                 <span className="text-sm font-medium">LinkedIn</span>
               </a>
               <a
-                href="mailto:github.com/MontaCoder"
+                href="mailto:contact@montassar.dev"
                 className="inline-flex items-center space-x-2 text-neutral-600 dark:text-neutral-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors group"
               >
                 <div className="p-2 rounded-lg bg-neutral-100 dark:bg-neutral-800 group-hover:bg-emerald-50 dark:group-hover:bg-emerald-500/10 transition-colors">
@@ -140,21 +124,18 @@ const Footer: React.FC = () => {
             </div>
             <div className="flex items-center space-x-6 text-xs text-neutral-500 dark:text-neutral-400">
               <a
-                href="#privacy"
+                href="https://github.com/MontaCoder/CodeHarborAI/blob/main/LICENSE"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors"
               >
-                Privacy Policy
+                License
               </a>
               <span className="text-neutral-300 dark:text-neutral-700">•</span>
               <a
-                href="#terms"
-                className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors"
-              >
-                Terms of Service
-              </a>
-              <span className="text-neutral-300 dark:text-neutral-700">•</span>
-              <a
-                href="#opensource"
+                href="https://github.com/MontaCoder"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors"
               >
                 Open Source

@@ -29,7 +29,6 @@ interface AdvancedOptionsPanelProps {
     maxTotalTokens: number;
     prioritizeDocumentation: boolean;
     includeStructureMap: boolean;
-    extractCodeSignatures: boolean;
     adaptiveCompression: boolean;
   };
   onChange: (
@@ -212,24 +211,6 @@ const AdvancedOptionsPanel: React.FC<AdvancedOptionsPanelProps> = memo(
                   <div className="flex items-center">
                     <input
                       type="checkbox"
-                      id="extractCodeSignatures"
-                      checked={options.extractCodeSignatures}
-                      onChange={(e) =>
-                        onChange('extractCodeSignatures', e.target.checked)
-                      }
-                      className={checkboxBaseClasses}
-                    />
-                    <label
-                      htmlFor="extractCodeSignatures"
-                      className={`ml-2.5 ${labelBaseClasses} text-xs`}
-                    >
-                      🔍 Extract code signatures & types
-                    </label>
-                  </div>
-
-                  <div className="flex items-center">
-                    <input
-                      type="checkbox"
                       id="adaptiveCompression"
                       checked={options.adaptiveCompression}
                       onChange={(e) =>
@@ -290,7 +271,7 @@ const AdvancedOptionsPanel: React.FC<AdvancedOptionsPanelProps> = memo(
                 <Button
                   onClick={handleAddContext7Doc}
                   disabled={!context7Url.trim() || isLoadingDoc}
-                  primary
+                  variant="primary"
                   className="px-4 py-2 text-sm whitespace-nowrap"
                 >
                   {isLoadingDoc ? (

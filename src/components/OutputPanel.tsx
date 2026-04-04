@@ -106,7 +106,7 @@ const OutputPanel: React.FC<OutputPanelProps> = memo(({ output }) => {
                 <Download className="h-4 w-4" />
               )
             }
-            primary
+            variant="primary"
             className="w-full sm:w-auto text-sm px-5 py-2.5 shadow-md hover:shadow-lg"
           >
             {downloaded ? 'Downloaded!' : 'Download as .txt'}
@@ -121,7 +121,7 @@ const OutputPanel: React.FC<OutputPanelProps> = memo(({ output }) => {
                 <Copy className="h-4 w-4" />
               )
             }
-            secondary
+            variant="secondary"
             className="w-full sm:w-auto text-sm px-5 py-2.5 shadow-md hover:shadow-lg"
             aria-live="polite"
           >
