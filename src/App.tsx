@@ -1,4 +1,5 @@
 import { lazy, Suspense, useState } from 'react';
+import { ErrorBoundary } from './components/ErrorBoundary';
 import Footer from './components/Footer';
 import LandingPage from './components/LandingPage';
 import { ThemeProvider } from './context/ThemeContext';
@@ -13,15 +14,17 @@ function App() {
       <div className="min-h-screen bg-neutral-50 dark:bg-neutral-950 transition-colors duration-300 flex flex-col font-sans">
         <div className="flex-grow">
           {showApp ? (
-            <Suspense
-              fallback={
-                <div className="flex items-center justify-center py-24 text-neutral-500 dark:text-neutral-400">
-                  Loading workspace...
-                </div>
-              }
-            >
-              <MainApp />
-            </Suspense>
+            <ErrorBoundary>
+              <Suspense
+                fallback={
+                  <div className="flex items-center justify-center py-24 text-neutral-500 dark:text-neutral-400">
+                    Loading workspace...
+                  </div>
+                }
+              >
+                <MainApp onBackToLanding={() => setShowApp(false)} />
+              </Suspense>
+            </ErrorBoundary>
           ) : (
             <LandingPage onGetStarted={() => setShowApp(true)} />
           )}
