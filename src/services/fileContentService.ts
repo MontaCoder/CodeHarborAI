@@ -1,4 +1,5 @@
-import type { LocalFileEntry } from '../types/files';
+import ignore, { type Ignore } from 'ignore';
+import type { LocalFileEntry, LocalScanIgnoreInfo } from '../types/files';
 import { isTextFileName, shouldIgnorePath } from '../utils/fileFilters';
 
 const countLines = (content: string): number =>
@@ -18,34 +19,66 @@ export const getFileMeta = async (
   return { size, lines: countLines(text) };
 };
 
-const hasGitignoreFile = async (
+const readRootGitignore = async (
   dirHandle: FileSystemDirectoryHandle,
-): Promise<boolean> => {
+): Promise<string | null> => {
   try {
-    await dirHandle.getFileHandle('.gitignore');
-    return true;
+    const gitignoreHandle = await dirHandle.getFileHandle('.gitignore');
+    const gitignoreFile = await gitignoreHandle.getFile();
+    return gitignoreFile.text();
   } catch {
+    return null;
+  }
+};
+
+const createIgnoreMatcher = (content: string | null): Ignore | null => {
+  if (!content?.trim()) {
+    return null;
+  }
+
+  return ignore().add(content);
+};
+
+const isIgnoredByRootGitignore = (
+  matcher: Ignore | null,
+  path: string,
+  kind: 'file' | 'directory',
+): boolean => {
+  if (!matcher) {
     return false;
   }
+
+  if (matcher.ignores(path)) {
+    return true;
+  }
+
+  return kind === 'directory' ? matcher.ignores(`${path}/`) : false;
 };
 
 export const scanLocalDirectory = async (
   handle: FileSystemDirectoryHandle,
-): Promise<{ files: LocalFileEntry[]; hasGitignore: boolean }> => {
+): Promise<{ files: LocalFileEntry[]; ignoreInfo: LocalScanIgnoreInfo }> => {
   const files: LocalFileEntry[] = [];
-  const hasGitignore = await hasGitignoreFile(handle);
+  const rootGitignore = await readRootGitignore(handle);
+  const rootIgnoreMatcher = createIgnoreMatcher(rootGitignore);
+  let ignoredCount = 0;
 
   const walk = async (
     dirHandle: FileSystemDirectoryHandle,
     currentPath = '',
   ): Promise<void> => {
-    // @ts-expect-error File System Access API may not be fully typed in all environments
     for await (const entry of dirHandle.values()) {
       const entryPath = currentPath
         ? `${currentPath}/${entry.name}`
         : entry.name;
 
-      if (shouldIgnorePath(entryPath)) continue;
+      if (
+        shouldIgnorePath(entryPath) ||
+        isIgnoredByRootGitignore(rootIgnoreMatcher, entryPath, entry.kind)
+      ) {
+        ignoredCount++;
+        continue;
+      }
 
       if (entry.kind === 'file') {
         if (!isTextFileName(entry.name)) continue;
@@ -65,7 +98,13 @@ export const scanLocalDirectory = async (
 
   await walk(handle);
 
-  return { files, hasGitignore };
+  return {
+    files,
+    ignoreInfo: {
+      usedRootGitignore: rootIgnoreMatcher !== null,
+      ignoredCount,
+    },
+  };
 };
 
 export const readLocalFile = async (entry: LocalFileEntry): Promise<string> => {

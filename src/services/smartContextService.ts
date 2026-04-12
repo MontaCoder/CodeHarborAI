@@ -81,9 +81,9 @@ export class SmartContextService {
       priority,
       metadata: {
         ...metadata,
-        exports: SmartContextService.extractExports(content, path),
-        imports: SmartContextService.extractImports(content, path),
-        mainFunctions: SmartContextService.extractMainFunctions(content, path),
+        exports: SmartContextService.extractExports(content),
+        imports: SmartContextService.extractImports(content),
+        mainFunctions: SmartContextService.extractMainFunctions(content),
         complexity: SmartContextService.estimateComplexity(content),
       },
     };
@@ -94,9 +94,9 @@ export class SmartContextService {
    */
   static determineStrategy(
     analysis: FileAnalysis,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    _options: SmartContextOptions,
+    options: SmartContextOptions,
   ): OptimizationStrategy {
+    void options;
     const { type, role, estimatedTokens } = analysis;
 
     // Documentation always gets full content
@@ -197,11 +197,7 @@ export class SmartContextService {
     if (strategy.includeFullContent) {
       output += content;
     } else if (strategy.summarize) {
-      output += SmartContextService.generateSummary(
-        content,
-        analysis,
-        strategy.maxTokens,
-      );
+      output += SmartContextService.generateSummary(content, analysis);
     } else if (strategy.extractKeyElements) {
       output += SmartContextService.extractKeyElements(content, analysis);
     }
@@ -306,8 +302,7 @@ export class SmartContextService {
     return estimateTextTokens(content);
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  private static extractExports(content: string, _path: string): string[] {
+  private static extractExports(content: string): string[] {
     const exports: string[] = [];
 
     // Match various export patterns
@@ -331,8 +326,7 @@ export class SmartContextService {
     return [...new Set(exports)].slice(0, 10); // Dedupe and limit
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  private static extractImports(content: string, _path: string): string[] {
+  private static extractImports(content: string): string[] {
     const imports: string[] = [];
     const importRegex = /import\s+.*?\s+from\s+['"](.+?)['"]/g;
 
@@ -346,11 +340,7 @@ export class SmartContextService {
     return [...new Set(imports)].slice(0, 15); // Dedupe and limit
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  private static extractMainFunctions(
-    content: string,
-    _path: string,
-  ): string[] {
+  private static extractMainFunctions(content: string): string[] {
     const functions: string[] = [];
 
     // Match function/method declarations
@@ -436,8 +426,6 @@ export class SmartContextService {
   private static generateSummary(
     content: string,
     analysis: FileAnalysis,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    _maxTokens?: number,
   ): string {
     let summary = '## Summary\n\n';
 

@@ -30,7 +30,7 @@ export class Context7Service {
 
   /**
    * Fetch documentation from Context7 URL
-   * This is a mock implementation - adjust based on actual Context7 API
+   * Best-effort fetch for public Context7 pages and compatible mirrors
    */
   static async fetchDocumentation(url: string): Promise<Context7Doc> {
     try {
