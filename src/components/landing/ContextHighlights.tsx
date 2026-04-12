@@ -3,7 +3,7 @@ import type React from 'react';
 const highlights = [
   {
     title: 'Smart Token Tracking',
-    description: 'Real-time token count for GPT-5, Claude, and more',
+    description: 'Real-time token estimates for large prompt selections',
     iconClass: 'bg-emerald-100 dark:bg-emerald-500/20',
     iconColor: 'text-emerald-600 dark:text-emerald-400',
   },
@@ -15,19 +15,19 @@ const highlights = [
   },
   {
     title: 'File Filtering',
-    description: 'Exclude node_modules, .git, and custom patterns',
+    description: 'Exclude common build folders and respect root .gitignore rules',
     iconClass: 'bg-purple-100 dark:bg-purple-500/20',
     iconColor: 'text-purple-600 dark:text-purple-400',
   },
   {
     title: 'Smart Optimization',
-    description: 'Adaptive token-aware context compression for AI prompts',
+    description: 'Heuristic file-aware compression to fit within a token budget',
     iconClass: 'bg-amber-100 dark:bg-amber-500/20',
     iconColor: 'text-amber-600 dark:text-amber-400',
   },
   {
     title: 'GitHub Integration',
-    description: 'Import directly from GitHub repositories',
+    description: 'Import directly from public GitHub repositories',
     iconClass: 'bg-rose-100 dark:bg-rose-500/20',
     iconColor: 'text-rose-600 dark:text-rose-400',
   },

@@ -44,7 +44,7 @@ const featureCards = [
       'border-neutral-200 dark:border-neutral-800 hover:border-emerald-300 dark:hover:border-emerald-700 hover:shadow-lg hover:shadow-emerald-500/10',
     title: 'Select Any Files',
     description:
-      'Choose files or entire folders from your local machine, with smart filtering.',
+      'Choose local files or a public GitHub repository, then refine the selection with filtering.',
     chevronClass: 'group-hover:text-emerald-500',
   },
   {
@@ -55,7 +55,7 @@ const featureCards = [
       'border-neutral-200 dark:border-neutral-800 hover:border-sky-300 dark:hover:border-sky-700 hover:shadow-lg hover:shadow-sky-500/10',
     title: 'Optimize Output',
     description:
-      'Remove comments, minify code, and track token usage for different AI models.',
+      'Remove comments, minify code, and track estimated prompt size before you export.',
     chevronClass: 'group-hover:text-sky-500',
   },
   {
@@ -66,7 +66,7 @@ const featureCards = [
       'border-neutral-200 dark:border-neutral-800 hover:border-purple-300 dark:hover:border-purple-700 hover:shadow-lg hover:shadow-purple-500/10',
     title: 'Smart Optimization',
     description:
-      'Adaptive token-aware context compression that prioritizes what matters most.',
+      'Heuristic file-aware compression prioritizes important files within a configurable token budget.',
     chevronClass: 'group-hover:text-purple-500',
   },
 ];
@@ -74,7 +74,6 @@ const featureCards = [
 const HeroSection: React.FC<HeroSectionProps> = ({ onGetStarted }) => {
   return (
     <div className="max-w-xl text-center md:text-left animate-fade-in">
-      {/* Badge */}
       <div className="inline-flex items-center space-x-2 bg-emerald-50 dark:bg-emerald-500/10 px-4 py-2 rounded-full mb-6 border border-emerald-200 dark:border-emerald-500/20">
         <Sparkles className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
         <span className="text-sm font-medium text-emerald-700 dark:text-emerald-300">
@@ -113,11 +112,10 @@ const HeroSection: React.FC<HeroSectionProps> = ({ onGetStarted }) => {
       </h2>
 
       <p className="text-lg sm:text-xl text-neutral-600 dark:text-neutral-400 mb-8 leading-relaxed">
-        Securely select and combine your project files on your own machine to
-        create optimized prompts for AI coding assistants.
+        Securely select and combine project files on your own machine to build
+        structured prompts for AI coding assistants.
       </p>
 
-      {/* Stats */}
       <div className="flex flex-wrap justify-center md:justify-start gap-6 mb-10">
         {stats.map(({ iconWrapperClass, icon, label }) => (
           <div
@@ -130,7 +128,6 @@ const HeroSection: React.FC<HeroSectionProps> = ({ onGetStarted }) => {
         ))}
       </div>
 
-      {/* Feature Cards */}
       <div className="space-y-4 text-left mb-10">
         {featureCards.map(
           ({
@@ -166,7 +163,6 @@ const HeroSection: React.FC<HeroSectionProps> = ({ onGetStarted }) => {
         )}
       </div>
 
-      {/* CTA Button */}
       <div className="flex justify-center md:justify-start">
         <Button
           onClick={onGetStarted}
@@ -178,7 +174,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ onGetStarted }) => {
             Get Started Free
             <ChevronRight className="h-4 w-4 group-hover:translate-x-1 transition-transform duration-300" />
           </span>
-          <div className="absolute inset-0 bg-gradient-to-r from-emerald-600 to-sky-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+          <div className="absolute inset-0 bg-gradient-to-r from-emerald-600 to-sky-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
         </Button>
       </div>
     </div>
