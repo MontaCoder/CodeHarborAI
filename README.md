@@ -39,18 +39,17 @@ CodeHarborAI is a modern, privacy-first web application that helps developers tr
 ### 📁 File Management
 - **Local Folder Support** - Browse and select files/folders from your computer
 - **GitHub Integration** - Load repositories directly from GitHub (10-100x faster)
-- **Smart Filtering** - Exclude files using glob patterns (node_modules, .git, etc.)
+- **Smart Filtering** - Exclude common generated folders and honor the selected folder's root `.gitignore`
 - **Batch Processing** - Process up to 15 files concurrently with progress tracking
 - **Real-time Statistics** - Track file count, size, and line count
 
 ### 🧠 Advanced Context Management
-- **Smart Context Optimizer** - AI-powered intelligent context generation with file-aware optimization
+- **Smart Context Optimizer** - Heuristic file-aware context generation with token budgeting
 - **Adaptive Token Management** - Automatic compression and summarization based on file importance
 - **File Intelligence** - Auto-detects file types, roles, and relevance scores
-- **Smart Token Tracking** - Real-time token count for GPT-4, Claude, and other models
+- **Smart Token Tracking** - Real-time token estimates for large selections
 - **Comment Removal** - Strip comments to reduce context size and token usage
-- **File Filtering** - Intelligent filtering with customizable patterns
-- **Preset Management** - Save and load your favorite file selections and configurations
+- **File Filtering** - Shows whether the scan used default excludes or default excludes plus the root `.gitignore`
 - **GitHub Integration** - Import repositories with intelligent caching (1-hour cache)
 - **One-Click Copy** - Copy formatted output directly to clipboard
 
@@ -68,14 +67,14 @@ Pre-optimized prompts for common development tasks:
 - 🔄 **Migration** - Framework/library migration planning
 
 ### 🎯 Context Engineering
-- **Smart Context Optimizer** - AI-powered context intelligence system (NEW!)
+- **Smart Context Optimizer** - Heuristic context intelligence system
   - Automatic file analysis and role detection
   - Adaptive formatting based on file type and importance
   - Progressive summarization for large files
   - Token budget management with priority queuing
-  - Cross-file dependency mapping
-- **Context7 Integration** - Import external documentation to enrich AI context
-- **Intelligent File Prioritization** - ML-based scoring of file relevance and importance
+  - Project structure overview generation
+- **Context7 Integration** - Best-effort import of external documentation pages to enrich AI context
+- **Intelligent File Prioritization** - Rule-based scoring of file relevance and importance
 - **Adaptive Compression** - Smart truncation at function/class boundaries
 - **Code Signature Extraction** - Auto-extract types, interfaces, and key functions
 - **Token Optimization** - Minification and comment stripping to maximize context efficiency
@@ -166,7 +165,7 @@ yarn preview
    - Select individual files or use "Select All"
 
 5. **Configure Advanced Options (Optional)**
-   - **Smart Optimizer**: Enable AI-powered context intelligence
+   - **Smart Optimizer**: Enable heuristic file-aware context optimization
    - **Token Budget**: Set maximum context size for your AI model
    - **Context7 Docs**: Add external documentation for framework references
    - **Remove Comments**: Strip comments to reduce token usage
@@ -187,7 +186,7 @@ yarn preview
   - Documentation files (README, docs/)
   - Configuration files (package.json, tsconfig.json)
   - Entry points (index, main, app)
-- **Custom Filters**: Exclude patterns like `*.test.ts`, `*.spec.js`, `dist/`
+- **Filtering**: Filter the tree by path and extension, while default excludes and the root `.gitignore` are applied during local scans
 
 #### Context7 Documentation
 Add external documentation to enrich AI understanding:
@@ -195,8 +194,10 @@ Add external documentation to enrich AI understanding:
 - Library references (Express, FastAPI)
 - API specifications (OpenAPI, GraphQL)
 
+Context7 import is best-effort and depends on the referenced page being publicly accessible.
+
 #### Smart Context Optimizer (NEW!)
-Intelligent, file-aware context optimization that automatically:
+Heuristic, file-aware context optimization that automatically:
 - **Analyzes** each file's type, role, and importance
 - **Prioritizes** critical files (entry points, configs, docs)
 - **Adapts** formatting based on file characteristics
@@ -210,15 +211,10 @@ Configuration options:
 - **Code Signatures**: Extract types, interfaces, and exports
 - **Adaptive Compression**: Smart summarization for large codebases
 
-#### Preset Management
-- Save your file selections and configurations
-- Quickly switch between different project setups
-- Export/import presets for team collaboration
-
 #### Smart Context Optimization
 - **File Type Detection**: Auto-identify source, config, docs, tests, etc.
 - **Role Analysis**: Detect entry points, services, components, utilities
-- **Relevance Scoring**: ML-based importance calculation
+- **Relevance Scoring**: Rule-based importance calculation
 - **Adaptive Formatting**: Different strategies per file type
 - **Token Budget Management**: Intelligent file selection within constraints
 - **Progressive Summarization**: Extract key elements from large files
@@ -236,7 +232,6 @@ Configuration options:
 - 🧪 Create comprehensive test suites
 
 ### For Teams
-- 📊 Share preset configurations across team members
 - 🏗️ Architectural decision documentation
 - 🔒 Security audits and vulnerability assessments
 - 📚 Onboarding documentation generation
@@ -252,7 +247,7 @@ CodeHarborAI is designed with privacy as the top priority:
 - ✅ **No Data Collection** - We don't collect, store, or transmit your code
 - ✅ **No Analytics** - No tracking or user behavior monitoring
 - ✅ **Open Source** - Full transparency with open-source code
-- ✅ **Local Storage Only** - Presets saved to browser's local storage
+- ✅ **Browser Storage Only** - Theme preference and GitHub cache may use local storage
 
 Your code is **YOUR CODE**. Period.
 
