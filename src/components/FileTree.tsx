@@ -6,7 +6,7 @@ import {
   FolderOpen as FolderOpenIcon,
 } from 'lucide-react';
 import type React from 'react';
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import type { FileSummary } from '../types/files';
 
 interface TreeNode {
@@ -16,7 +16,6 @@ interface TreeNode {
   type: 'file' | 'directory';
   size?: number;
   lines?: number;
-  isExpanded?: boolean;
 }
 
 interface FileTreeProps {
@@ -45,7 +44,6 @@ const FileTree: React.FC<FileTreeProps> = ({
       path: '',
       children: {},
       type: 'directory',
-      isExpanded: true,
     };
 
     // Build tree structure
@@ -110,23 +108,17 @@ const FileTree: React.FC<FileTreeProps> = ({
     return expanded;
   }, [treeData, filterText]);
 
-  // Apply auto-expanded dirs to state after render
-  useEffect(() => {
-    if (filterText.trim() !== '') {
-      setExpandedDirs((prev) => {
-        const merged = new Set(prev);
-        for (const p of autoExpandedDirs) merged.add(p);
-        return merged;
-      });
+  const effectiveExpandedDirs = useMemo(() => {
+    if (filterText.trim() === '') {
+      return expandedDirs;
     }
-  }, [autoExpandedDirs, filterText]);
+
+    return new Set([...expandedDirs, ...autoExpandedDirs]);
+  }, [autoExpandedDirs, expandedDirs, filterText]);
 
   // Filter the tree based on the filter text — pure computation, no side effects
   const filteredAndSortedTree = useMemo(() => {
-    const filterNode = (
-      node: TreeNode,
-      currentPath: string,
-    ): TreeNode | null => {
+    const filterNode = (node: TreeNode): TreeNode | null => {
       const isVisibleDueToFilter =
         filterText.trim() === '' ||
         node.path.toLowerCase().includes(filterText.toLowerCase()) ||
@@ -144,7 +136,7 @@ const FileTree: React.FC<FileTreeProps> = ({
       const visibleChildren: Record<string, TreeNode> = {};
       let hasVisibleChildren = false;
       Object.entries(node.children).forEach(([key, child]) => {
-        const filteredChild = filterNode(child, `${currentPath}/${child.name}`);
+        const filteredChild = filterNode(child);
         if (filteredChild) {
           visibleChildren[key] = filteredChild;
           hasVisibleChildren = true;
@@ -160,7 +152,7 @@ const FileTree: React.FC<FileTreeProps> = ({
       return null;
     };
 
-    return filterNode(treeData, '');
+    return filterNode(treeData);
   }, [treeData, filterText, filteredPaths]);
 
   const toggleDir = (path: string) => {
@@ -222,7 +214,7 @@ const FileTree: React.FC<FileTreeProps> = ({
       return null;
     }
 
-    const isExpanded = expandedDirs.has(node.path);
+    const isExpanded = effectiveExpandedDirs.has(node.path);
     const isSelected =
       node.type === 'file' ? selectedFiles.has(node.path) : false;
     const isHover = hoveredPath === node.path;
@@ -320,8 +312,7 @@ const FileTree: React.FC<FileTreeProps> = ({
               <span
                 style={{ width: `${1.5}rem` }}
                 className="mr-1.5 flex-shrink-0"
-              ></span>{' '}
-              {/* Spacer for file icon alignment */}
+              />
               <FileText className="h-4 w-4 text-neutral-500 dark:text-neutral-400 mr-2 flex-shrink-0" />
               <input
                 type="checkbox"

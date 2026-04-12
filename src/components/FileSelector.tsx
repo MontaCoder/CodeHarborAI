@@ -1,7 +1,6 @@
 import {
   ArrowUpDown,
   CheckSquare,
-  ChevronDown,
   Filter,
   FolderOpen,
   Github,
@@ -12,7 +11,11 @@ import type React from 'react';
 import { memo, useEffect, useMemo, useState } from 'react';
 import { scanLocalDirectory } from '../services/fileContentService';
 import type { GitHubRepoInfo } from '../services/githubService';
-import type { GitHubFileEntry, LocalFileEntry } from '../types/files';
+import type {
+  GitHubFileEntry,
+  LocalFileEntry,
+  LocalScanIgnoreInfo,
+} from '../types/files';
 import { prioritizeFiles } from '../utils/filePrioritization';
 import FileTree from './FileTree';
 import GitHubLoader from './GitHubLoader';
@@ -44,6 +47,14 @@ const sortByPriority = <T extends { path: string }>(
       (order.get(a.path) ?? Number.POSITIVE_INFINITY) -
       (order.get(b.path) ?? Number.POSITIVE_INFINITY),
   );
+};
+
+const formatIgnoreStatus = (ignoreInfo: LocalScanIgnoreInfo): string => {
+  const mode = ignoreInfo.usedRootGitignore
+    ? 'defaults + root .gitignore'
+    : 'defaults only';
+
+  return `${mode}; ${ignoreInfo.ignoredCount} skipped`;
 };
 
 interface FileSelectorProps {
@@ -78,7 +89,9 @@ const FileSelector: React.FC<FileSelectorProps> = ({
 }) => {
   const [sourceType, setSourceType] = useState<'local' | 'github'>('local');
   const [filterText, setFilterText] = useState<string>('');
-  const [gitignoreStatus, setGitignoreStatus] = useState<string>('');
+  const [ignoreInfo, setIgnoreInfo] = useState<LocalScanIgnoreInfo | null>(
+    null,
+  );
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
   const [filteredPaths, setFilteredPaths] = useState<string[]>([]);
   const [githubError, setGithubError] = useState<string>('');
@@ -88,12 +101,10 @@ const FileSelector: React.FC<FileSelectorProps> = ({
     setIsProcessing(true);
 
     try {
-      const { files, hasGitignore } = await scanLocalDirectory(handle);
-      setGitignoreStatus(
-        hasGitignore
-          ? '.gitignore detected — using default ignore patterns'
-          : 'Using default ignore patterns',
+      const { files, ignoreInfo: nextIgnoreInfo } = await scanLocalDirectory(
+        handle,
       );
+      setIgnoreInfo(nextIgnoreInfo);
       onFilesSelected(files);
       return files;
     } finally {
@@ -109,6 +120,7 @@ const FileSelector: React.FC<FileSelectorProps> = ({
       await scanFolder(handle);
     } catch (err) {
       console.error('Error selecting folder:', err);
+      setIgnoreInfo(null);
       onFilesSelected([]);
     }
   };
@@ -168,6 +180,7 @@ const FileSelector: React.FC<FileSelectorProps> = ({
     repoInfo: GitHubRepoInfo,
   ) => {
     setGithubError('');
+    setIgnoreInfo(null);
     onGitHubFilesSelected(files, repoInfo);
   };
 
@@ -179,6 +192,7 @@ const FileSelector: React.FC<FileSelectorProps> = ({
     setSourceType(type);
     setFilterText('');
     setGithubError('');
+    setIgnoreInfo(null);
 
     if (type === 'local') {
       onFilesSelected([]);
@@ -188,7 +202,6 @@ const FileSelector: React.FC<FileSelectorProps> = ({
     }
   };
 
-  // Apply prioritization to files
   const sortedFileHandles = useMemo(
     () => sortByPriority(fileHandles, isPrioritized),
     [fileHandles, isPrioritized],
@@ -200,7 +213,6 @@ const FileSelector: React.FC<FileSelectorProps> = ({
   );
 
   useEffect(() => {
-    // Update filtered paths whenever filter text changes
     const currentFiles = sourceType === 'local' ? fileHandles : githubFiles;
     if (filterText.trim() === '') {
       setFilteredPaths(currentFiles.map((f) => f.path));
@@ -214,7 +226,6 @@ const FileSelector: React.FC<FileSelectorProps> = ({
 
   return (
     <div className="animate-fade-in space-y-6">
-      {/* Source Type Toggle */}
       <div className="flex items-center justify-center space-x-1 p-1 bg-neutral-100 dark:bg-neutral-800 rounded-lg">
         <button
           onClick={() => handleSourceTypeChange('local')}
@@ -240,7 +251,6 @@ const FileSelector: React.FC<FileSelectorProps> = ({
         </button>
       </div>
 
-      {/* Local Folder Section */}
       {sourceType === 'local' && (
         <div className="flex flex-col sm:flex-row flex-wrap gap-3 items-center">
           <Button
@@ -275,9 +285,9 @@ const FileSelector: React.FC<FileSelectorProps> = ({
                 Project:
               </strong>{' '}
               {folderHandle.name}
-              {gitignoreStatus && (
+              {ignoreInfo && (
                 <span className="text-xs ml-1 p-1 rounded-md bg-neutral-100 dark:bg-neutral-700">
-                  ({gitignoreStatus})
+                  ({formatIgnoreStatus(ignoreInfo)})
                 </span>
               )}
             </span>
@@ -285,7 +295,6 @@ const FileSelector: React.FC<FileSelectorProps> = ({
         </div>
       )}
 
-      {/* GitHub Section */}
       {sourceType === 'github' && (
         <div className="space-y-4">
           <GitHubLoader
@@ -305,7 +314,6 @@ const FileSelector: React.FC<FileSelectorProps> = ({
         </div>
       )}
 
-      {/* File Tree Section */}
       {(folderHandle || githubRepoInfo) && (
         <div className="space-y-4">
           {githubError && (
@@ -356,9 +364,11 @@ const FileSelector: React.FC<FileSelectorProps> = ({
               onClick={() => setIsPrioritized(!isPrioritized)}
               disabled={isProcessing || isLoading}
               variant="secondary"
-              className={`w-full sm:w-auto text-sm px-4 py-2.5 whitespace-nowrap ${isPrioritized ? 'ring-2 ring-emerald-500' : ''}`}
+              className={`w-full sm:w-auto text-sm px-4 py-2.5 whitespace-nowrap ${
+                isPrioritized ? 'ring-2 ring-emerald-500' : ''
+              }`}
             >
-              {isPrioritized ? '✨ Smart Sort' : 'Sort A-Z'}
+              {isPrioritized ? 'Smart Sort' : 'Sort A-Z'}
             </Button>
           </div>
 
@@ -381,18 +391,6 @@ const FileSelector: React.FC<FileSelectorProps> = ({
                   {typeName}
                 </button>
               ))}
-            {Object.keys(FILE_TYPE_FILTERS).length > 5 && (
-              <Button
-                variant="secondary"
-                className="text-xs px-3 py-1"
-                onClick={() => {
-                  /* TODO: Implement more filters dropdown */
-                }}
-              >
-                {' '}
-                <ChevronDown className="h-3 w-3 mr-1" /> More
-              </Button>
-            )}
           </div>
 
           {isProcessing ? (
