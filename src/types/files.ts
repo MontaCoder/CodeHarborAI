@@ -6,6 +6,11 @@ export interface FileSummary {
   lines: number;
 }
 
+export interface LocalScanIgnoreInfo {
+  usedRootGitignore: boolean;
+  ignoredCount: number;
+}
+
 export interface LocalFileEntry extends FileSummary {
   handle: FileSystemFileHandle;
 }

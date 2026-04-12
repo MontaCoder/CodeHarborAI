@@ -58,6 +58,7 @@ export const DEFAULT_IGNORE_PATTERNS = [
   /^\.env/i,
 ];
 
+// Always-on excludes applied before optional root .gitignore rules.
 export const isTextFileName = (name: string): boolean => {
   const lowerName = name.toLowerCase();
   if (EXACT_TEXT_FILES.includes(lowerName)) {
