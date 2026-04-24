@@ -117,6 +117,7 @@ const GitHubLoader: React.FC<GitHubLoaderProps> = ({
       );
 
       // Use batch processing with progress tracking
+      // Increased concurrency to 50 for faster metadata fetching
       const fileDetails = await GitHubService.batchProcessFiles(
         textFiles,
         async (file) => {
@@ -131,7 +132,7 @@ const GitHubLoader: React.FC<GitHubLoaderProps> = ({
         (current, total, currentFile) => {
           setLoadingProgress({ current, total, file: currentFile });
         },
-        15, // Process 15 files concurrently
+        50, // Process 50 files concurrently for faster loading
       );
 
       setLoadingProgress({ current: 0, total: 0 });
