@@ -4,6 +4,47 @@
  * Replaces the simple 3-level context enhancement with adaptive, file-aware optimization
  */
 
+// Simple LRU cache implementation for file analysis results
+class LRUCache<K, V> {
+  private cache: Map<K, V>;
+  private maxSize: number;
+
+  constructor(maxSize: number = 1000) {
+    this.cache = new Map<K, V>();
+    this.maxSize = maxSize;
+  }
+
+  get(key: K): V | undefined {
+    const value = this.cache.get(key);
+    if (value !== undefined) {
+      // Move to end (most recently used)
+      this.cache.delete(key);
+      this.cache.set(key, value);
+    }
+    return value;
+  }
+
+  set(key: K, value: V): void {
+    if (this.cache.has(key)) {
+      this.cache.delete(key);
+    } else if (this.cache.size >= this.maxSize) {
+      // Remove least recently used (first item)
+      const firstKey = this.cache.keys().next().value;
+      if (firstKey !== undefined) {
+        this.cache.delete(firstKey);
+      }
+    }
+    this.cache.set(key, value);
+  }
+
+  clear(): void {
+    this.cache.clear();
+  }
+}
+
+// Cache for file analysis results
+const analysisCache = new LRUCache<string, FileAnalysis>(1000);
+
 import {
   calculatePriority as calculateFilePriority,
   calculateRelevanceScore as calculateFileRelevanceScore,
@@ -55,12 +96,23 @@ export class SmartContextService {
 
   /**
    * Analyzes a file and determines its characteristics
+   * Uses LRU cache to avoid re-analyzing unchanged files
    */
   static analyzeFile(
     path: string,
     content: string,
     metadata: FileMetadata,
   ): FileAnalysis {
+    // Create cache key from path, content length, and line count
+    // This ensures cache invalidation when content changes
+    const cacheKey = `${path}:${content.length}:${metadata.lines}`;
+    
+    // Check cache first
+    const cached = analysisCache.get(cacheKey);
+    if (cached) {
+      return cached;
+    }
+
     const type = detectFileTypeFromPath(path);
     const role = detectFileRoleFromPath(path, content, type);
     const relevanceScore = calculateFileRelevanceScore(
@@ -72,7 +124,7 @@ export class SmartContextService {
     const estimatedTokens = SmartContextService.estimateTokens(content);
     const priority = calculateFilePriority(type, role, relevanceScore);
 
-    return {
+    const result: FileAnalysis = {
       path,
       type,
       role,
@@ -87,6 +139,18 @@ export class SmartContextService {
         complexity: SmartContextService.estimateComplexity(content),
       },
     };
+
+    // Cache the result
+    analysisCache.set(cacheKey, result);
+    
+    return result;
+  }
+
+  /**
+   * Clear the file analysis cache
+   */
+  static clearAnalysisCache(): void {
+    analysisCache.clear();
   }
 
   /**

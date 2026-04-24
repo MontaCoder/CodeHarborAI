@@ -1,7 +1,9 @@
 import { useCallback, useMemo, useState } from 'react';
 import type { GitHubRepoInfo } from '../services/githubService';
+import { GitHubService } from '../services/githubService';
 import type { GitHubFileEntry, LocalFileEntry } from '../types/files';
-
+import { clearFileCategorizationCache } from '../utils/fileCategorization';
+import { SmartContextService } from '../services/smartContextService';
 interface UseFileSelectionResult {
   folderHandle: FileSystemDirectoryHandle | null;
   fileHandles: LocalFileEntry[];
@@ -50,6 +52,10 @@ export const useFileSelection = (): UseFileSelectionResult => {
     setGithubFiles([]);
     setGithubRepoInfo(null);
     setSelectedFiles(new Set());
+    // Clear caches when switching to local files
+    SmartContextService.clearAnalysisCache();
+    GitHubService.clearRequestCache();
+    clearFileCategorizationCache();
   }, []);
 
   const handleGitHubFilesSelected = useCallback(
@@ -59,6 +65,10 @@ export const useFileSelection = (): UseFileSelectionResult => {
       setFolderHandle(null);
       setFileHandles([]);
       setSelectedFiles(new Set());
+      // Clear caches when switching to GitHub files
+      SmartContextService.clearAnalysisCache();
+      GitHubService.clearRequestCache();
+      clearFileCategorizationCache();
     },
     [],
   );

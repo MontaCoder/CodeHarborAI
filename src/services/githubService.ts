@@ -26,6 +26,8 @@ export class GitHubService {
   private static readonly API_BASE = 'https://api.github.com';
   private static readonly CACHE_PREFIX = 'gh_cache_';
   private static readonly CACHE_EXPIRY = 3600000; // 1 hour in milliseconds
+  private static readonly REQUEST_CACHE = new Map<string, Promise<unknown>>();
+  private static readonly REQUEST_CACHE_TTL = 30000; // 30 seconds for request dedup
 
   /**
    * Parse GitHub repository URL to extract owner, repo, and branch
@@ -174,66 +176,93 @@ export class GitHubService {
   }
 
   /**
-   * Download file content from GitHub
+   * Clear request deduplication cache
+   */
+  static clearRequestCache(): void {
+    GitHubService.REQUEST_CACHE.clear();
+  }
+
+  /**
+   * Clear all caches (localStorage + request cache)
+   */
+  static clearAllCaches(): void {
+    GitHubService.clearCache();
+    GitHubService.clearRequestCache();
+  }
+
+  /**
+   * Download file content from GitHub with request deduplication
+   * Prevents duplicate simultaneous requests for the same URL
    */
   static async downloadFileContent(downloadUrl: string): Promise<string> {
-    try {
-      const response = await fetch(downloadUrl);
-
-      if (!response.ok) {
-        throw new Error(
-          `Failed to download file: ${response.status} ${response.statusText}`,
-        );
-      }
-
-      return await response.text();
-    } catch (error) {
-      console.error('Error downloading file content:', error);
-      throw new Error(
-        `Failed to download file content: ${error instanceof Error ? error.message : 'Unknown error'}`,
-      );
+    // Check if there's already a pending request for this URL
+    const cacheKey = `req_${downloadUrl}`;
+    const cachedPromise = GitHubService.REQUEST_CACHE.get(cacheKey);
+    
+    if (cachedPromise) {
+      return cachedPromise as Promise<string>;
     }
+
+    const downloadPromise = (async () => {
+      try {
+        const response = await fetch(downloadUrl);
+
+        if (!response.ok) {
+          throw new Error(
+            `Failed to download file: ${response.status} ${response.statusText}`,
+          );
+        }
+
+        return await response.text();
+      } catch (error) {
+        console.error('Error downloading file content:', error);
+        throw new Error(
+          `Failed to download file content: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        );
+      } finally {
+        // Clean up from request cache after completion
+        setTimeout(() => {
+          GitHubService.REQUEST_CACHE.delete(cacheKey);
+        }, GitHubService.REQUEST_CACHE_TTL);
+      }
+    })();
+
+    // Store the promise in cache
+    GitHubService.REQUEST_CACHE.set(cacheKey, downloadPromise);
+    
+    return downloadPromise;
   }
 
   /**
    * Get file size and line count for a GitHub file
+   * Uses GitHub's size field and estimates lines to avoid downloading content
    */
   static async getFileSizeAndLines(
     file: GitHubFile,
   ): Promise<{ size: number; lines: number }> {
-    if (!file.download_url) {
-      return { size: file.size, lines: 0 };
-    }
-
-    try {
-      const content = await GitHubService.downloadFileContent(
-        file.download_url,
-      );
-      const lines = content.split('\n').length;
-      return { size: file.size, lines };
-    } catch (error) {
-      console.warn(
-        `Failed to get content for ${file.path}, using basic size info:`,
-        error,
-      );
-      return { size: file.size, lines: 0 };
-    }
+    // Use GitHub's size field (already available from Tree API)
+    // Estimate lines from size: average ~50 bytes per line for code files
+    // This avoids downloading the entire file just for line counting
+    const estimatedLines = Math.ceil(file.size / 50);
+    return { size: file.size, lines: estimatedLines };
   }
 
   /**
    * Batch process files with progress tracking and concurrency control
+   * Increased default concurrency for better performance with large repos
    */
   static async batchProcessFiles<T>(
     files: GitHubFile[],
     processor: (file: GitHubFile) => Promise<T>,
     onProgress?: (current: number, total: number, currentFile: string) => void,
-    concurrency: number = 10,
+    concurrency: number = 30,
   ): Promise<T[]> {
     const results: T[] = [];
     const total = files.length;
     let completed = 0;
 
     // Process files in batches with concurrency control
+    // Increased default concurrency to 30 for faster metadata fetching
     for (let i = 0; i < files.length; i += concurrency) {
       const batch = files.slice(i, i + concurrency);
       const batchResults = await Promise.all(

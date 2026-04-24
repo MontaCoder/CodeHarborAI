@@ -19,6 +19,8 @@ export type FileRole =
   | 'documentation'
   | 'other';
 
+// Pre-compiled regex patterns for file type detection
+// Organized for early exit on common cases
 const FILE_TYPE_PATTERNS: Record<FileType, RegExp[]> = {
   source: [/\.(ts|tsx|js|jsx|py|java|cpp|c|go|rs|rb|php|cs|swift|kt)$/i],
   config: [
@@ -36,6 +38,36 @@ const FILE_TYPE_PATTERNS: Record<FileType, RegExp[]> = {
   other: [/.*/],
 };
 
+// Fast lookup for common file extensions (avoids regex for most cases)
+const COMMON_EXTENSIONS: Record<string, FileType> = {
+  // Source files
+  '.ts': 'source', '.tsx': 'source', '.js': 'source', '.jsx': 'source',
+  '.py': 'source', '.java': 'source', '.cpp': 'source', '.c': 'source',
+  '.go': 'source', '.rs': 'source', '.rb': 'source', '.php': 'source',
+  '.cs': 'source', '.swift': 'source', '.kt': 'source',
+  // Config files
+  '.json': 'config', '.yaml': 'config', '.yml': 'config',
+  '.toml': 'config', '.ini': 'config', '.env': 'config',
+  // Documentation
+  '.md': 'documentation', '.txt': 'documentation',
+  '.rst': 'documentation', '.adoc': 'documentation',
+  // Tests
+  '.test.ts': 'test', '.test.tsx': 'test', '.test.js': 'test',
+  '.test.jsx': 'test', '.test.py': 'test',
+  '.spec.ts': 'test', '.spec.tsx': 'test', '.spec.js': 'test',
+  '.spec.jsx': 'test', '.spec.py': 'test',
+  // Styles
+  '.css': 'style', '.scss': 'style', '.sass': 'style',
+  '.less': 'style', '.styl': 'style',
+  // Assets
+  '.png': 'asset', '.jpg': 'asset', '.jpeg': 'asset',
+  '.gif': 'asset', '.svg': 'asset', '.ico': 'asset',
+  '.woff': 'asset', '.woff2': 'asset', '.ttf': 'asset',
+  '.eot': 'asset',
+  // Build
+  '.lock': 'build', '.log': 'build', '.cache': 'build',
+};
+
 const PRIORITY_KEYWORDS = [
   'index',
   'main',
@@ -48,15 +80,87 @@ const PRIORITY_KEYWORDS = [
 
 const DOCUMENTATION_KEYWORDS = ['readme', 'doc', 'guide', 'tutorial', 'api'];
 
+// Cache for file type detection results
+const fileTypeCache = new Map<string, FileType>();
+const fileRoleCache = new Map<string, FileRole>();
+
 export const detectFileType = (path: string): FileType => {
+  // Check cache first
+  const cached = fileTypeCache.get(path);
+  if (cached !== undefined) {
+    return cached;
+  }
+  
+  const lowerPath = path.toLowerCase();
+  
+  // Fast path: check common extensions first (O(1) lookup)
+  const lastDot = lowerPath.lastIndexOf('.');
+  if (lastDot > 0) {
+    const ext = lowerPath.slice(lastDot);
+    const commonType = COMMON_EXTENSIONS[ext];
+    if (commonType) {
+      fileTypeCache.set(path, commonType);
+      return commonType;
+    }
+    
+    // Check for test files with .test or .spec before extension
+    const beforeExt = lowerPath.slice(0, lastDot);
+    const testDot = beforeExt.lastIndexOf('.');
+    if (testDot > 0) {
+      const testExt = beforeExt.slice(testDot);
+      if (testExt === '.test' || testExt === '.spec') {
+        const testKey = testExt + ext;
+        const testType = COMMON_EXTENSIONS[testKey];
+        if (testType) {
+          fileTypeCache.set(path, testType);
+          return testType;
+        }
+      }
+    }
+  }
+  
+  // Check for config filename patterns
+  if (lowerPath.includes('package.json') || lowerPath.includes('tsconfig.json') ||
+      lowerPath.includes('.eslintrc') || lowerPath.includes('.prettierrc') ||
+      lowerPath.includes('vite.config') || lowerPath.includes('rspack.config') ||
+      lowerPath.includes('webpack.config')) {
+    fileTypeCache.set(path, 'config');
+    return 'config';
+  }
+  
+  // Check for documentation filename patterns
+  if (lowerPath.includes('readme') || lowerPath.includes('changelog') ||
+      lowerPath.includes('contributing') || lowerPath.includes('license') ||
+      lowerPath.includes('docs')) {
+    fileTypeCache.set(path, 'documentation');
+    return 'documentation';
+  }
+  
+  // Check for __tests__ directory
+  if (lowerPath.includes('__tests__')) {
+    fileTypeCache.set(path, 'test');
+    return 'test';
+  }
+  
+  // Check for dist/build/node_modules
+  if (lowerPath.includes('/dist/') || lowerPath.includes('/build/') ||
+      lowerPath.includes('/node_modules/') || lowerPath.includes('\\dist\\') ||
+      lowerPath.includes('\\build\\') || lowerPath.includes('\\node_modules\\')) {
+    fileTypeCache.set(path, 'build');
+    return 'build';
+  }
+  
+  // Fallback to regex patterns
   for (const [type, patterns] of Object.entries(FILE_TYPE_PATTERNS)) {
     for (const pattern of patterns) {
       if (pattern.test(path)) {
+        fileTypeCache.set(path, type as FileType);
         return type as FileType;
       }
     }
   }
-
+  
+  fileTypeCache.set(path, 'other');
   return 'other';
 };
 
@@ -174,4 +278,12 @@ export const calculatePriority = (
   if (type === 'documentation') priority *= 1.4;
 
   return Math.round(priority);
+};
+
+/**
+ * Clear all file categorization caches
+ */
+export const clearFileCategorizationCache = (): void => {
+  fileTypeCache.clear();
+  fileRoleCache.clear();
 };

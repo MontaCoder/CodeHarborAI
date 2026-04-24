@@ -9,6 +9,7 @@ import {
   SmartContextService,
 } from '../services/smartContextService';
 import type { GitHubFileEntry, LocalFileEntry } from '../types/files';
+import { clearFileCategorizationCache } from '../utils/fileCategorization';
 
 export interface PromptOptions {
   includePreamble: boolean;
@@ -99,6 +100,13 @@ export const usePromptBuilder = ({
     [githubFiles],
   );
 
+  // Clear analysis cache when files change to avoid stale data
+  useEffect(() => {
+    SmartContextService.clearAnalysisCache();
+    GitHubService.clearRequestCache();
+    clearFileCategorizationCache();
+  }, [fileHandles, githubFiles]);
+
   const handleOptionChange = useCallback(
     (key: keyof PromptOptions, value: PromptOptions[keyof PromptOptions]) => {
       setOptions((prev) => ({ ...prev, [key]: value }));
@@ -150,6 +158,7 @@ export const usePromptBuilder = ({
       return;
     }
 
+    const startTime = performance.now();
     setState((prev) => ({ ...prev, isLoading: true }));
 
     try {
@@ -180,11 +189,13 @@ export const usePromptBuilder = ({
 
       sections.push(buildOverview(projectName));
 
-      // Batch file reads with concurrency control (max 5 at a time)
-      const CONCURRENCY = 5;
+      // Batch file reads with concurrency control
+      // Increased to 10 for better performance with large repos
+      const CONCURRENCY = Math.min(10, Math.max(5, (navigator.hardwareConcurrency || 4) * 2));
       const filePaths = Array.from(selectedFiles);
       const results = new Map<string, string>();
 
+      const loadStart = performance.now();
       for (let i = 0; i < filePaths.length; i += CONCURRENCY) {
         const batch = filePaths.slice(i, i + CONCURRENCY);
         const batchResults = await Promise.all(
@@ -197,8 +208,11 @@ export const usePromptBuilder = ({
           if (content) results.set(filePath, content);
         }
       }
+      const loadTime = performance.now() - loadStart;
+      
+      console.log(`[Performance] Loaded ${results.size} files in ${loadTime.toFixed(0)}ms (${CONCURRENCY} concurrent)`);
 
-      // Transform content (strip comments, minify)
+       // Transform content (strip comments, minify)
       for (const [filePath, rawContent] of results) {
         let content = options.removeComments
           ? stripComments(rawContent)
@@ -223,6 +237,11 @@ export const usePromptBuilder = ({
         }
       }
 
+      const analysisTime = performance.now() - loadStart - loadTime;
+      if (options.enableSmartOptimization) {
+        console.log(`[Performance] Analyzed ${fileAnalyses.length} files in ${analysisTime.toFixed(0)}ms`);
+      }
+
       if (
         options.enableSmartOptimization &&
         options.includeStructureMap &&
@@ -234,16 +253,19 @@ export const usePromptBuilder = ({
       let filesToInclude = Array.from(selectedFiles);
       let analysesToRender = fileAnalyses;
       if (options.enableSmartOptimization && options.adaptiveCompression) {
+        const optimizeStart = performance.now();
         analysesToRender = SmartContextService.optimizeContextBudget(
           fileAnalyses,
           options.maxTotalTokens,
           smartOptions,
         );
+        const optimizeTime = performance.now() - optimizeStart;
 
         if (analysesToRender.length < fileAnalyses.length) {
           sections.push(
             `**Smart Optimization:** Included ${analysesToRender.length} of ${fileAnalyses.length} files based on priority and token budget.`,
           );
+          console.log(`[Performance] Optimized context: ${analysesToRender.length}/${fileAnalyses.length} files in ${optimizeTime.toFixed(0)}ms`);
         }
 
         filesToInclude = analysesToRender.map((analysis) => analysis.path);
@@ -282,6 +304,9 @@ export const usePromptBuilder = ({
       }
 
       sections.push(fileOutput.join('\n\n'));
+
+      const totalTime = performance.now() - startTime;
+      console.log(`[Performance] Total context generation: ${totalTime.toFixed(0)}ms for ${selectedFiles.size} files`);
 
       setState({
         output: sections.join('\n\n'),
