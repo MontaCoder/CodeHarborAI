@@ -65,7 +65,4 @@ export default defineConfig({
       }),
     ],
   },
-  experiments: {
-    css: true,
-  },
 });

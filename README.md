@@ -5,10 +5,10 @@
   
   **Transform Your Codebase Into Perfect AI Prompts**
   
-  [![License: MIT](https://img.shields.io/badge/License-MIT-emerald.svg)](https://opensource.org/licenses/MIT)
-  [![React](https://img.shields.io/badge/React-19.1.1-61DAFB?logo=react&logoColor=white)](https://react.dev/)
-  [![TypeScript](https://img.shields.io/badge/TypeScript-5.9.2-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
-  [![Rspack](https://img.shields.io/badge/Rspack-1.5.8-FF6F00)](https://www.rspack.dev/)
+   [![License: MIT](https://img.shields.io/badge/License-MIT-emerald.svg)](https://opensource.org/licenses/MIT)
+   [![React](https://img.shields.io/badge/React-19.1.1-61DAFB?logo=react&logoColor=white)](https://react.dev/)
+   [![TypeScript](https://img.shields.io/badge/TypeScript-5.9.2-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+   [![Rspack](https://img.shields.io/badge/Rspack-2.0-FF6F00)](https://www.rspack.dev/)
   
   [Features](#-features) • [Getting Started](#-getting-started) • [Usage](#-usage) • [Contributing](#-contributing)
 </div>
@@ -92,7 +92,7 @@ Pre-optimized prompts for common development tasks:
 
 ### Prerequisites
 
-- **Node.js** 16.14.0 or later
+- **Node.js** 20.19.0 or later, or 22.12.0+
 - **npm** or **yarn** package manager
 - **Modern Web Browser** (Chrome/Edge 86+, Firefox 89+)
 
@@ -256,7 +256,7 @@ Your code is **YOUR CODE**. Period.
 ## 🏗️ Tech Stack
 
 - **Frontend Framework**: [React 19](https://react.dev/) with TypeScript
-- **Build Tool**: [Rspack 1.5](https://www.rspack.dev/)
+- **Build Tool**: [Rspack 2.0](https://www.rspack.dev/)
 - **Styling**: [Tailwind CSS 4](https://tailwindcss.com/)
 - **Icons**: [Lucide React](https://lucide.dev/)
 - **State Management**: React Hooks (useState, useEffect, useCallback)
