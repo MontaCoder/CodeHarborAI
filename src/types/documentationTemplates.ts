@@ -5,6 +5,18 @@ export interface DocumentationTemplate {
   icon: string;
   preamble: string;
   goal: string;
+  isCustom?: boolean;
+  configuredOptions?: {
+    enableSmartOptimization?: boolean;
+    removeComments?: boolean;
+    minifyOutput?: boolean;
+    maxTotalTokens?: number;
+    prioritizeDocumentation?: boolean;
+    includeStructureMap?: boolean;
+    adaptiveCompression?: boolean;
+  };
+  createdAt?: number;
+  updatedAt?: number;
 }
 
 export const documentationTemplates: DocumentationTemplate[] = [
@@ -110,5 +122,6 @@ export function applyTemplate(template: DocumentationTemplate) {
     goalText: template.goal,
     includePreamble: true,
     includeGoal: true,
+    ...template.configuredOptions,
   };
 }
