@@ -16,10 +16,10 @@ import Button from './ui/Button';
 
 interface AdvancedOptionsPanelProps {
   options: {
-    includePreamble: boolean;
-    preambleText: string;
-    includeGoal: boolean;
-    goalText: string;
+    includeSystemContext: boolean;
+    systemContextText: string;
+    includeTaskInstructions: boolean;
+    taskInstructionsText: string;
     removeComments: boolean;
     minifyOutput: boolean;
     includeContext7Docs: boolean;
@@ -44,10 +44,10 @@ const AdvancedOptionsPanel: React.FC<AdvancedOptionsPanelProps> = memo(
     const [docError, setDocError] = useState('');
 
     const handleTemplateApply = (templateData: {
-      preambleText: string;
-      goalText: string;
-      includePreamble: boolean;
-      includeGoal: boolean;
+      systemContextText: string;
+      taskInstructionsText: string;
+      includeSystemContext: boolean;
+      includeTaskInstructions: boolean;
       enableSmartOptimization?: boolean;
       removeComments?: boolean;
       minifyOutput?: boolean;
@@ -56,10 +56,10 @@ const AdvancedOptionsPanel: React.FC<AdvancedOptionsPanelProps> = memo(
       includeStructureMap?: boolean;
       adaptiveCompression?: boolean;
     }) => {
-      onChange('preambleText', templateData.preambleText);
-      onChange('goalText', templateData.goalText);
-      onChange('includePreamble', templateData.includePreamble);
-      onChange('includeGoal', templateData.includeGoal);
+      onChange('systemContextText', templateData.systemContextText);
+      onChange('taskInstructionsText', templateData.taskInstructionsText);
+      onChange('includeSystemContext', templateData.includeSystemContext);
+      onChange('includeTaskInstructions', templateData.includeTaskInstructions);
 
       // Apply additional configured options if present
       if (templateData.enableSmartOptimization !== undefined) {
@@ -361,30 +361,38 @@ const AdvancedOptionsPanel: React.FC<AdvancedOptionsPanelProps> = memo(
             </div>
           </div>
 
-          {/* Preamble Section */}
+          {/* System Context Section */}
           <div className="space-y-2.5 p-4 rounded-lg bg-neutral-50 dark:bg-neutral-800/40 ring-1 ring-neutral-200 dark:ring-neutral-700/50">
-            <div className="flex items-center">
-              <input
-                type="checkbox"
-                id="includePreamble"
-                checked={options.includePreamble}
-                onChange={(e) => onChange('includePreamble', e.target.checked)}
-                className={checkboxBaseClasses}
-              />
-              <label
-                htmlFor="includePreamble"
-                className={`ml-2.5 ${labelBaseClasses}`}
-              >
-                Custom Preamble
-              </label>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center">
+                <input
+                  type="checkbox"
+                  id="includeSystemContext"
+                  checked={options.includeSystemContext}
+                  onChange={(e) => onChange('includeSystemContext', e.target.checked)}
+                  className={checkboxBaseClasses}
+                />
+                <label
+                  htmlFor="includeSystemContext"
+                  className={`ml-2.5 ${labelBaseClasses}`}
+                >
+                  System Context
+                </label>
+              </div>
+              <span className="text-xs text-neutral-500 dark:text-neutral-400">
+                Sets AI persona & background
+              </span>
             </div>
 
-            {options.includePreamble && (
-              <div className="pl-7 pt-1">
+            {options.includeSystemContext && (
+              <div className="pl-7 pt-1 space-y-1.5">
+                <p className="text-xs text-neutral-500 dark:text-neutral-400">
+                  Provide background context, persona, or project information for the AI
+                </p>
                 <textarea
-                  placeholder='Add context or instructions... e.g., "You are an expert code reviewer focusing on security..."'
-                  value={options.preambleText}
-                  onChange={(e) => onChange('preambleText', e.target.value)}
+                  placeholder='e.g., "You are an expert TypeScript developer. This is a React/Next.js project using Tailwind CSS..."'
+                  value={options.systemContextText}
+                  onChange={(e) => onChange('systemContextText', e.target.value)}
                   className={`${inputBaseClasses} min-h-[80px] resize-y py-2`}
                   rows={3}
                 />
@@ -392,30 +400,38 @@ const AdvancedOptionsPanel: React.FC<AdvancedOptionsPanelProps> = memo(
             )}
           </div>
 
-          {/* Goal Section */}
+          {/* Task Instructions Section */}
           <div className="space-y-2.5 p-4 rounded-lg bg-neutral-50 dark:bg-neutral-800/40 ring-1 ring-neutral-200 dark:ring-neutral-700/50">
-            <div className="flex items-center">
-              <input
-                type="checkbox"
-                id="includeGoal"
-                checked={options.includeGoal}
-                onChange={(e) => onChange('includeGoal', e.target.checked)}
-                className={checkboxBaseClasses}
-              />
-              <label
-                htmlFor="includeGoal"
-                className={`ml-2.5 ${labelBaseClasses}`}
-              >
-                Specific Task/Goal
-              </label>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center">
+                <input
+                  type="checkbox"
+                  id="includeTaskInstructions"
+                  checked={options.includeTaskInstructions}
+                  onChange={(e) => onChange('includeTaskInstructions', e.target.checked)}
+                  className={checkboxBaseClasses}
+                />
+                <label
+                  htmlFor="includeTaskInstructions"
+                  className={`ml-2.5 ${labelBaseClasses}`}
+                >
+                  Task Instructions
+                </label>
+              </div>
+              <span className="text-xs text-neutral-500 dark:text-neutral-400">
+                What you want the AI to do
+              </span>
             </div>
 
-            {options.includeGoal && (
-              <div className="pl-7 pt-1">
+            {options.includeTaskInstructions && (
+              <div className="pl-7 pt-1 space-y-1.5">
+                <p className="text-xs text-neutral-500 dark:text-neutral-400">
+                  Define specific instructions, output format, or step-by-step tasks for the AI
+                </p>
                 <textarea
-                  placeholder='Define your objective... e.g., "Identify performance bottlenecks and suggest optimizations"'
-                  value={options.goalText}
-                  onChange={(e) => onChange('goalText', e.target.value)}
+                  placeholder='e.g., "Review for security issues. Return results as a Markdown table with columns: Issue, Severity, Fix"'
+                  value={options.taskInstructionsText}
+                  onChange={(e) => onChange('taskInstructionsText', e.target.value)}
                   className={`${inputBaseClasses} min-h-[80px] resize-y py-2`}
                   rows={3}
                 />
