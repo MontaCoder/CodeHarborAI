@@ -12,10 +12,10 @@ import type { GitHubFileEntry, LocalFileEntry } from '../types/files';
 import { clearFileCategorizationCache } from '../utils/fileCategorization';
 
 export interface PromptOptions {
-  includePreamble: boolean;
-  preambleText: string;
-  includeGoal: boolean;
-  goalText: string;
+  includeSystemContext: boolean;
+  systemContextText: string;
+  includeTaskInstructions: boolean;
+  taskInstructionsText: string;
   removeComments: boolean;
   minifyOutput: boolean;
   includeContext7Docs: boolean;
@@ -166,8 +166,8 @@ export const usePromptBuilder = ({
       const fileAnalyses: FileAnalysis[] = [];
       const fileContents = new Map<string, string>();
 
-      if (options.includePreamble && options.preambleText.trim()) {
-        sections.push(options.preambleText.trim());
+      if (options.includeSystemContext && options.systemContextText.trim()) {
+        sections.push(options.systemContextText.trim());
       }
 
       if (options.includeContext7Docs && options.context7Docs.length > 0) {
@@ -177,8 +177,8 @@ export const usePromptBuilder = ({
         sections.push(`# Referenced Documentation\n\n${docs}`);
       }
 
-      if (options.includeGoal && options.goalText.trim()) {
-        sections.push(`# Task Goal\n${options.goalText.trim()}`);
+      if (options.includeTaskInstructions && options.taskInstructionsText.trim()) {
+        sections.push(`# Task Instructions\n${options.taskInstructionsText.trim()}`);
       }
 
       const projectName = folderHandle
