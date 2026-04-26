@@ -49,10 +49,10 @@ const MainApp: React.FC<MainAppProps> = ({ onBackToLanding }) => {
     options,
   } = usePromptBuilder({
     options: {
-      includePreamble: false,
-      preambleText: '',
-      includeGoal: false,
-      goalText: '',
+      includeSystemContext: false,
+      systemContextText: '',
+      includeTaskInstructions: false,
+      taskInstructionsText: '',
       removeComments: false,
       minifyOutput: false,
       includeContext7Docs: false,
