@@ -26,6 +26,7 @@ CodeHarborAI is a modern, privacy-first web application that helps developers tr
 - 🎯 **AI-Optimized** - Professional templates and context engineering
 - 🎨 **Beautiful UI** - Modern design with dark mode support
 - 🚀 **No Installation** - Runs directly in your browser
+- ✏️ **Custom Templates** - Create and manage your own template library
 
 ---
 
@@ -53,7 +54,7 @@ CodeHarborAI is a modern, privacy-first web application that helps developers tr
 - **GitHub Integration** - Import repositories with intelligent caching (1-hour cache)
 - **One-Click Copy** - Copy formatted output directly to clipboard
 
-### 🎨 Professional Templates (NEW!)
+### 🎨 Professional Templates (ENHANCED!)
 Pre-optimized prompts for common development tasks:
 - 📝 **Code Review** - Comprehensive code analysis
 - 📚 **API Documentation** - Generate API docs
@@ -65,6 +66,13 @@ Pre-optimized prompts for common development tasks:
 - 📖 **Documentation** - Technical documentation generation
 - ♻️ **Refactoring** - Code improvement suggestions
 - 🔄 **Migration** - Framework/library migration planning
+
+**✨ Custom Template Creator (NEW!)**
+- 🎨 **Create Your Own Templates** - Build custom templates tailored to your workflow
+- ✏️ **Edit & Delete** - Full control over your custom templates
+- 💾 **Persistent Storage** - Custom templates saved to browser localStorage
+- ⚙️ **Advanced Options** - Configure smart optimization, comment removal, minify, and more
+- 🎯 **Icon Picker** - Choose from common emojis to personalize your templates
 
 ### 🎯 Context Engineering
 - **Smart Context Optimizer** - Heuristic context intelligence system
@@ -85,6 +93,16 @@ Pre-optimized prompts for common development tasks:
 - **Real-time Progress** - Visual progress indicators with file counts
 - **Smart Sorting** - Prioritize important files automatically
 - **Keyboard Shortcuts** - Efficient workflow with keyboard navigation
+
+### ✏️ Custom Template Creator (NEW!)
+Build your own template library:
+- **Create Templates** - Design custom templates with personalized preamble and goals
+- **Edit & Delete** - Full control over your template collection
+- **Advanced Configuration** - Pre-configure smart optimization, comment removal, minify, and more
+- **Persistent Storage** - Templates saved to browser localStorage
+- **Visual Indicators** - "Custom" badges distinguish your templates from built-in ones
+- **Emoji Picker** - Personalize templates with emoji icons
+- **Form Validation** - Ensures templates have required fields
 
 ---
 
@@ -155,9 +173,11 @@ yarn preview
    - For Local: Click "Browse Folder" and select your project directory
    - For GitHub: Paste the repository URL (e.g., `https://github.com/username/repo`)
 
-3. **Select a Template (Optional)**
-   - Choose from 10 professional templates optimized for specific tasks
+3. **Select or Create a Template (Optional)**
+   - Choose from 10+ professional templates optimized for specific tasks
    - Each template includes pre-configured context and instructions
+   - **NEW**: Create your own custom templates with the "Create New" button
+   - Edit or delete your custom templates anytime
 
 4. **Pick Your Files**
    - Use smart sorting to prioritize documentation and key files
@@ -196,7 +216,7 @@ Add external documentation to enrich AI understanding:
 
 Context7 import is best-effort and depends on the referenced page being publicly accessible.
 
-#### Smart Context Optimizer (NEW!)
+#### Smart Context Optimizer (ENHANCED!)
 Heuristic, file-aware context optimization that automatically:
 - **Analyzes** each file's type, role, and importance
 - **Prioritizes** critical files (entry points, configs, docs)
@@ -205,11 +225,15 @@ Heuristic, file-aware context optimization that automatically:
 - **Optimizes** token usage with progressive enhancement
 
 Configuration options:
-- **Token Budget**: Set max context size (10k-200k tokens)
+- **Token Budget**: Set max context size (10k-2M tokens)
 - **Documentation Priority**: Always include docs even if over budget
 - **Structure Map**: Generate intelligent project overview
 - **Code Signatures**: Extract types, interfaces, and exports
 - **Adaptive Compression**: Smart summarization for large codebases
+
+**Template-Configurable Options:**
+- Templates can now pre-configure: Smart Optimization, Comment Removal, Minify Output, and more
+- Custom templates remember your preferred settings for each use case
 
 #### Smart Context Optimization
 - **File Type Detection**: Auto-identify source, config, docs, tests, etc.
@@ -301,8 +325,8 @@ Contributions are welcome! Whether it's bug fixes, new features, or documentatio
 - [ ] Support for more AI models and token calculators
 - [ ] Browser extension for quick access
 - [ ] Team collaboration features
-- [ ] Export presets as JSON files
-- [ ] Custom template creation
+- [ ] Export presets as JSON files (template sharing)
+- [x] **Custom template creation** ✅ (Completed!)
 - [ ] Syntax highlighting in preview
 - [ ] File diff visualization
 - [ ] Integration with popular IDEs
