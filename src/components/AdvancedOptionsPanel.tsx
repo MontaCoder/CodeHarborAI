@@ -48,11 +48,41 @@ const AdvancedOptionsPanel: React.FC<AdvancedOptionsPanelProps> = memo(
       goalText: string;
       includePreamble: boolean;
       includeGoal: boolean;
+      enableSmartOptimization?: boolean;
+      removeComments?: boolean;
+      minifyOutput?: boolean;
+      maxTotalTokens?: number;
+      prioritizeDocumentation?: boolean;
+      includeStructureMap?: boolean;
+      adaptiveCompression?: boolean;
     }) => {
       onChange('preambleText', templateData.preambleText);
       onChange('goalText', templateData.goalText);
       onChange('includePreamble', templateData.includePreamble);
       onChange('includeGoal', templateData.includeGoal);
+
+      // Apply additional configured options if present
+      if (templateData.enableSmartOptimization !== undefined) {
+        onChange('enableSmartOptimization', templateData.enableSmartOptimization);
+      }
+      if (templateData.removeComments !== undefined) {
+        onChange('removeComments', templateData.removeComments);
+      }
+      if (templateData.minifyOutput !== undefined) {
+        onChange('minifyOutput', templateData.minifyOutput);
+      }
+      if (templateData.maxTotalTokens !== undefined) {
+        onChange('maxTotalTokens', templateData.maxTotalTokens);
+      }
+      if (templateData.prioritizeDocumentation !== undefined) {
+        onChange('prioritizeDocumentation', templateData.prioritizeDocumentation);
+      }
+      if (templateData.includeStructureMap !== undefined) {
+        onChange('includeStructureMap', templateData.includeStructureMap);
+      }
+      if (templateData.adaptiveCompression !== undefined) {
+        onChange('adaptiveCompression', templateData.adaptiveCompression);
+      }
     };
 
     const handleAddContext7Doc = async () => {
