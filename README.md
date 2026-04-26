@@ -96,7 +96,7 @@ Pre-optimized prompts for common development tasks:
 
 ### ✏️ Custom Template Creator (NEW!)
 Build your own template library:
-- **Create Templates** - Design custom templates with personalized preamble and goals
+- **Create Templates** - Design custom templates with personalized system context and task instructions
 - **Edit & Delete** - Full control over your template collection
 - **Advanced Configuration** - Pre-configure smart optimization, comment removal, minify, and more
 - **Persistent Storage** - Templates saved to browser localStorage
