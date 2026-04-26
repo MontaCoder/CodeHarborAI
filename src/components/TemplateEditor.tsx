@@ -31,8 +31,8 @@ const TemplateEditor: React.FC<TemplateEditorProps> = ({
   const [name, setName] = useState(initialData?.name ?? '');
   const [description, setDescription] = useState(initialData?.description ?? '');
   const [icon, setIcon] = useState(initialData?.icon ?? '📝');
-  const [preamble, setPreamble] = useState(initialData?.preamble ?? '');
-  const [goal, setGoal] = useState(initialData?.goal ?? '');
+  const [systemContext, setSystemContext] = useState(initialData?.systemContext ?? '');
+  const [taskInstructions, setTaskInstructions] = useState(initialData?.taskInstructions ?? '');
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
 
   // Configured options
@@ -88,8 +88,8 @@ const TemplateEditor: React.FC<TemplateEditorProps> = ({
       name: name.trim(),
       description: description.trim(),
       icon,
-      preamble: preamble.trim(),
-      goal: goal.trim(),
+      systemContext: systemContext.trim(),
+      taskInstructions: taskInstructions.trim(),
       configuredOptions: Object.keys(configuredOptions).length > 0 ? configuredOptions : undefined,
     });
   };
@@ -194,24 +194,24 @@ const TemplateEditor: React.FC<TemplateEditorProps> = ({
             />
           </div>
 
-          {/* Preamble */}
+          {/* System Context */}
           <div>
-            <label className={labelClasses}>Preamble Text</label>
+            <label className={labelClasses}>System Context</label>
             <textarea
-              value={preamble}
-              onChange={(e) => setPreamble(e.target.value)}
-              placeholder="Text to prepend before the code context..."
+              value={systemContext}
+              onChange={(e) => setSystemContext(e.target.value)}
+              placeholder="Background context, persona, or project info for the AI..."
               className={`${textareaClasses} min-h-[80px]`}
             />
           </div>
 
-          {/* Goal */}
+          {/* Task Instructions */}
           <div>
-            <label className={labelClasses}>Goal / Instructions</label>
+            <label className={labelClasses}>Task Instructions</label>
             <textarea
-              value={goal}
-              onChange={(e) => setGoal(e.target.value)}
-              placeholder="What should the AI focus on? (use newlines for bullet points)"
+              value={taskInstructions}
+              onChange={(e) => setTaskInstructions(e.target.value)}
+              placeholder="Define specific instructions, output format, or tasks for the AI..."
               className={`${textareaClasses} min-h-[100px]`}
             />
           </div>

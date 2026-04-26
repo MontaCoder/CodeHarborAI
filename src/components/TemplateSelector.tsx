@@ -18,10 +18,10 @@ import TemplateEditor from './TemplateEditor';
 
 interface TemplateSelectorProps {
   onTemplateApply: (templateData: {
-    preambleText: string;
-    goalText: string;
-    includePreamble: boolean;
-    includeGoal: boolean;
+    systemContextText: string;
+    taskInstructionsText: string;
+    includeSystemContext: boolean;
+    includeTaskInstructions: boolean;
     [key: string]: unknown;
   }) => void;
 }
@@ -197,7 +197,7 @@ const TemplateSelector: React.FC<TemplateSelectorProps> = ({
                       Focus Areas:
                     </span>
                     <p className="mt-1 whitespace-pre-line pl-2">
-                      {activeTemplate.goal}
+                      {activeTemplate.taskInstructions}
                     </p>
                   </div>
                   {activeTemplate.configuredOptions && (
@@ -231,7 +231,7 @@ const TemplateSelector: React.FC<TemplateSelectorProps> = ({
         )}
 
         <div className="text-xs text-neutral-500 dark:text-neutral-400 space-y-1 pt-1">
-          <p>💡 Templates automatically configure preamble and goal settings</p>
+          <p>💡 Templates automatically configure system context and task instructions</p>
           <p>✨ Customize the applied template in sections below</p>
           {customTemplates.length === 0 && (
             <p>🎨 Click &quot;Create New&quot; to make your own custom template</p>
