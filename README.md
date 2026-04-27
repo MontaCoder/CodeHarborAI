@@ -6,9 +6,11 @@
   **Transform Your Codebase Into Perfect AI Prompts**
   
    [![License: MIT](https://img.shields.io/badge/License-MIT-emerald.svg)](https://opensource.org/licenses/MIT)
-   [![React](https://img.shields.io/badge/React-19.1.1-61DAFB?logo=react&logoColor=white)](https://react.dev/)
-   [![TypeScript](https://img.shields.io/badge/TypeScript-5.9.2-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
-   [![Rspack](https://img.shields.io/badge/Rspack-2.0-FF6F00)](https://www.rspack.dev/)
+   [![React](https://img.shields.io/badge/React-19.2.4-61DAFB?logo=react&logoColor=white)](https://react.dev/)
+   [![TypeScript](https://img.shields.io/badge/TypeScript-6.0.2-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+   [![Rspack](https://img.shields.io/badge/Rspack-2.0.0-FF6F00)](https://www.rspack.dev/)
+   [![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4.2.2-06B6D4?logo=tailwindcss&logoColor=white)](https://tailwindcss.com/)
+   [![Lucide](https://img.shields.io/badge/Lucide-0.562.0-F56565)](https://lucide.dev/)
   
   [Features](#-features) • [Getting Started](#-getting-started) • [Usage](#-usage) • [Contributing](#-contributing)
 </div>
@@ -279,10 +281,11 @@ Your code is **YOUR CODE**. Period.
 
 ## 🏗️ Tech Stack
 
-- **Frontend Framework**: [React 19](https://react.dev/) with TypeScript
+- **Frontend Framework**: [React 19.2](https://react.dev/) with TypeScript 6.0
 - **Build Tool**: [Rspack 2.0](https://www.rspack.dev/)
-- **Styling**: [Tailwind CSS 4](https://tailwindcss.com/)
-- **Icons**: [Lucide React](https://lucide.dev/)
+- **Styling**: [Tailwind CSS 4.2](https://tailwindcss.com/)
+- **Icons**: [Lucide React 0.562](https://lucide.dev/)
+- **Linting/Formatting**: [Biome 2.4](https://biomejs.dev/) + [ESLint 9](https://eslint.org/)
 - **State Management**: React Hooks (useState, useEffect, useCallback)
 - **File System**: [File System Access API](https://web.dev/file-system-access/)
 - **GitHub API**: REST API with Git Tree API for performance
