@@ -198,7 +198,7 @@ export class GitHubService {
     // Check if there's already a pending request for this URL
     const cacheKey = `req_${downloadUrl}`;
     const cachedPromise = GitHubService.REQUEST_CACHE.get(cacheKey);
-    
+
     if (cachedPromise) {
       return cachedPromise as Promise<string>;
     }
@@ -215,21 +215,30 @@ export class GitHubService {
 
         return await response.text();
       } catch (error) {
+        // Clean up from request cache on error immediately
+        GitHubService.REQUEST_CACHE.delete(cacheKey);
         console.error('Error downloading file content:', error);
         throw new Error(
           `Failed to download file content: ${error instanceof Error ? error.message : 'Unknown error'}`,
         );
-      } finally {
-        // Clean up from request cache after completion
-        setTimeout(() => {
-          GitHubService.REQUEST_CACHE.delete(cacheKey);
-        }, GitHubService.REQUEST_CACHE_TTL);
       }
     })();
 
     // Store the promise in cache
     GitHubService.REQUEST_CACHE.set(cacheKey, downloadPromise);
-    
+
+    // Clean up from request cache after TTL (only on success)
+    void downloadPromise.then(
+      () => {
+        setTimeout(() => {
+          GitHubService.REQUEST_CACHE.delete(cacheKey);
+        }, GitHubService.REQUEST_CACHE_TTL);
+      },
+      () => {
+        // Already cleaned up in catch block
+      },
+    );
+
     return downloadPromise;
   }
 
