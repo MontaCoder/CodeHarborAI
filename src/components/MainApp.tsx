@@ -62,6 +62,10 @@ const MainApp: React.FC<MainAppProps> = ({ onBackToLanding }) => {
       prioritizeDocumentation: true,
       includeStructureMap: true,
       adaptiveCompression: true,
+      bodyElisionThreshold: 8,
+      adaptiveBodyThreshold: false,
+      preserveTypeDeclarations: true,
+      preserveModuleSurface: true,
     },
     selectedFiles,
     fileHandles,
@@ -179,7 +183,15 @@ const MainApp: React.FC<MainAppProps> = ({ onBackToLanding }) => {
                   adaptiveCompression: options.adaptiveCompression,
                   prioritizeDocumentation: options.prioritizeDocumentation,
                   includeStructureMap: options.includeStructureMap,
+                  bodyElisionThreshold: options.bodyElisionThreshold,
+                  adaptiveBodyThreshold: options.adaptiveBodyThreshold,
+                  preserveTypeDeclarations: options.preserveTypeDeclarations,
+                  preserveModuleSurface: options.preserveModuleSurface,
                 }}
+                systemContextText={options.systemContextText}
+                taskInstructionsText={options.taskInstructionsText}
+                removeComments={options.removeComments}
+                minifyOutput={options.minifyOutput}
               />
             </div>
             <div className="bg-white dark:bg-neutral-900 rounded-2xl shadow-lg border border-neutral-200 dark:border-neutral-800 p-6 md:p-8">
