@@ -12,6 +12,10 @@ interface SmartOptionsSnapshot {
   adaptiveCompression: boolean;
   prioritizeDocumentation: boolean;
   includeStructureMap: boolean;
+  bodyElisionThreshold: number;
+  adaptiveBodyThreshold: boolean;
+  preserveTypeDeclarations: boolean;
+  preserveModuleSurface: boolean;
 }
 
 interface UseStatsMetricsArgs {
@@ -24,6 +28,12 @@ interface UseStatsMetricsArgs {
   includeContext7Docs: boolean;
   context7Docs: Context7Doc[];
   smartOptions: SmartOptionsSnapshot;
+  // Template tokens
+  systemContextText: string;
+  taskInstructionsText: string;
+  // Basic transformations
+  removeComments: boolean;
+  minifyOutput: boolean;
 }
 
 interface SelectedFileSummary {
@@ -45,6 +55,15 @@ interface StatsMetricsResult {
   smartSummary: string;
   context7DocCount: number;
   context7Included: boolean;
+  rawTokens: number;
+  optimizedTokens: number;
+  tokenSavings: number;
+  savingsPercent: number;
+  // New fields for enhanced stats
+  templateTokens: number;
+  context7Tokens: number;
+  transformationSavings: number;
+  fileTokens: number; // base file tokens after transformations
 }
 
 const CAUTION_THRESHOLD = 0.75;
@@ -60,6 +79,10 @@ export const useStatsMetrics = ({
   includeContext7Docs,
   context7Docs,
   smartOptions,
+  systemContextText,
+  taskInstructionsText,
+  removeComments,
+  minifyOutput,
 }: UseStatsMetricsArgs): StatsMetricsResult => {
   return useMemo(() => {
     const activeFiles = fileHandles.length > 0 ? fileHandles : githubFiles;
@@ -70,18 +93,55 @@ export const useStatsMetrics = ({
     const context7Included = includeContext7Docs && context7Docs.length > 0;
     const context7DocCount = context7Included ? context7Docs.length : 0;
 
+    // Calculate Context7 docs tokens
     const docsText = context7Included
       ? context7Docs
           .map((doc) => Context7Service.formatForPrompt(doc))
           .join('\n')
       : '';
-    const docsBytes = docsText.length;
-    const docsTokens = context7Included ? estimateTextTokens(docsText) : 0;
+    const context7Tokens = context7Included ? estimateTextTokens(docsText) : 0;
+
+    // Calculate Template tokens (system context + task instructions)
+    const templateTokens =
+      estimateTextTokens(systemContextText) +
+      estimateTextTokens(taskInstructionsText);
+
+    // Base file tokens (from size and lines)
+    const baseFileTokens = estimateTokensFromBytesLines(totalSize, totalLines);
+
+    // Calculate transformation savings (estimated)
+    // Comments ~15% reduction, minify ~30% additional reduction
+    let transformationRatio = 1.0;
+    if (removeComments) {
+      transformationRatio *= 0.85; // ~15% reduction
+    }
+    if (minifyOutput) {
+      transformationRatio *= 0.70; // ~30% additional reduction
+    }
+    const fileTokensAfterTransformations = Math.floor(baseFileTokens * transformationRatio);
+    const transformationSavings = baseFileTokens - fileTokensAfterTransformations;
+
+    // Total raw tokens (files + templates + context7 docs, with transformations)
+    const rawTokens =
+      fileTokensAfterTransformations + templateTokens + context7Tokens;
+
+    // Smart optimization compression (applied after transformations)
+    const compressionRatio = smartOptions.adaptiveBodyThreshold ? 0.35 : 0.5;
+    const optimizedTokens = Math.floor(rawTokens * compressionRatio);
+
+    // Estimated tokens = what will actually be used
+    const estimatedTokens = smartOptions.enableSmartOptimization
+      ? optimizedTokens
+      : rawTokens;
+
+    const tokenSavings = rawTokens - optimizedTokens;
+    const savingsPercent = rawTokens > 0
+      ? Math.round((tokenSavings / rawTokens) * 100)
+      : 0;
 
     const sizeKB =
-      totalSize > 0 || docsBytes > 0 ? (totalSize + docsBytes) / 1024 : 0;
-    const estimatedTokens =
-      estimateTokensFromBytesLines(totalSize, totalLines) + docsTokens;
+      totalSize > 0 ? totalSize / 1024 : 0;
+
     const budgetTokens = Math.max(maxTotalTokens, 1);
 
     const rawPercent = estimatedTokens / budgetTokens;
@@ -117,19 +177,29 @@ export const useStatsMetrics = ({
       .sort((a, b) => b.sizeKB - a.sizeKB)
       .slice(0, 3);
 
-    let smartSummary =
-      'Smart optimization is disabled. The entire selection will be included as-is.';
-    if (smartOptions.enableSmartOptimization) {
-      const compression = smartOptions.adaptiveCompression
-        ? 'Adaptive compression on.'
-        : 'Adaptive compression off.';
-      const structure = smartOptions.includeStructureMap
-        ? 'Structure map will be generated.'
-        : 'Structure map disabled.';
-      const docs = smartOptions.prioritizeDocumentation
-        ? 'Documentation prioritized.'
-        : 'Documentation treated normally.';
-      smartSummary = `${compression} ${structure} ${docs}`;
+    let smartSummary = '';
+    const compression = smartOptions.adaptiveCompression
+      ? 'Adaptive compression on.'
+      : 'Adaptive compression off.';
+    const structure = smartOptions.includeStructureMap
+      ? 'Structure map will be generated.'
+      : 'Structure map disabled.';
+    const docs = smartOptions.prioritizeDocumentation
+      ? 'Documentation prioritized.'
+      : 'Documentation treated normally.';
+    
+    // Include transformation info in summary
+    const transformInfo = [];
+    if (removeComments) transformInfo.push('comments stripped');
+    if (minifyOutput) transformInfo.push('minified');
+    const transformText = transformInfo.length > 0
+      ? `Transformations: ${transformInfo.join(', ')}.`
+      : 'No basic transformations.';
+    
+    const savings = `Estimated savings: ${savingsPercent}% (${tokenSavings.toLocaleString()} tokens)`;
+    smartSummary = `${compression} ${structure} ${docs}. ${transformText} ${savings}`;
+    if (!smartOptions.enableSmartOptimization) {
+      smartSummary += '. Enable optimizer to achieve these savings.';
     }
 
     return {
@@ -145,6 +215,15 @@ export const useStatsMetrics = ({
       smartSummary,
       context7DocCount,
       context7Included,
+      rawTokens,
+      optimizedTokens,
+      tokenSavings,
+      savingsPercent,
+      // New fields
+      templateTokens,
+      context7Tokens,
+      transformationSavings,
+      fileTokens: fileTokensAfterTransformations,
     };
   }, [
     totalSize,
@@ -159,5 +238,10 @@ export const useStatsMetrics = ({
     smartOptions.adaptiveCompression,
     smartOptions.prioritizeDocumentation,
     smartOptions.includeStructureMap,
+    smartOptions.adaptiveBodyThreshold,
+    systemContextText,
+    taskInstructionsText,
+    removeComments,
+    minifyOutput,
   ]);
 };

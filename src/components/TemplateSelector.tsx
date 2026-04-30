@@ -7,7 +7,7 @@ import {
   Trash2,
 } from 'lucide-react';
 import type React from 'react';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useState } from 'react';
 import {
   applyTemplate,
   documentationTemplates,
@@ -31,14 +31,11 @@ const TemplateSelector: React.FC<TemplateSelectorProps> = ({
 }) => {
   const [selectedTemplate, setSelectedTemplate] = useState<string>('');
   const [showDetails, setShowDetails] = useState<string | null>(null);
-  const [customTemplates, setCustomTemplates] = useState<DocumentationTemplate[]>([]);
+  const [customTemplates, setCustomTemplates] = useState<DocumentationTemplate[]>(
+    () => loadCustomTemplates(),
+  );
   const [editorMode, setEditorMode] = useState<'create' | 'edit' | null>(null);
   const [editingTemplate, setEditingTemplate] = useState<DocumentationTemplate | undefined>(undefined);
-
-  // Load custom templates on mount
-  useEffect(() => {
-    setCustomTemplates(loadCustomTemplates());
-  }, []);
 
   const allTemplates = [...documentationTemplates, ...customTemplates];
 

@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Smart Context Optimizer Service
  * Intelligently analyzes and optimizes code context for AI prompts
  * Replaces the simple 3-level context enhancement with adaptive, file-aware optimization
@@ -54,6 +54,16 @@ import {
   type FileType,
 } from '../utils/fileCategorization';
 import { estimateTextTokens } from '../utils/tokenEstimator';
+import {
+  assembleSkeleton,
+  extractClassSkeletons,
+  extractFunctionSkeletons,
+  extractImports as extractCodeImports,
+  extractTopLevelConstants,
+  extractTypeDeclarations,
+  type FileSkeleton,
+  type SkeletonOptions,
+} from '../utils/codeSkeleton';
 
 export type { FileRole, FileType } from '../utils/fileCategorization';
 
@@ -78,10 +88,11 @@ export interface FileMetadata {
 
 export interface OptimizationStrategy {
   includeFullContent: boolean;
-  summarize: boolean;
+  compressToSkeleton: boolean;
   extractKeyElements: boolean;
   maxTokens?: number;
-  formatTemplate: 'full' | 'compact' | 'summary' | 'structured';
+  formatTemplate: 'full' | 'compact' | 'skeleton' | 'structured';
+  applyTransformations?: TransformationOptions; // Basic transformations to apply
 }
 
 export interface SmartContextOptions {
@@ -89,23 +100,113 @@ export interface SmartContextOptions {
   prioritizeDocumentation: boolean;
   includeStructureMap: boolean;
   adaptiveCompression: boolean;
+  bodyElisionThreshold?: number;
+  adaptiveBodyThreshold?: boolean;
+  preserveTypeDeclarations?: boolean;
+  preserveModuleSurface?: boolean;
+}
+
+export interface TransformationOptions {
+  removeComments: boolean;
+  minifyOutput: boolean;
 }
 
 export class SmartContextService {
   private static readonly HEADER_DIVIDER = '-'.repeat(60);
 
   /**
+   * Strip comments from code content
+   * Removes both single-line and multi-line comments
+   * String-literal aware to avoid stripping "http://..." etc.
+   */
+  static stripComments(content: string): string {
+    let result = '';
+    let inString: string | null = null;
+    let inComment = false;
+    let commentType: '/' | '*' | null = null;
+
+    for (let i = 0; i < content.length; i++) {
+      const char = content[i];
+      const next = content[i + 1];
+
+      if (!inComment && !inString) {
+        // Start comment or string
+        if (char === '/' && next === '/') { inComment = true; commentType = '/'; i++; continue; }
+        if (char === '/' && next === '*') { inComment = true; commentType = '*'; i++; continue; }
+        if (char === '"' || char === "'" || char === '`') { inString = char; result += char; continue; }
+      } else if (inString) {
+        // Inside string - check for end
+        if (char === inString && content[i - 1] !== '\\') inString = null;
+        result += char; continue;
+      } else if (inComment) {
+        // Inside comment - check for end
+        if (commentType === '/' && char === '\n') { inComment = false; result += char; }
+        if (commentType === '*' && char === '*' && next === '/') { inComment = false; i++; }
+        continue;
+      }
+      result += char;
+    }
+    return result;
+  }
+
+  /**
+   * Minify code content by removing unnecessary whitespace
+   * Preserves string literals and basic code structure
+   */
+  static applyMinify(content: string): string {
+    return content
+      .replace(/\s+/g, ' ') // Collapse whitespace
+      .replace(/\s*([{};:,])\s*/g, '$1') // Remove space around punctuation
+      .replace(/;\s*/g, ';') // Clean up semicolons
+      .replace(/\s*{\s*/g, '{') // Clean up opening braces
+      .replace(/\s*}\s*/g, '}') // Clean up closing braces
+      .trim();
+  }
+
+  /**
+   * Apply basic transformations (strip comments, minify) to content
+   * Transformations are applied in order: comments first, then minify
+   */
+  static applyTransformations(
+    content: string,
+    options: TransformationOptions,
+  ): string {
+    let transformed = content;
+
+    if (options.removeComments) {
+      transformed = SmartContextService.stripComments(transformed);
+    }
+
+    if (options.minifyOutput) {
+      transformed = SmartContextService.applyMinify(transformed);
+    }
+
+    return transformed;
+  }
+
+  /**
    * Analyzes a file and determines its characteristics
    * Uses LRU cache to avoid re-analyzing unchanged files
+   * Optionally applies transformations before analysis for accurate token estimation
    */
   static analyzeFile(
     path: string,
     content: string,
     metadata: FileMetadata,
+    transformationOptions?: TransformationOptions,
   ): FileAnalysis {
-    // Create cache key from path, content length, and line count
-    // This ensures cache invalidation when content changes
-    const cacheKey = `${path}:${content.length}:${metadata.lines}`;
+    // Apply transformations before analysis if provided
+    let processedContent = content;
+    if (transformationOptions) {
+      processedContent = SmartContextService.applyTransformations(
+        content,
+        transformationOptions,
+      );
+    }
+
+    // Create cache key from path, processed content length, and line count
+    // This ensures cache invalidation when content or transformations change
+    const cacheKey = `${path}:${processedContent.length}:${metadata.lines}:${JSON.stringify(transformationOptions ?? {})}`;
     
     // Check cache first
     const cached = analysisCache.get(cacheKey);
@@ -114,14 +215,14 @@ export class SmartContextService {
     }
 
     const type = detectFileTypeFromPath(path);
-    const role = detectFileRoleFromPath(path, content, type);
+    const role = detectFileRoleFromPath(path, processedContent, type);
     const relevanceScore = calculateFileRelevanceScore(
       path,
-      content,
+      processedContent,
       type,
       role,
     );
-    const estimatedTokens = SmartContextService.estimateTokens(content);
+    const estimatedTokens = SmartContextService.estimateTokens(processedContent);
     const priority = calculateFilePriority(type, role, relevanceScore);
 
     const result: FileAnalysis = {
@@ -155,21 +256,24 @@ export class SmartContextService {
 
   /**
    * Determines optimal strategy for including a file in context
+   * Optionally includes transformation options to be applied during formatting
    */
   static determineStrategy(
     analysis: FileAnalysis,
-    options: SmartContextOptions,
+    _options: SmartContextOptions,
+    _isSelected: boolean = false, // eslint-disable-line @typescript-eslint/no-unused-vars
+    transformationOptions?: TransformationOptions,
   ): OptimizationStrategy {
-    void options;
     const { type, role, estimatedTokens } = analysis;
 
     // Documentation always gets full content
     if (type === 'documentation') {
       return {
         includeFullContent: true,
-        summarize: false,
+        compressToSkeleton: false,
         extractKeyElements: false,
         formatTemplate: 'full',
+        applyTransformations: transformationOptions,
       };
     }
 
@@ -177,32 +281,45 @@ export class SmartContextService {
     if (type === 'config') {
       return {
         includeFullContent: estimatedTokens < 500,
-        summarize: false,
+        compressToSkeleton: false,
         extractKeyElements: true,
         maxTokens: 500,
         formatTemplate: 'structured',
+        applyTransformations: transformationOptions,
       };
     }
 
     // High priority source files
     if (role === 'entry' || role === 'core') {
+      if (estimatedTokens < 2000) {
+        return {
+          includeFullContent: true,
+          compressToSkeleton: false,
+          extractKeyElements: false,
+          formatTemplate: 'full',
+          applyTransformations: transformationOptions,
+        };
+      }
+      // Large files: use skeleton compression (never summarize)
       return {
-        includeFullContent: estimatedTokens < 2000,
-        summarize: estimatedTokens >= 2000,
+        includeFullContent: false,
+        compressToSkeleton: true,
         extractKeyElements: true,
         maxTokens: 3000,
-        formatTemplate: 'structured',
+        formatTemplate: 'skeleton',
+        applyTransformations: transformationOptions,
       };
     }
 
-    // Test files - summarize by default
+    // Test files - use skeleton compression (never summarize)
     if (type === 'test') {
       return {
         includeFullContent: false,
-        summarize: true,
+        compressToSkeleton: true,
         extractKeyElements: true,
         maxTokens: 800,
-        formatTemplate: 'summary',
+        formatTemplate: 'skeleton',
+        applyTransformations: transformationOptions,
       };
     }
 
@@ -211,47 +328,74 @@ export class SmartContextService {
       if (estimatedTokens < 1000) {
         return {
           includeFullContent: true,
-          summarize: false,
+          compressToSkeleton: false,
           extractKeyElements: false,
           formatTemplate: 'full',
+          applyTransformations: transformationOptions,
         };
       } else if (estimatedTokens < 2500) {
         return {
           includeFullContent: true,
-          summarize: false,
+          compressToSkeleton: false,
           extractKeyElements: true,
           formatTemplate: 'structured',
+          applyTransformations: transformationOptions,
         };
       } else {
+        // Large files: use skeleton compression (never summarize)
         return {
           includeFullContent: false,
-          summarize: true,
+          compressToSkeleton: true,
           extractKeyElements: true,
           maxTokens: 2000,
-          formatTemplate: 'summary',
+          formatTemplate: 'skeleton',
+          applyTransformations: transformationOptions,
         };
       }
     }
 
-    // Default: compact format
+    // Default: compact format with skeleton compression for large files
+    if (estimatedTokens >= 800) {
+      return {
+        includeFullContent: false,
+        compressToSkeleton: true,
+        extractKeyElements: true,
+        maxTokens: 1000,
+        formatTemplate: 'skeleton',
+        applyTransformations: transformationOptions,
+      };
+    }
+
     return {
-      includeFullContent: estimatedTokens < 800,
-      summarize: estimatedTokens >= 800,
-      extractKeyElements: true,
-      maxTokens: 1000,
+      includeFullContent: true,
+      compressToSkeleton: false,
+      extractKeyElements: false,
       formatTemplate: 'compact',
+      applyTransformations: transformationOptions,
     };
   }
 
   /**
    * Formats file content based on optimization strategy
+   * Optionally applies basic transformations (strip comments, minify) to the content
    */
   static formatContent(
     path: string,
     content: string,
     analysis: FileAnalysis,
     strategy: OptimizationStrategy,
+    transformationOptions?: TransformationOptions,
   ): string {
+    let processedContent = content;
+
+    // Apply transformations if provided
+    if (transformationOptions) {
+      processedContent = SmartContextService.applyTransformations(
+        processedContent,
+        transformationOptions,
+      );
+    }
+
     let output = '';
 
     // Header with file info
@@ -259,11 +403,16 @@ export class SmartContextService {
 
     // Content based on strategy
     if (strategy.includeFullContent) {
-      output += content;
-    } else if (strategy.summarize) {
-      output += SmartContextService.generateSummary(content, analysis);
+      output += processedContent;
+    } else if (strategy.compressToSkeleton) {
+      const skeletonOptions: SkeletonOptions = {
+        bodyElisionThreshold: strategy.maxTokens ? 5 : 8,
+        preserveJSDoc: true,
+        describeElidedBodies: true,
+      };
+      output += SmartContextService.compressToSkeleton(processedContent, path, skeletonOptions);
     } else if (strategy.extractKeyElements) {
-      output += SmartContextService.extractKeyElements(content, analysis);
+      output += SmartContextService.extractKeyElements(processedContent, analysis);
     }
 
     return output;
@@ -325,41 +474,55 @@ export class SmartContextService {
 
   /**
    * Calculates total context size with smart prioritization
+   * Never excludes selected files - applies compression instead
    */
   static optimizeContextBudget(
     analyses: FileAnalysis[],
     maxTokens: number,
     options: SmartContextOptions,
+    selectedPaths?: Set<string>,
   ): FileAnalysis[] {
     // Sort by priority
     const sorted = [...analyses].sort((a, b) => b.priority - a.priority);
 
     let totalTokens = 0;
-    const selected: FileAnalysis[] = [];
+    const result: FileAnalysis[] = [];
 
     for (const analysis of sorted) {
-      const strategy = SmartContextService.determineStrategy(analysis, options);
+      const isSelected = selectedPaths?.has(analysis.path) ?? false;
+      const strategy = SmartContextService.determineStrategy(
+        analysis,
+        options,
+        isSelected,
+      );
       // Use strategy-specific cost when present, otherwise a conservative 0.8 factor.
       const estimatedSize =
         strategy.maxTokens ?? Math.ceil(analysis.estimatedTokens * 0.8);
 
       if (totalTokens + estimatedSize <= maxTokens) {
-        selected.push(analysis);
+        result.push(analysis);
         totalTokens += estimatedSize;
         continue;
       }
 
-      // Documentation prioritized: include but still account in total so later choices see the cost
+      // Selected files are ALWAYS included (apply aggressive compression if needed)
+      if (isSelected) {
+        result.push(analysis);
+        totalTokens += estimatedSize;
+        continue;
+      }
+
+      // Documentation prioritized: include but still account in total
       if (
         analysis.type === 'documentation' &&
         options.prioritizeDocumentation
       ) {
-        selected.push(analysis);
+        result.push(analysis);
         totalTokens += estimatedSize;
       }
     }
 
-    return selected;
+    return result;
   }
 
   private static estimateTokens(content: string): number {
@@ -476,8 +639,8 @@ export class SmartContextService {
       header += '\n';
     }
 
-    if (strategy.formatTemplate === 'summary') {
-      header += 'Summary (optimized for token efficiency)\n';
+    if (strategy.formatTemplate === 'skeleton') {
+      header += 'Skeleton (optimized for token efficiency)\n';
     } else if (strategy.formatTemplate === 'structured') {
       header += 'Structured view (key elements extracted)\n';
     }
@@ -487,55 +650,44 @@ export class SmartContextService {
     return header;
   }
 
-  private static generateSummary(
+  /**
+   * Compress file content to skeleton (structural elements only)
+   */
+  static compressToSkeleton(
     content: string,
-    analysis: FileAnalysis,
+    path: string,
+    options: SkeletonOptions & { maxTokens?: number },
   ): string {
-    let summary = '## Summary\n\n';
+    const threshold = options.bodyElisionThreshold ?? 8;
+    const skeleton: FileSkeleton = {
+      path,
+      imports: extractCodeImports(content),
+      exports: [],
+      types: extractTypeDeclarations(content),
+      declarations: [
+        ...extractFunctionSkeletons(content, threshold, options.preserveJSDoc),
+        ...extractClassSkeletons(content, threshold, options.preserveJSDoc),
+      ],
+      constants: extractTopLevelConstants(content),
+      originalLines: content.split('\n').length,
+      skeletonLines: 0,
+    };
 
-    // Add imports section
-    if (analysis.metadata.imports && analysis.metadata.imports.length > 0) {
-      summary += '**Dependencies:**\n';
-      summary += analysis.metadata.imports
-        .slice(0, 8)
-        .map((imp) => `- ${imp}`)
-        .join('\n');
-      summary += '\n\n';
-    }
+    return assembleSkeleton(path, skeleton);
+  }
 
-    // Add exports section
-    if (analysis.metadata.exports && analysis.metadata.exports.length > 0) {
-      summary += '**Exports:**\n';
-      summary += analysis.metadata.exports
-        .slice(0, 8)
-        .map((exp) => `- ${exp}`)
-        .join('\n');
-      summary += '\n\n';
-    }
-
-    // Add key functions
-    if (
-      analysis.metadata.mainFunctions &&
-      analysis.metadata.mainFunctions.length > 0
-    ) {
-      summary += '**Key Functions:**\n';
-      summary += analysis.metadata.mainFunctions
-        .slice(0, 8)
-        .map((fn) => `- ${fn}()`)
-        .join('\n');
-      summary += '\n\n';
-    }
-
-    // Extract first comment block or docstring if present
-    const docMatch = content.match(/\/\*\*[\s\S]*?\*\//);
-    if (docMatch) {
-      summary += '**Documentation:**\n```\n' + docMatch[0] + '\n```\n\n';
-    }
-
-    summary +=
-      '_Full content omitted for token efficiency. Key signatures and structure preserved._\n';
-
-    return summary;
+  /**
+   * Calculate adaptive threshold based on remaining budget
+   */
+  static calculateAdaptiveThreshold(
+    remainingTokens: number,
+    remainingFiles: number,
+  ): number {
+    const avgTokensPerFile = remainingTokens / Math.max(remainingFiles, 1);
+    if (avgTokensPerFile < 500) return 3;   // Very aggressive
+    if (avgTokensPerFile < 1000) return 5;  // Aggressive
+    if (avgTokensPerFile < 2000) return 8;  // Default
+    return 15; // Relaxed
   }
 
   private static extractKeyElements(
