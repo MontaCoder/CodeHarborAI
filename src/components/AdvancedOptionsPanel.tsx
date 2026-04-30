@@ -4,7 +4,6 @@ import {
   FileText,
   Link as LinkIcon,
   Loader2,
-  Settings,
   Sparkles,
   X,
 } from 'lucide-react';
@@ -30,6 +29,10 @@ interface AdvancedOptionsPanelProps {
     prioritizeDocumentation: boolean;
     includeStructureMap: boolean;
     adaptiveCompression: boolean;
+    bodyElisionThreshold: number;
+    adaptiveBodyThreshold: boolean;
+    preserveTypeDeclarations: boolean;
+    preserveModuleSurface: boolean;
   };
   onChange: (
     key: string,
@@ -147,8 +150,97 @@ const AdvancedOptionsPanel: React.FC<AdvancedOptionsPanelProps> = memo(
         </div>
 
         <div className="space-y-5">
-          {/* Template Selector */}
-          <TemplateSelector onTemplateApply={handleTemplateApply} />
+          {/* Context Templates & Instructions */}
+          <div className="p-4 rounded-lg bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-950/20 dark:to-teal-950/20 ring-1 ring-emerald-200 dark:ring-emerald-800/50 space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center">
+                <Sparkles className="w-4 h-4 mr-2 text-emerald-600 dark:text-emerald-400" />
+                <label className="text-sm font-semibold text-neutral-800 dark:text-neutral-100">
+                  Context Templates
+                </label>
+              </div>
+            </div>
+
+            <TemplateSelector onTemplateApply={handleTemplateApply} />
+
+            {/* System Context Section */}
+            <div className="space-y-2.5 pt-3 border-t border-emerald-200 dark:border-emerald-800">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center">
+                  <input
+                    type="checkbox"
+                    id="includeSystemContext"
+                    checked={options.includeSystemContext}
+                    onChange={(e) => onChange('includeSystemContext', e.target.checked)}
+                    className={checkboxBaseClasses}
+                  />
+                  <label
+                    htmlFor="includeSystemContext"
+                    className={`ml-2.5 ${labelBaseClasses}`}
+                  >
+                    System Context
+                  </label>
+                </div>
+                <span className="text-xs text-neutral-500 dark:text-neutral-400">
+                  Sets AI persona & background
+                </span>
+              </div>
+
+              {options.includeSystemContext && (
+                <div className="pl-7 pt-1 space-y-1.5">
+                  <p className="text-xs text-neutral-500 dark:text-neutral-400">
+                    Provide background context, persona, or project information for the AI
+                  </p>
+                  <textarea
+                    placeholder='e.g., "You are an expert TypeScript developer. This is a React/Next.js project using Tailwind CSS..."'
+                    value={options.systemContextText}
+                    onChange={(e) => onChange('systemContextText', e.target.value)}
+                    className={`${inputBaseClasses} min-h-[80px] resize-y py-2`}
+                    rows={3}
+                  />
+                </div>
+              )}
+            </div>
+
+            {/* Task Instructions Section */}
+            <div className="space-y-2.5 pt-3 border-t border-emerald-200 dark:border-emerald-800">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center">
+                  <input
+                    type="checkbox"
+                    id="includeTaskInstructions"
+                    checked={options.includeTaskInstructions}
+                    onChange={(e) => onChange('includeTaskInstructions', e.target.checked)}
+                    className={checkboxBaseClasses}
+                  />
+                  <label
+                    htmlFor="includeTaskInstructions"
+                    className={`ml-2.5 ${labelBaseClasses}`}
+                  >
+                    Task Instructions
+                  </label>
+                </div>
+                <span className="text-xs text-neutral-500 dark:text-neutral-400">
+                  What you want the AI to do
+                </span>
+              </div>
+
+              {options.includeTaskInstructions && (
+                <div className="pl-7 pt-1 space-y-1.5">
+                  <p className="text-xs text-neutral-500 dark:text-neutral-400">
+                    Define specific instructions, output format, or step-by-step tasks for the AI
+                  </p>
+                  <textarea
+                    placeholder='e.g., "Review for security issues. Return results as a Markdown table with columns: Issue, Severity, Fix"'
+                    value={options.taskInstructionsText}
+                    onChange={(e) => onChange('taskInstructionsText', e.target.value)}
+                    className={`${inputBaseClasses} min-h-[80px] resize-y py-2`}
+                    rows={3}
+                  />
+                </div>
+              )}
+            </div>
+          </div>
 
           {/* Smart Context Optimizer */}
           <div className="p-4 rounded-lg bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-950/20 dark:to-teal-950/20 ring-1 ring-emerald-200 dark:ring-emerald-800/50 space-y-3">
@@ -256,16 +348,57 @@ const AdvancedOptionsPanel: React.FC<AdvancedOptionsPanelProps> = memo(
                     </label>
                   </div>
                 </div>
+
+                {/* Basic Transformations - Now part of Smart Context Optimizer */}
+                <div className="pt-3 border-t border-emerald-200 dark:border-emerald-800">
+                  <p className="text-xs font-semibold text-emerald-700 dark:text-emerald-300 mb-2">
+                    Basic Transformations
+                  </p>
+                  <div className="space-y-2 pl-1">
+                    <div className="flex items-center">
+                      <input
+                        type="checkbox"
+                        id="removeComments"
+                        checked={options.removeComments}
+                        onChange={(e) => onChange('removeComments', e.target.checked)}
+                        className={checkboxBaseClasses}
+                      />
+                      <label
+                        htmlFor="removeComments"
+                        className={`ml-2.5 ${labelBaseClasses} text-xs`}
+                      >
+                        Strip code comments (reduce tokens)
+                      </label>
+                    </div>
+
+                    <div className="flex items-center">
+                      <input
+                        type="checkbox"
+                        id="minifyOutput"
+                        checked={options.minifyOutput}
+                        onChange={(e) => onChange('minifyOutput', e.target.checked)}
+                        className={checkboxBaseClasses}
+                      />
+                      <label
+                        htmlFor="minifyOutput"
+                        className={`ml-2.5 ${labelBaseClasses} text-xs`}
+                      >
+                        Minify code (reduce tokens significantly)
+                      </label>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="pt-2 border-t border-emerald-200 dark:border-emerald-800">
+                  <p className="text-xs text-neutral-600 dark:text-neutral-400">
+                    {options.enableSmartOptimization
+                      ? '🧠 AI extracts code skeletons (types, signatures) while eliding large function bodies'
+                      : '💡 Enable to use structural skeleton extraction instead of summarization'}
+                  </p>
+                </div>
               </div>
             )}
 
-            <div className="pt-2 border-t border-emerald-200 dark:border-emerald-800">
-              <p className="text-xs text-neutral-600 dark:text-neutral-400">
-                {options.enableSmartOptimization
-                  ? '🧠 AI analyzes each file and optimizes context intelligently based on type, role, and relevance'
-                  : '💡 Enable to automatically optimize context with file-aware intelligence'}
-              </p>
-            </div>
           </div>
 
           {/* Context7 Documentation Import */}
@@ -361,141 +494,20 @@ const AdvancedOptionsPanel: React.FC<AdvancedOptionsPanelProps> = memo(
             </div>
           </div>
 
-          {/* System Context Section */}
-          <div className="space-y-2.5 p-4 rounded-lg bg-neutral-50 dark:bg-neutral-800/40 ring-1 ring-neutral-200 dark:ring-neutral-700/50">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center">
-                <input
-                  type="checkbox"
-                  id="includeSystemContext"
-                  checked={options.includeSystemContext}
-                  onChange={(e) => onChange('includeSystemContext', e.target.checked)}
-                  className={checkboxBaseClasses}
-                />
-                <label
-                  htmlFor="includeSystemContext"
-                  className={`ml-2.5 ${labelBaseClasses}`}
-                >
-                  System Context
-                </label>
-              </div>
-              <span className="text-xs text-neutral-500 dark:text-neutral-400">
-                Sets AI persona & background
-              </span>
-            </div>
-
-            {options.includeSystemContext && (
-              <div className="pl-7 pt-1 space-y-1.5">
-                <p className="text-xs text-neutral-500 dark:text-neutral-400">
-                  Provide background context, persona, or project information for the AI
-                </p>
-                <textarea
-                  placeholder='e.g., "You are an expert TypeScript developer. This is a React/Next.js project using Tailwind CSS..."'
-                  value={options.systemContextText}
-                  onChange={(e) => onChange('systemContextText', e.target.value)}
-                  className={`${inputBaseClasses} min-h-[80px] resize-y py-2`}
-                  rows={3}
-                />
-              </div>
-            )}
-          </div>
-
-          {/* Task Instructions Section */}
-          <div className="space-y-2.5 p-4 rounded-lg bg-neutral-50 dark:bg-neutral-800/40 ring-1 ring-neutral-200 dark:ring-neutral-700/50">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center">
-                <input
-                  type="checkbox"
-                  id="includeTaskInstructions"
-                  checked={options.includeTaskInstructions}
-                  onChange={(e) => onChange('includeTaskInstructions', e.target.checked)}
-                  className={checkboxBaseClasses}
-                />
-                <label
-                  htmlFor="includeTaskInstructions"
-                  className={`ml-2.5 ${labelBaseClasses}`}
-                >
-                  Task Instructions
-                </label>
-              </div>
-              <span className="text-xs text-neutral-500 dark:text-neutral-400">
-                What you want the AI to do
-              </span>
-            </div>
-
-            {options.includeTaskInstructions && (
-              <div className="pl-7 pt-1 space-y-1.5">
-                <p className="text-xs text-neutral-500 dark:text-neutral-400">
-                  Define specific instructions, output format, or step-by-step tasks for the AI
-                </p>
-                <textarea
-                  placeholder='e.g., "Review for security issues. Return results as a Markdown table with columns: Issue, Severity, Fix"'
-                  value={options.taskInstructionsText}
-                  onChange={(e) => onChange('taskInstructionsText', e.target.value)}
-                  className={`${inputBaseClasses} min-h-[80px] resize-y py-2`}
-                  rows={3}
-                />
-              </div>
-            )}
-          </div>
-
-          {/* Basic Transformations */}
-          <div className="space-y-2.5 p-4 rounded-lg bg-neutral-50 dark:bg-neutral-800/40 ring-1 ring-neutral-200 dark:ring-neutral-700/50">
-            <h3 className="text-sm font-semibold text-neutral-800 dark:text-neutral-100 flex items-center mb-2">
-              <Settings className="w-4 h-4 mr-2 text-neutral-500 dark:text-neutral-400" />
-              Basic Transformations
-            </h3>
-            <div className="pl-1 space-y-2.5">
-              <div className="flex items-center">
-                <input
-                  type="checkbox"
-                  id="removeComments"
-                  checked={options.removeComments}
-                  onChange={(e) => onChange('removeComments', e.target.checked)}
-                  className={checkboxBaseClasses}
-                />
-                <label
-                  htmlFor="removeComments"
-                  className={`ml-2.5 ${labelBaseClasses}`}
-                >
-                  Strip code comments (reduce tokens)
-                </label>
-              </div>
-
-              <div className="flex items-center">
-                <input
-                  type="checkbox"
-                  id="minifyOutput"
-                  checked={options.minifyOutput}
-                  onChange={(e) => onChange('minifyOutput', e.target.checked)}
-                  className={checkboxBaseClasses}
-                />
-                <label
-                  htmlFor="minifyOutput"
-                  className={`ml-2.5 ${labelBaseClasses}`}
-                >
-                  Minify code (reduce tokens significantly)
-                </label>
-              </div>
-            </div>
-            <p className="text-xs text-neutral-500 dark:text-neutral-400 pt-1">
-              ⚠️ These apply before Smart Optimization (if enabled)
-            </p>
-          </div>
-
           {/* Tips */}
           <div className="text-xs text-neutral-500 dark:text-neutral-400 space-y-1 bg-blue-50 dark:bg-blue-950/20 p-3 rounded-lg">
             <p className="font-semibold text-blue-700 dark:text-blue-400">
-              💡 Smart Optimization Tips:
+              💡 Context Engineering Tips:
             </p>
             <ul className="space-y-1 pl-4 list-disc">
-              <li>Use templates as a starting point for common tasks</li>
+              <li>Context Templates include System Context & Task Instructions</li>
               <li>Add Context7 docs to provide framework/library references</li>
               <li>
                 Enable Smart Optimizer for intelligent, file-aware context
               </li>
+              <li>Basic Transformations are part of Smart Optimizer</li>
               <li>Adjust token budget based on your AI model's capacity</li>
-              <li>Use adaptive compression for large codebases</li>
+              <li>Use skeleton extraction to preserve code structure</li>
             </ul>
           </div>
         </div>
