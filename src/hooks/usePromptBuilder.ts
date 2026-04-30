@@ -7,6 +7,7 @@ import {
   type FileAnalysis,
   type SmartContextOptions,
   SmartContextService,
+  type TransformationOptions,
 } from '../services/smartContextService';
 import type { GitHubFileEntry, LocalFileEntry } from '../types/files';
 import { clearFileCategorizationCache } from '../utils/fileCategorization';
@@ -25,6 +26,10 @@ export interface PromptOptions {
   prioritizeDocumentation: boolean;
   includeStructureMap: boolean;
   adaptiveCompression: boolean;
+  bodyElisionThreshold: number;
+  adaptiveBodyThreshold: boolean;
+  preserveTypeDeclarations: boolean;
+  preserveModuleSurface: boolean;
 }
 
 export interface PromptBuilderState {
@@ -64,13 +69,22 @@ const buildSmartOptions = (options: PromptOptions): SmartContextOptions => ({
   prioritizeDocumentation: options.prioritizeDocumentation,
   includeStructureMap: options.includeStructureMap,
   adaptiveCompression: options.adaptiveCompression,
+  bodyElisionThreshold: options.bodyElisionThreshold,
+  adaptiveBodyThreshold: options.adaptiveBodyThreshold,
+  preserveTypeDeclarations: options.preserveTypeDeclarations,
+  preserveModuleSurface: options.preserveModuleSurface,
 });
 
-const stripComments = (content: string): string =>
-  content.replace(/\/\/.*$/gm, '').replace(/\/\*[\s\S]*?\*\//g, '');
-
-const applyMinify = (content: string): string =>
-  content.replace(/\s+/g, ' ').trim();
+// Helper to build transformation options from PromptOptions
+const buildTransformationOptions = (options: PromptOptions): TransformationOptions | undefined => {
+  if (!options.removeComments && !options.minifyOutput) {
+    return undefined;
+  }
+  return {
+    removeComments: options.removeComments,
+    minifyOutput: options.minifyOutput,
+  };
+};
 
 export const usePromptBuilder = ({
   options: initialOptions,
@@ -212,12 +226,19 @@ export const usePromptBuilder = ({
       
       console.log(`[Performance] Loaded ${results.size} files in ${loadTime.toFixed(0)}ms (${CONCURRENCY} concurrent)`);
 
-       // Transform content (strip comments, minify)
+      // Build transformation options from current settings
+      const transformationOptions = buildTransformationOptions(options);
+
+      // Transform content and analyze files
       for (const [filePath, rawContent] of results) {
-        let content = options.removeComments
-          ? stripComments(rawContent)
-          : rawContent;
-        content = options.minifyOutput ? applyMinify(content) : content;
+        // Apply transformations using SmartContextService if enabled
+        let content = rawContent;
+        if (transformationOptions) {
+          content = SmartContextService.applyTransformations(
+            rawContent,
+            transformationOptions,
+          );
+        }
         fileContents.set(filePath, content);
 
         if (options.enableSmartOptimization) {
@@ -228,10 +249,12 @@ export const usePromptBuilder = ({
             size: sourceMeta?.size ?? content.length,
             lines: sourceMeta?.lines ?? content.split('\n').length,
           };
+          // Pass transformation options so analysis reflects transformed content
           const analysis = SmartContextService.analyzeFile(
             filePath,
             content,
             metadata,
+            transformationOptions,
           );
           fileAnalyses.push(analysis);
         }
@@ -258,6 +281,7 @@ export const usePromptBuilder = ({
           fileAnalyses,
           options.maxTotalTokens,
           smartOptions,
+          selectedFiles,
         );
         const optimizeTime = performance.now() - optimizeStart;
 
@@ -282,9 +306,12 @@ export const usePromptBuilder = ({
             (item) => item.path === filePath,
           );
           if (analysis) {
+            const isSelected = selectedFiles.has(filePath);
             const strategy = SmartContextService.determineStrategy(
               analysis,
               smartOptions,
+              isSelected,
+              transformationOptions,
             );
             fileOutput.push(
               SmartContextService.formatContent(
@@ -292,14 +319,23 @@ export const usePromptBuilder = ({
                 content,
                 analysis,
                 strategy,
+                transformationOptions,
               ),
             );
             continue;
           }
         }
 
+        // For non-smart optimization, apply transformations manually if enabled
+        let outputContent = content;
+        if (transformationOptions) {
+          outputContent = SmartContextService.applyTransformations(
+            content,
+            transformationOptions,
+          );
+        }
         fileOutput.push(
-          [SEPARATOR, filePath, SEPARATOR, '', content].join('\n'),
+          [SEPARATOR, filePath, SEPARATOR, '', outputContent].join('\n'),
         );
       }
 
