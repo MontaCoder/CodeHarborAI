@@ -14,6 +14,10 @@ export interface DocumentationTemplate {
     prioritizeDocumentation?: boolean;
     includeStructureMap?: boolean;
     adaptiveCompression?: boolean;
+    bodyElisionThreshold?: number;
+    adaptiveBodyThreshold?: boolean;
+    preserveTypeDeclarations?: boolean;
+    preserveModuleSurface?: boolean;
   };
   createdAt?: number;
   updatedAt?: number;
