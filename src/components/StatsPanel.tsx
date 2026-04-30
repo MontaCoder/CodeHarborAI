@@ -1,7 +1,6 @@
 import { AlertTriangle, BarChart2, CheckSquare, FileText } from 'lucide-react';
 import type React from 'react';
 import { memo } from 'react';
-import type { PromptOptions } from '../hooks/usePromptBuilder';
 import { useStatsMetrics } from '../hooks/useStatsMetrics';
 import type { Context7Doc } from '../services/context7Service';
 import type { GitHubFileEntry, LocalFileEntry } from '../types/files';
@@ -15,13 +14,21 @@ interface StatsPanelProps {
   githubFiles: GitHubFileEntry[];
   includeContext7Docs: boolean;
   context7Docs: Context7Doc[];
-  smartOptions: Pick<
-    PromptOptions,
-    | 'enableSmartOptimization'
-    | 'adaptiveCompression'
-    | 'prioritizeDocumentation'
-    | 'includeStructureMap'
-  >;
+  smartOptions: {
+    enableSmartOptimization: boolean;
+    adaptiveCompression: boolean;
+    prioritizeDocumentation: boolean;
+    includeStructureMap: boolean;
+    bodyElisionThreshold: number;
+    adaptiveBodyThreshold: boolean;
+    preserveTypeDeclarations: boolean;
+    preserveModuleSurface: boolean;
+  };
+  // New props for enhanced stats
+  systemContextText: string;
+  taskInstructionsText: string;
+  removeComments: boolean;
+  minifyOutput: boolean;
 }
 
 const StatsPanel: React.FC<StatsPanelProps> = memo(
@@ -35,6 +42,10 @@ const StatsPanel: React.FC<StatsPanelProps> = memo(
     includeContext7Docs,
     context7Docs,
     smartOptions,
+    systemContextText,
+    taskInstructionsText,
+    removeComments,
+    minifyOutput,
   }) => {
     const metrics = useStatsMetrics({
       totalSize,
@@ -46,6 +57,10 @@ const StatsPanel: React.FC<StatsPanelProps> = memo(
       includeContext7Docs,
       context7Docs,
       smartOptions,
+      systemContextText,
+      taskInstructionsText,
+      removeComments,
+      minifyOutput,
     });
 
     const progressBarVariants: Record<typeof metrics.budgetStatus, string> = {
@@ -100,11 +115,23 @@ const StatsPanel: React.FC<StatsPanelProps> = memo(
                 aria-valuemax={100}
               ></div>
             </div>
-            <div className="mt-2 flex justify-between text-xs text-neutral-500 dark:text-neutral-400">
-              <span>
-                {metrics.estimatedTokens.toLocaleString()} tokens (~
-                {metrics.sizeKB.toFixed(0)} KB)
-              </span>
+            <div className="mt-2 space-y-1 text-xs text-neutral-500 dark:text-neutral-400">
+              <div className="flex justify-between">
+                <span>Raw tokens (no optimization):</span>
+                <span className="font-medium">{metrics.rawTokens.toLocaleString()} tokens</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Estimated tokens {smartOptions.enableSmartOptimization ? '(optimized)' : '(as-is)'}:</span>
+                <span className="font-medium">{metrics.estimatedTokens.toLocaleString()} tokens</span>
+              </div>
+              {metrics.tokenSavings > 0 && (
+                <div className="flex justify-between text-emerald-600 dark:text-emerald-400">
+                  <span>Savings:</span>
+                  <span className="font-bold">{metrics.tokenSavings.toLocaleString()} tokens ({metrics.savingsPercent}%)</span>
+                </div>
+              )}
+            </div>
+            <div className="flex justify-between text-xs text-neutral-500 dark:text-neutral-400">
               <span>{metrics.budgetTokens.toLocaleString()} max tokens</span>
             </div>
             <div
@@ -113,6 +140,64 @@ const StatsPanel: React.FC<StatsPanelProps> = memo(
               {metrics.percentOfBudget.toFixed(0)}% of budget
             </div>
           </div>
+
+          {/* Token Breakdown Section */}
+          <div className="space-y-2 p-3 rounded-lg bg-neutral-50 dark:bg-neutral-800/40 ring-1 ring-neutral-200 dark:ring-neutral-700/50">
+            <p className="text-xs font-semibold uppercase tracking-wide text-neutral-500 dark:text-neutral-400">
+              Token Breakdown
+            </p>
+            <div className="space-y-1.5 text-xs">
+              <div className="flex justify-between">
+                <span className="text-neutral-600 dark:text-neutral-400">File Tokens:</span>
+                <span className="font-medium text-neutral-800 dark:text-neutral-200">
+                  {metrics.fileTokens.toLocaleString()}
+                </span>
+              </div>
+              {metrics.templateTokens > 0 && (
+                <div className="flex justify-between">
+                  <span className="text-neutral-600 dark:text-neutral-400">+ Template Tokens:</span>
+                  <span className="font-medium text-blue-600 dark:text-blue-400">
+                    {metrics.templateTokens.toLocaleString()}
+                  </span>
+                </div>
+              )}
+              {metrics.context7Tokens > 0 && (
+                <div className="flex justify-between">
+                  <span className="text-neutral-600 dark:text-neutral-400">+ Reference Docs:</span>
+                  <span className="font-medium text-purple-600 dark:text-purple-400">
+                    {metrics.context7Tokens.toLocaleString()}
+                  </span>
+                </div>
+              )}
+              {metrics.transformationSavings > 0 && (
+                <div className="flex justify-between">
+                  <span className="text-neutral-600 dark:text-neutral-400">- Transformations:</span>
+                  <span className="font-medium text-emerald-600 dark:text-emerald-400">
+                    -{metrics.transformationSavings.toLocaleString()}
+                  </span>
+                </div>
+              )}
+              <div className="pt-1.5 border-t border-neutral-200 dark:border-neutral-700">
+                <div className="flex justify-between font-semibold">
+                  <span className="text-neutral-700 dark:text-neutral-300">= Total Estimated:</span>
+                  <span className="text-neutral-900 dark:text-neutral-100">
+                    {metrics.estimatedTokens.toLocaleString()} tokens
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {metrics.tokenSavings > 0 && (
+            <div className="flex justify-between items-baseline">
+              <span className="text-sm text-neutral-600 dark:text-neutral-400">
+                Token Savings:
+              </span>
+              <span className="text-lg font-bold text-emerald-600 dark:text-emerald-400">
+                {metrics.tokenSavings.toLocaleString()} tokens ({metrics.savingsPercent}%)
+              </span>
+            </div>
+          )}
 
           {metrics.budgetStatus !== 'safe' && (
             <div className="mt-2 flex items-start space-x-2.5 text-sm text-red-600 dark:text-red-400 p-3 rounded-md bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-500/30">
@@ -156,6 +241,58 @@ const StatsPanel: React.FC<StatsPanelProps> = memo(
                 {metrics.context7Included ? 'included' : 'disabled'}
               </p>
             </div>
+            {metrics.templateTokens > 0 && (
+              <div className="rounded-lg bg-blue-50 dark:bg-blue-900/20 px-3 py-2 border border-blue-200 dark:border-blue-800">
+                <p className="text-xs uppercase tracking-wide text-blue-600 dark:text-blue-400">
+                  Template Tokens
+                </p>
+                <p className="text-lg font-semibold text-blue-700 dark:text-blue-300">
+                  {metrics.templateTokens.toLocaleString()}
+                </p>
+                <p className="text-xs text-blue-600 dark:text-blue-400">
+                  system + task
+                </p>
+              </div>
+            )}
+            {metrics.context7Tokens > 0 && (
+              <div className="rounded-lg bg-purple-50 dark:bg-purple-900/20 px-3 py-2 border border-purple-200 dark:border-purple-800">
+                <p className="text-xs uppercase tracking-wide text-purple-600 dark:text-purple-400">
+                  Ref Docs Tokens
+                </p>
+                <p className="text-lg font-semibold text-purple-700 dark:text-purple-300">
+                  {metrics.context7Tokens.toLocaleString()}
+                </p>
+                <p className="text-xs text-purple-600 dark:text-purple-400">
+                  {metrics.context7DocCount} docs
+                </p>
+              </div>
+            )}
+            {metrics.transformationSavings > 0 && (
+              <div className="rounded-lg bg-emerald-50 dark:bg-emerald-900/20 px-3 py-2 border border-emerald-200 dark:border-emerald-800">
+                <p className="text-xs uppercase tracking-wide text-emerald-600 dark:text-emerald-400">
+                  Transform Saved
+                </p>
+                <p className="text-lg font-semibold text-emerald-600 dark:text-emerald-400">
+                  {metrics.transformationSavings.toLocaleString()}
+                </p>
+                <p className="text-xs text-emerald-700 dark:text-emerald-300">
+                  comments + minify
+                </p>
+              </div>
+            )}
+            {metrics.tokenSavings > 0 && metrics.transformationSavings === 0 && (
+              <div className="rounded-lg bg-emerald-50 dark:bg-emerald-900/20 px-3 py-2 border border-emerald-200 dark:border-emerald-800">
+                <p className="text-xs uppercase tracking-wide text-emerald-600 dark:text-emerald-400">
+                  Token Savings
+                </p>
+                <p className="text-lg font-semibold text-emerald-600 dark:text-emerald-400">
+                  {metrics.savingsPercent}%
+                </p>
+                <p className="text-xs text-emerald-700 dark:text-emerald-300">
+                  {metrics.tokenSavings.toLocaleString()} tokens saved
+                </p>
+              </div>
+            )}
           </div>
 
           {metrics.topFiles.length > 0 && (
