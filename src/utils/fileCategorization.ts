@@ -39,6 +39,8 @@ const FILE_TYPE_PATTERNS: Record<FileType, RegExp[]> = {
 };
 
 // Fast lookup for common file extensions (avoids regex for most cases)
+// Note: For compound extensions like .test.ts, the detectFileType function
+// checks for .test/.spec before the last extension
 const COMMON_EXTENSIONS: Record<string, FileType> = {
   // Source files
   '.ts': 'source', '.tsx': 'source', '.js': 'source', '.jsx': 'source',
@@ -51,7 +53,7 @@ const COMMON_EXTENSIONS: Record<string, FileType> = {
   // Documentation
   '.md': 'documentation', '.txt': 'documentation',
   '.rst': 'documentation', '.adoc': 'documentation',
-  // Tests
+  // Tests (compound extensions handled in detectFileType)
   '.test.ts': 'test', '.test.tsx': 'test', '.test.js': 'test',
   '.test.jsx': 'test', '.test.py': 'test',
   '.spec.ts': 'test', '.spec.tsx': 'test', '.spec.js': 'test',
@@ -90,35 +92,37 @@ export const detectFileType = (path: string): FileType => {
   if (cached !== undefined) {
     return cached;
   }
-  
+
   const lowerPath = path.toLowerCase();
-  
+
   // Fast path: check common extensions first (O(1) lookup)
+  // First check for compound extensions like .test.ts, .spec.jsx
   const lastDot = lowerPath.lastIndexOf('.');
   if (lastDot > 0) {
-    const ext = lowerPath.slice(lastDot);
+    const ext = lowerPath.slice(lastDot); // e.g., '.ts'
+    const beforeExt = lowerPath.slice(0, lastDot);
+    const testDot = beforeExt.lastIndexOf('.');
+
+    if (testDot > 0) {
+      const testExt = beforeExt.slice(testDot); // e.g., '.test' or '.spec'
+      if (testExt === '.test' || testExt === '.spec') {
+        const compoundExt = testExt + ext; // e.g., '.test.ts'
+        const compoundType = COMMON_EXTENSIONS[compoundExt];
+        if (compoundType) {
+          fileTypeCache.set(path, compoundType);
+          return compoundType;
+        }
+      }
+    }
+
+    // Check single extension
     const commonType = COMMON_EXTENSIONS[ext];
     if (commonType) {
       fileTypeCache.set(path, commonType);
       return commonType;
     }
-    
-    // Check for test files with .test or .spec before extension
-    const beforeExt = lowerPath.slice(0, lastDot);
-    const testDot = beforeExt.lastIndexOf('.');
-    if (testDot > 0) {
-      const testExt = beforeExt.slice(testDot);
-      if (testExt === '.test' || testExt === '.spec') {
-        const testKey = testExt + ext;
-        const testType = COMMON_EXTENSIONS[testKey];
-        if (testType) {
-          fileTypeCache.set(path, testType);
-          return testType;
-        }
-      }
-    }
   }
-  
+
   // Check for config filename patterns
   if (lowerPath.includes('package.json') || lowerPath.includes('tsconfig.json') ||
       lowerPath.includes('.eslintrc') || lowerPath.includes('.prettierrc') ||
@@ -127,7 +131,7 @@ export const detectFileType = (path: string): FileType => {
     fileTypeCache.set(path, 'config');
     return 'config';
   }
-  
+
   // Check for documentation filename patterns
   if (lowerPath.includes('readme') || lowerPath.includes('changelog') ||
       lowerPath.includes('contributing') || lowerPath.includes('license') ||
@@ -135,13 +139,13 @@ export const detectFileType = (path: string): FileType => {
     fileTypeCache.set(path, 'documentation');
     return 'documentation';
   }
-  
+
   // Check for __tests__ directory
   if (lowerPath.includes('__tests__')) {
     fileTypeCache.set(path, 'test');
     return 'test';
   }
-  
+
   // Check for dist/build/node_modules
   if (lowerPath.includes('/dist/') || lowerPath.includes('/build/') ||
       lowerPath.includes('/node_modules/') || lowerPath.includes('\\dist\\') ||
@@ -149,7 +153,7 @@ export const detectFileType = (path: string): FileType => {
     fileTypeCache.set(path, 'build');
     return 'build';
   }
-  
+
   // Fallback to regex patterns
   for (const [type, patterns] of Object.entries(FILE_TYPE_PATTERNS)) {
     for (const pattern of patterns) {
@@ -159,7 +163,7 @@ export const detectFileType = (path: string): FileType => {
       }
     }
   }
-  
+
   fileTypeCache.set(path, 'other');
   return 'other';
 };
