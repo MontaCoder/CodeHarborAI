@@ -46,6 +46,16 @@ class LRUCache<K, V> {
 const analysisCache = new LRUCache<string, FileAnalysis>(1000);
 
 import {
+  assembleSkeleton,
+  extractClassSkeletons,
+  extractImports as extractCodeImports,
+  extractFunctionSkeletons,
+  extractTopLevelConstants,
+  extractTypeDeclarations,
+  type FileSkeleton,
+  type SkeletonOptions,
+} from '../utils/codeSkeleton';
+import {
   calculatePriority as calculateFilePriority,
   calculateRelevanceScore as calculateFileRelevanceScore,
   detectFileRole as detectFileRoleFromPath,
@@ -54,16 +64,6 @@ import {
   type FileType,
 } from '../utils/fileCategorization';
 import { estimateTextTokens } from '../utils/tokenEstimator';
-import {
-  assembleSkeleton,
-  extractClassSkeletons,
-  extractFunctionSkeletons,
-  extractImports as extractCodeImports,
-  extractTopLevelConstants,
-  extractTypeDeclarations,
-  type FileSkeleton,
-  type SkeletonOptions,
-} from '../utils/codeSkeleton';
 
 export type { FileRole, FileType } from '../utils/fileCategorization';
 
@@ -118,32 +118,90 @@ export class SmartContextService {
    * Strip comments from code content
    * Removes both single-line and multi-line comments
    * String-literal aware to avoid stripping "http://..." etc.
+   * Also handles regex literals to avoid misparsing /pattern/ as comments.
    */
   static stripComments(content: string): string {
     let result = '';
     let inString: string | null = null;
     let inComment = false;
     let commentType: '/' | '*' | null = null;
+    let inRegex = false;
+    let escaped = false;
 
     for (let i = 0; i < content.length; i++) {
       const char = content[i];
       const next = content[i + 1];
 
-      if (!inComment && !inString) {
-        // Start comment or string
-        if (char === '/' && next === '/') { inComment = true; commentType = '/'; i++; continue; }
-        if (char === '/' && next === '*') { inComment = true; commentType = '*'; i++; continue; }
-        if (char === '"' || char === "'" || char === '`') { inString = char; result += char; continue; }
-      } else if (inString) {
-        // Inside string - check for end
-        if (char === inString && content[i - 1] !== '\\') inString = null;
-        result += char; continue;
-      } else if (inComment) {
-        // Inside comment - check for end
-        if (commentType === '/' && char === '\n') { inComment = false; result += char; }
-        if (commentType === '*' && char === '*' && next === '/') { inComment = false; i++; }
+      if (escaped) {
+        escaped = false;
+        if (!inComment) result += char;
         continue;
       }
+
+      if (inComment) {
+        // Inside comment - check for end
+        if (commentType === '/' && char === '\n') {
+          inComment = false;
+          result += char;
+        }
+        if (commentType === '*' && char === '*' && next === '/') {
+          inComment = false;
+          i++;
+        }
+        continue;
+      }
+
+      if (inString) {
+        if (char === '\\') escaped = true;
+        if (char === inString) inString = null;
+        result += char;
+        continue;
+      }
+
+      if (inRegex) {
+        if (char === '\\') escaped = true;
+        if (char === '/') {
+          inRegex = false;
+        }
+        result += char;
+        continue;
+      }
+
+      // Not in string, comment, or regex
+      if (char === '/' && next === '/') {
+        inComment = true;
+        commentType = '/';
+        i++;
+        continue;
+      }
+      if (char === '/' && next === '*') {
+        inComment = true;
+        commentType = '*';
+        i++;
+        continue;
+      }
+      if (char === '"' || char === "'" || char === '`') {
+        inString = char;
+        result += char;
+        continue;
+      }
+
+      // Heuristic for regex literal: '/' preceded by characters that suggest
+      // a regex context (assignment, return, opening paren/bracket/comma, or keyword)
+      if (char === '/') {
+        const prevNonSpace = result.trimEnd().slice(-1);
+        const isRegexContext =
+          /[=(,[{!&?:;]/.test(prevNonSpace) ||
+          /(?:return|throw|case|typeof|void|delete|new|in|instanceof|of|yield|await)$/.test(
+            result.trimEnd().split(/\s+/).pop() ?? '',
+          );
+        if (isRegexContext) {
+          inRegex = true;
+          result += char;
+          continue;
+        }
+      }
+
       result += char;
     }
     return result;
@@ -207,7 +265,7 @@ export class SmartContextService {
     // Create cache key from path, processed content length, and line count
     // This ensures cache invalidation when content or transformations change
     const cacheKey = `${path}:${processedContent.length}:${metadata.lines}:${JSON.stringify(transformationOptions ?? {})}`;
-    
+
     // Check cache first
     const cached = analysisCache.get(cacheKey);
     if (cached) {
@@ -222,7 +280,8 @@ export class SmartContextService {
       type,
       role,
     );
-    const estimatedTokens = SmartContextService.estimateTokens(processedContent);
+    const estimatedTokens =
+      SmartContextService.estimateTokens(processedContent);
     const priority = calculateFilePriority(type, role, relevanceScore);
 
     const result: FileAnalysis = {
@@ -243,7 +302,7 @@ export class SmartContextService {
 
     // Cache the result
     analysisCache.set(cacheKey, result);
-    
+
     return result;
   }
 
@@ -261,7 +320,6 @@ export class SmartContextService {
   static determineStrategy(
     analysis: FileAnalysis,
     _options: SmartContextOptions,
-    _isSelected: boolean = false, // eslint-disable-line @typescript-eslint/no-unused-vars
     transformationOptions?: TransformationOptions,
   ): OptimizationStrategy {
     const { type, role, estimatedTokens } = analysis;
@@ -410,9 +468,16 @@ export class SmartContextService {
         preserveJSDoc: true,
         describeElidedBodies: true,
       };
-      output += SmartContextService.compressToSkeleton(processedContent, path, skeletonOptions);
+      output += SmartContextService.compressToSkeleton(
+        processedContent,
+        path,
+        skeletonOptions,
+      );
     } else if (strategy.extractKeyElements) {
-      output += SmartContextService.extractKeyElements(processedContent, analysis);
+      output += SmartContextService.extractKeyElements(
+        processedContent,
+        analysis,
+      );
     }
 
     return output;
@@ -490,11 +555,7 @@ export class SmartContextService {
 
     for (const analysis of sorted) {
       const isSelected = selectedPaths?.has(analysis.path) ?? false;
-      const strategy = SmartContextService.determineStrategy(
-        analysis,
-        options,
-        isSelected,
-      );
+      const strategy = SmartContextService.determineStrategy(analysis, options);
       // Use strategy-specific cost when present, otherwise a conservative 0.8 factor.
       const estimatedSize =
         strategy.maxTokens ?? Math.ceil(analysis.estimatedTokens * 0.8);
@@ -505,10 +566,14 @@ export class SmartContextService {
         continue;
       }
 
-      // Selected files are ALWAYS included (apply aggressive compression if needed)
+      // Selected files are always included, but if we're over budget,
+      // use the strategy's maxTokens as a hard cap on their estimated cost
       if (isSelected) {
+        const cappedSize = strategy.maxTokens
+          ? Math.min(estimatedSize, strategy.maxTokens)
+          : estimatedSize;
         result.push(analysis);
-        totalTokens += estimatedSize;
+        totalTokens += cappedSize;
         continue;
       }
 
@@ -684,9 +749,9 @@ export class SmartContextService {
     remainingFiles: number,
   ): number {
     const avgTokensPerFile = remainingTokens / Math.max(remainingFiles, 1);
-    if (avgTokensPerFile < 500) return 3;   // Very aggressive
-    if (avgTokensPerFile < 1000) return 5;  // Aggressive
-    if (avgTokensPerFile < 2000) return 8;  // Default
+    if (avgTokensPerFile < 500) return 3; // Very aggressive
+    if (avgTokensPerFile < 1000) return 5; // Aggressive
+    if (avgTokensPerFile < 2000) return 8; // Default
     return 15; // Relaxed
   }
 
