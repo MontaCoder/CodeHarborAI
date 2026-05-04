@@ -72,15 +72,12 @@ export class Context7Service {
         }
       }
 
-      throw new Error(
-        `Failed to fetch Context7 documentation: ${
-          lastError instanceof Error ? lastError.message : 'Unknown error'
-        }`,
-      );
+      throw lastError instanceof Error
+        ? lastError
+        : new Error('Failed to fetch Context7 documentation: Unknown error');
     } catch (error) {
-      throw new Error(
-        `Failed to fetch Context7 documentation: ${error instanceof Error ? error.message : 'Unknown error'}`,
-      );
+      if (error instanceof Error) throw error;
+      throw new Error('Failed to fetch Context7 documentation: Unknown error');
     }
   }
 
