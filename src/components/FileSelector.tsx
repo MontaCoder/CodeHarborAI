@@ -101,9 +101,8 @@ const FileSelector: React.FC<FileSelectorProps> = ({
     setIsProcessing(true);
 
     try {
-      const { files, ignoreInfo: nextIgnoreInfo } = await scanLocalDirectory(
-        handle,
-      );
+      const { files, ignoreInfo: nextIgnoreInfo } =
+        await scanLocalDirectory(handle);
       setIgnoreInfo(nextIgnoreInfo);
       onFilesSelected(files);
       return files;
@@ -193,6 +192,7 @@ const FileSelector: React.FC<FileSelectorProps> = ({
     setFilterText('');
     setGithubError('');
     setIgnoreInfo(null);
+    setFilteredPaths([]); // Reset filtered paths immediately to prevent stale data
 
     if (type === 'local') {
       onFilesSelected([]);
@@ -353,6 +353,7 @@ const FileSelector: React.FC<FileSelectorProps> = ({
               disabled={isProcessing || isLoading || filteredPaths.length === 0}
               variant="secondary"
               className="w-full sm:w-auto text-sm px-4 py-2.5 whitespace-nowrap"
+              title="Select or deselect all files matching the current filter"
             >
               {filteredPaths.every((path) => selectedFiles.has(path)) &&
               filteredPaths.length > 0
@@ -367,6 +368,11 @@ const FileSelector: React.FC<FileSelectorProps> = ({
               className={`w-full sm:w-auto text-sm px-4 py-2.5 whitespace-nowrap ${
                 isPrioritized ? 'ring-2 ring-emerald-500' : ''
               }`}
+              title={
+                isPrioritized
+                  ? 'Smart Sort: files prioritized by importance'
+                  : 'Sort A-Z: alphabetical order'
+              }
             >
               {isPrioritized ? 'Smart Sort' : 'Sort A-Z'}
             </Button>
