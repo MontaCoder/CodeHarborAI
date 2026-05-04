@@ -98,7 +98,7 @@ const GitHubLoader: React.FC<GitHubLoaderProps> = ({
   );
 
   const handleLoadRepository = useCallback(async () => {
-    if (!repoInfo || isLoading) return;
+    if (!repoInfo?.branch.trim() || isLoading) return;
 
     try {
       onError(''); // Clear any previous errors
