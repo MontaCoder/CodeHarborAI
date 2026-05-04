@@ -204,40 +204,26 @@ export class GitHubService {
     }
 
     const downloadPromise = (async () => {
-      try {
-        const response = await fetch(downloadUrl);
+      const response = await fetch(downloadUrl);
 
-        if (!response.ok) {
-          throw new Error(
-            `Failed to download file: ${response.status} ${response.statusText}`,
-          );
-        }
-
-        return await response.text();
-      } catch (error) {
-        // Clean up from request cache on error immediately
-        GitHubService.REQUEST_CACHE.delete(cacheKey);
-        console.error('Error downloading file content:', error);
+      if (!response.ok) {
         throw new Error(
-          `Failed to download file content: ${error instanceof Error ? error.message : 'Unknown error'}`,
+          `Failed to download file: ${response.status} ${response.statusText}`,
         );
       }
+
+      return await response.text();
     })();
 
-    // Store the promise in cache
+    // Store the promise in cache for request deduplication
     GitHubService.REQUEST_CACHE.set(cacheKey, downloadPromise);
 
-    // Clean up from request cache after TTL (only on success)
-    void downloadPromise.then(
-      () => {
-        setTimeout(() => {
-          GitHubService.REQUEST_CACHE.delete(cacheKey);
-        }, GitHubService.REQUEST_CACHE_TTL);
-      },
-      () => {
-        // Already cleaned up in catch block
-      },
-    );
+    // Clean up from request cache after TTL regardless of outcome
+    void downloadPromise.finally(() => {
+      setTimeout(() => {
+        GitHubService.REQUEST_CACHE.delete(cacheKey);
+      }, GitHubService.REQUEST_CACHE_TTL);
+    });
 
     return downloadPromise;
   }
