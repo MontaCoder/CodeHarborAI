@@ -57,7 +57,7 @@ const MainApp: React.FC<MainAppProps> = ({ onBackToLanding }) => {
       minifyOutput: false,
       includeContext7Docs: false,
       context7Docs: [],
-      enableSmartOptimization: true,
+      enableSmartOptimization: false, // Disabled by default; user preference persisted in localStorage
       maxTotalTokens: 200000,
       prioritizeDocumentation: true,
       includeStructureMap: true,
@@ -81,9 +81,10 @@ const MainApp: React.FC<MainAppProps> = ({ onBackToLanding }) => {
       <header className={headerClasses}>
         <div className="flex items-center space-x-4">
           <button
+            type="button"
             onClick={onBackToLanding}
             className="p-2 rounded-full hover:bg-neutral-100 dark:hover:bg-neutral-800 text-neutral-500 dark:text-neutral-400 transition-colors duration-150"
-            title="Return to landing page"
+            title="Return to landing page (Esc)"
           >
             <ArrowLeft className="h-5 w-5" />
           </button>
@@ -111,6 +112,7 @@ const MainApp: React.FC<MainAppProps> = ({ onBackToLanding }) => {
             onClick={toggleTheme}
             className={themeToggleClasses}
             aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
+            title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
           >
             {theme === 'dark' ? (
               <Sun className="h-5 w-5" />
@@ -123,10 +125,41 @@ const MainApp: React.FC<MainAppProps> = ({ onBackToLanding }) => {
 
       {message && <MessageDisplay message={message.text} type={message.type} />}
 
-      <main className="flex-1 max-w-7xl mx-auto w-full p-4 md:p-8">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          <div className="md:col-span-2 space-y-8">
-            <div className={cardClasses}>
+      <main className="flex-1 max-w-[1920px] mx-auto w-full p-4 md:p-6">
+        <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
+          {/* LEFT: Performance Stats */}
+          <div className="xl:col-span-3 space-y-6">
+            <div className="bg-white dark:bg-neutral-900 rounded-2xl shadow-lg border border-neutral-200 dark:border-neutral-800 p-5">
+              <StatsPanel
+                totalSize={totalSize}
+                totalLines={totalLines}
+                maxTotalTokens={options.maxTotalTokens}
+                selectedFiles={selectedFiles}
+                fileHandles={fileHandles}
+                githubFiles={githubFiles}
+                includeContext7Docs={options.includeContext7Docs}
+                context7Docs={options.context7Docs}
+                smartOptions={{
+                  enableSmartOptimization: options.enableSmartOptimization,
+                  adaptiveCompression: options.adaptiveCompression,
+                  prioritizeDocumentation: options.prioritizeDocumentation,
+                  includeStructureMap: options.includeStructureMap,
+                  bodyElisionThreshold: options.bodyElisionThreshold,
+                  adaptiveBodyThreshold: options.adaptiveBodyThreshold,
+                  preserveTypeDeclarations: options.preserveTypeDeclarations,
+                  preserveModuleSurface: options.preserveModuleSurface,
+                }}
+                systemContextText={options.systemContextText}
+                taskInstructionsText={options.taskInstructionsText}
+                removeComments={options.removeComments}
+                minifyOutput={options.minifyOutput}
+              />
+            </div>
+          </div>
+
+          {/* CENTER: Local Folder / GitHub Repo */}
+          <div className="xl:col-span-6 space-y-6">
+            <div className="bg-white dark:bg-neutral-900 rounded-2xl shadow-lg border border-neutral-200 dark:border-neutral-800 p-5 md:p-6">
               <FileSelector
                 onFolderSelected={handleFolderSelected}
                 onFilesSelected={handleFilesSelected}
@@ -167,34 +200,9 @@ const MainApp: React.FC<MainAppProps> = ({ onBackToLanding }) => {
             )}
           </div>
 
-          <div className="space-y-8">
-            <div className="bg-white dark:bg-neutral-900 rounded-2xl shadow-lg border border-neutral-200 dark:border-neutral-800 p-6 md:p-8">
-              <StatsPanel
-                totalSize={totalSize}
-                totalLines={totalLines}
-                maxTotalTokens={options.maxTotalTokens}
-                selectedFiles={selectedFiles}
-                fileHandles={fileHandles}
-                githubFiles={githubFiles}
-                includeContext7Docs={options.includeContext7Docs}
-                context7Docs={options.context7Docs}
-                smartOptions={{
-                  enableSmartOptimization: options.enableSmartOptimization,
-                  adaptiveCompression: options.adaptiveCompression,
-                  prioritizeDocumentation: options.prioritizeDocumentation,
-                  includeStructureMap: options.includeStructureMap,
-                  bodyElisionThreshold: options.bodyElisionThreshold,
-                  adaptiveBodyThreshold: options.adaptiveBodyThreshold,
-                  preserveTypeDeclarations: options.preserveTypeDeclarations,
-                  preserveModuleSurface: options.preserveModuleSurface,
-                }}
-                systemContextText={options.systemContextText}
-                taskInstructionsText={options.taskInstructionsText}
-                removeComments={options.removeComments}
-                minifyOutput={options.minifyOutput}
-              />
-            </div>
-            <div className="bg-white dark:bg-neutral-900 rounded-2xl shadow-lg border border-neutral-200 dark:border-neutral-800 p-6 md:p-8">
+          {/* RIGHT: Context Engineering */}
+          <div className="xl:col-span-3 space-y-6">
+            <div className="bg-white dark:bg-neutral-900 rounded-2xl shadow-lg border border-neutral-200 dark:border-neutral-800 p-5 md:p-6">
               <AdvancedOptionsPanel
                 options={options}
                 onChange={(key, value) =>
