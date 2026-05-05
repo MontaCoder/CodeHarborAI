@@ -84,7 +84,7 @@ const OutputPanel: React.FC<OutputPanelProps> = memo(({ output }) => {
                     ? 'bg-emerald-500 text-white dark:bg-emerald-600'
                     : 'bg-neutral-200 text-neutral-600 hover:bg-neutral-300 dark:bg-neutral-700 dark:text-neutral-300 dark:hover:bg-neutral-600'
                 }`}
-              title={copied ? 'Copied!' : 'Copy to clipboard'}
+              title={copied ? 'Copied!' : 'Copy to clipboard (Ctrl+Shift+C)'}
               aria-live="polite"
             >
               {copied ? (
@@ -108,6 +108,7 @@ const OutputPanel: React.FC<OutputPanelProps> = memo(({ output }) => {
             }
             variant="primary"
             className="w-full sm:w-auto text-sm px-5 py-2.5 shadow-md hover:shadow-lg"
+            title="Download the generated prompt as a .txt file"
           >
             {downloaded ? 'Downloaded!' : 'Download as .txt'}
           </Button>
