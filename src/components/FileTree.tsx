@@ -257,7 +257,7 @@ const FileTree: React.FC<FileTreeProps> = ({
   }
 
   return (
-    <div className="bg-neutral-50/50 dark:bg-neutral-800/30 rounded-lg p-3 space-y-1 max-h-[500px] overflow-y-auto ring-1 ring-neutral-200 dark:ring-neutral-700/50 shadow-inner">
+    <div className="bg-neutral-50/50 dark:bg-neutral-800/30 rounded-lg p-3 space-y-1 max-h-[600px] overflow-y-auto ring-1 ring-neutral-200 dark:ring-neutral-700/50 shadow-inner">
       {visibleNodes.map((node) => {
         const isExpanded = effectiveExpandedDirs.has(node.path);
         const isSelected =
@@ -275,9 +275,7 @@ const FileTree: React.FC<FileTreeProps> = ({
           ).length;
 
           if (filesInCurrentFilteredDir.length > 0) {
-            if (
-              selectedFilesInDirCount === filesInCurrentFilteredDir.length
-            ) {
+            if (selectedFilesInDirCount === filesInCurrentFilteredDir.length) {
               dirCheckboxState = 'checked';
             } else if (selectedFilesInDirCount > 0) {
               dirCheckboxState = 'indeterminate';
@@ -287,8 +285,7 @@ const FileTree: React.FC<FileTreeProps> = ({
 
         const baseRowClasses =
           'flex items-center py-2 px-2.5 rounded-md transition-colors duration-100 cursor-pointer';
-        const hoverClasses =
-          'hover:bg-neutral-100 dark:hover:bg-neutral-800';
+        const hoverClasses = 'hover:bg-neutral-100 dark:hover:bg-neutral-800';
         const selectedClasses = isSelected
           ? 'bg-emerald-50 dark:bg-emerald-500/10'
           : '';
@@ -341,10 +338,7 @@ const FileTree: React.FC<FileTreeProps> = ({
                       }}
                       onChange={(e) =>
                         !isLoading &&
-                        handleDirectoryCheckboxChange(
-                          node,
-                          e.target.checked,
-                        )
+                        handleDirectoryCheckboxChange(node, e.target.checked)
                       }
                       className="mr-2 h-4 w-4 rounded border-neutral-300 dark:border-neutral-600 text-emerald-600 focus:ring-emerald-500 bg-white dark:bg-neutral-700 dark:checked:bg-emerald-600 dark:checked:border-emerald-600 shadow-sm transition-all"
                       disabled={isLoading}
