@@ -76,7 +76,9 @@ const buildSmartOptions = (options: PromptOptions): SmartContextOptions => ({
 });
 
 // Helper to build transformation options from PromptOptions
-const buildTransformationOptions = (options: PromptOptions): TransformationOptions | undefined => {
+const buildTransformationOptions = (
+  options: PromptOptions,
+): TransformationOptions | undefined => {
   if (!options.removeComments && !options.minifyOutput) {
     return undefined;
   }
@@ -84,6 +86,22 @@ const buildTransformationOptions = (options: PromptOptions): TransformationOptio
     removeComments: options.removeComments,
     minifyOutput: options.minifyOutput,
   };
+};
+
+// Helper to get initial Smart Optimizer preference from localStorage
+const getInitialSmartOptimization = (defaultValue: boolean): boolean => {
+  if (typeof window === 'undefined') return defaultValue;
+  const saved = localStorage.getItem('codeharbor_smartOptimization');
+  if (saved === 'true') return true;
+  if (saved === 'false') return false;
+  return defaultValue;
+};
+
+// Helper to persist Smart Optimizer preference
+const persistSmartOptimization = (enabled: boolean): void => {
+  if (typeof window !== 'undefined') {
+    localStorage.setItem('codeharbor_smartOptimization', String(enabled));
+  }
 };
 
 export const usePromptBuilder = ({
@@ -96,7 +114,13 @@ export const usePromptBuilder = ({
   totalSize,
   totalLines,
 }: UsePromptBuilderArgs): UsePromptBuilderResult => {
-  const [options, setOptions] = useState<PromptOptions>(initialOptions);
+  // Initialize with localStorage preference for enableSmartOptimization
+  const [options, setOptions] = useState<PromptOptions>(() => ({
+    ...initialOptions,
+    enableSmartOptimization: getInitialSmartOptimization(
+      initialOptions.enableSmartOptimization,
+    ),
+  }));
   const [state, setState] = useState<PromptBuilderState>({
     output: '',
     showOutput: false,
@@ -124,6 +148,10 @@ export const usePromptBuilder = ({
   const handleOptionChange = useCallback(
     (key: keyof PromptOptions, value: PromptOptions[keyof PromptOptions]) => {
       setOptions((prev) => ({ ...prev, [key]: value }));
+      // Persist Smart Optimizer preference to localStorage
+      if (key === 'enableSmartOptimization') {
+        persistSmartOptimization(value as boolean);
+      }
     },
     [],
   );
@@ -191,8 +219,13 @@ export const usePromptBuilder = ({
         sections.push(`# Referenced Documentation\n\n${docs}`);
       }
 
-      if (options.includeTaskInstructions && options.taskInstructionsText.trim()) {
-        sections.push(`# Task Instructions\n${options.taskInstructionsText.trim()}`);
+      if (
+        options.includeTaskInstructions &&
+        options.taskInstructionsText.trim()
+      ) {
+        sections.push(
+          `# Task Instructions\n${options.taskInstructionsText.trim()}`,
+        );
       }
 
       const projectName = folderHandle
@@ -205,7 +238,10 @@ export const usePromptBuilder = ({
 
       // Batch file reads with concurrency control
       // Increased to 10 for better performance with large repos
-      const CONCURRENCY = Math.min(10, Math.max(5, (navigator.hardwareConcurrency || 4) * 2));
+      const CONCURRENCY = Math.min(
+        10,
+        Math.max(5, (navigator.hardwareConcurrency || 4) * 2),
+      );
       const filePaths = Array.from(selectedFiles);
       const results = new Map<string, string>();
 
@@ -223,8 +259,10 @@ export const usePromptBuilder = ({
         }
       }
       const loadTime = performance.now() - loadStart;
-      
-      console.log(`[Performance] Loaded ${results.size} files in ${loadTime.toFixed(0)}ms (${CONCURRENCY} concurrent)`);
+
+      console.log(
+        `[Performance] Loaded ${results.size} files in ${loadTime.toFixed(0)}ms (${CONCURRENCY} concurrent)`,
+      );
 
       // Build transformation options from current settings
       const transformationOptions = buildTransformationOptions(options);
@@ -262,7 +300,9 @@ export const usePromptBuilder = ({
 
       const analysisTime = performance.now() - loadStart - loadTime;
       if (options.enableSmartOptimization) {
-        console.log(`[Performance] Analyzed ${fileAnalyses.length} files in ${analysisTime.toFixed(0)}ms`);
+        console.log(
+          `[Performance] Analyzed ${fileAnalyses.length} files in ${analysisTime.toFixed(0)}ms`,
+        );
       }
 
       if (
@@ -289,7 +329,9 @@ export const usePromptBuilder = ({
           sections.push(
             `**Smart Optimization:** Included ${analysesToRender.length} of ${fileAnalyses.length} files based on priority and token budget.`,
           );
-          console.log(`[Performance] Optimized context: ${analysesToRender.length}/${fileAnalyses.length} files in ${optimizeTime.toFixed(0)}ms`);
+          console.log(
+            `[Performance] Optimized context: ${analysesToRender.length}/${fileAnalyses.length} files in ${optimizeTime.toFixed(0)}ms`,
+          );
         }
 
         filesToInclude = analysesToRender.map((analysis) => analysis.path);
@@ -306,11 +348,9 @@ export const usePromptBuilder = ({
             (item) => item.path === filePath,
           );
           if (analysis) {
-            const isSelected = selectedFiles.has(filePath);
             const strategy = SmartContextService.determineStrategy(
               analysis,
               smartOptions,
-              isSelected,
               transformationOptions,
             );
             fileOutput.push(
@@ -342,7 +382,9 @@ export const usePromptBuilder = ({
       sections.push(fileOutput.join('\n\n'));
 
       const totalTime = performance.now() - startTime;
-      console.log(`[Performance] Total context generation: ${totalTime.toFixed(0)}ms for ${selectedFiles.size} files`);
+      console.log(
+        `[Performance] Total context generation: ${totalTime.toFixed(0)}ms for ${selectedFiles.size} files`,
+      );
 
       setState({
         output: sections.join('\n\n'),
