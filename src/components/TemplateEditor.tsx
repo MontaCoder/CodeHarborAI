@@ -1,9 +1,4 @@
-import {
-  Check,
-  ChevronDown,
-  Trash2,
-  X,
-} from 'lucide-react';
+import { Check, ChevronDown, Trash2, X } from 'lucide-react';
 import type React from 'react';
 import { useEffect, useState } from 'react';
 import type { DocumentationTemplate } from '../types/documentationTemplates';
@@ -11,14 +6,33 @@ import type { DocumentationTemplate } from '../types/documentationTemplates';
 interface TemplateEditorProps {
   mode: 'create' | 'edit';
   initialData?: DocumentationTemplate;
-  onSave: (templateData: Omit<DocumentationTemplate, 'id' | 'isCustom' | 'createdAt' | 'updatedAt'>) => void;
+  onSave: (
+    templateData: Omit<
+      DocumentationTemplate,
+      'id' | 'isCustom' | 'createdAt' | 'updatedAt'
+    >,
+  ) => void;
   onDelete?: () => void;
   onCancel: () => void;
 }
 
 const COMMON_EMOJIS = [
-  '📝', '🔍', '📚', '🏗️', '🐛', '♻️', '🧪', '🔒',
-  '👋', '⚡', '🚀', '💡', '🎯', '🛠️', '📊', '🔧',
+  '📝',
+  '🔍',
+  '📚',
+  '🏗️',
+  '🐛',
+  '♻️',
+  '🧪',
+  '🔒',
+  '👋',
+  '⚡',
+  '🚀',
+  '💡',
+  '🎯',
+  '🛠️',
+  '📊',
+  '🔧',
 ];
 
 const TemplateEditor: React.FC<TemplateEditorProps> = ({
@@ -29,10 +43,16 @@ const TemplateEditor: React.FC<TemplateEditorProps> = ({
   onCancel,
 }) => {
   const [name, setName] = useState(initialData?.name ?? '');
-  const [description, setDescription] = useState(initialData?.description ?? '');
+  const [description, setDescription] = useState(
+    initialData?.description ?? '',
+  );
   const [icon, setIcon] = useState(initialData?.icon ?? '📝');
-  const [systemContext, setSystemContext] = useState(initialData?.systemContext ?? '');
-  const [taskInstructions, setTaskInstructions] = useState(initialData?.taskInstructions ?? '');
+  const [systemContext, setSystemContext] = useState(
+    initialData?.systemContext ?? '',
+  );
+  const [taskInstructions, setTaskInstructions] = useState(
+    initialData?.taskInstructions ?? '',
+  );
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
 
   // Configured options
@@ -76,11 +96,14 @@ const TemplateEditor: React.FC<TemplateEditorProps> = ({
     if (!validate()) return;
 
     const configuredOptions: DocumentationTemplate['configuredOptions'] = {};
-    if (enableSmartOptimization) configuredOptions.enableSmartOptimization = true;
+    if (enableSmartOptimization)
+      configuredOptions.enableSmartOptimization = true;
     if (removeComments) configuredOptions.removeComments = true;
     if (minifyOutput) configuredOptions.minifyOutput = true;
-    if (enableSmartOptimization && maxTotalTokens !== 200000) configuredOptions.maxTotalTokens = maxTotalTokens;
-    if (prioritizeDocumentation) configuredOptions.prioritizeDocumentation = true;
+    if (enableSmartOptimization && maxTotalTokens !== 200000)
+      configuredOptions.maxTotalTokens = maxTotalTokens;
+    if (prioritizeDocumentation)
+      configuredOptions.prioritizeDocumentation = true;
     if (includeStructureMap) configuredOptions.includeStructureMap = true;
     if (adaptiveCompression) configuredOptions.adaptiveCompression = true;
 
@@ -90,22 +113,35 @@ const TemplateEditor: React.FC<TemplateEditorProps> = ({
       icon,
       systemContext: systemContext.trim(),
       taskInstructions: taskInstructions.trim(),
-      configuredOptions: Object.keys(configuredOptions).length > 0 ? configuredOptions : undefined,
+      configuredOptions:
+        Object.keys(configuredOptions).length > 0
+          ? configuredOptions
+          : undefined,
     });
   };
 
   // Close emoji picker on outside click
   useEffect(() => {
     if (!showEmojiPicker) return;
-    const handleClick = () => setShowEmojiPicker(false);
+    const handleClick = (e: MouseEvent) => {
+      // Only close if the click target is not inside the emoji picker button or grid
+      const target = e.target as HTMLElement;
+      if (!target.closest('[data-emoji-picker]')) {
+        setShowEmojiPicker(false);
+      }
+    };
     document.addEventListener('click', handleClick);
     return () => document.removeEventListener('click', handleClick);
   }, [showEmojiPicker]);
 
-  const inputClasses = 'w-full py-2 px-3 border border-neutral-300 dark:border-neutral-600 rounded-lg bg-white dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100 focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition-all duration-150 text-sm';
-  const textareaClasses = 'w-full py-2 px-3 border border-neutral-300 dark:border-neutral-600 rounded-lg bg-white dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100 focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition-all duration-150 text-sm font-mono resize-y';
-  const labelClasses = 'block text-xs font-medium text-neutral-700 dark:text-neutral-300 mb-1';
-  const checkboxClasses = 'rounded border-neutral-300 dark:border-neutral-600 text-emerald-500 focus:ring-emerald-500 focus:ring-offset-0 bg-white dark:bg-neutral-800';
+  const inputClasses =
+    'w-full py-2 px-3 border border-neutral-300 dark:border-neutral-600 rounded-lg bg-white dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100 focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition-all duration-150 text-sm';
+  const textareaClasses =
+    'w-full py-2 px-3 border border-neutral-300 dark:border-neutral-600 rounded-lg bg-white dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100 focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition-all duration-150 text-sm font-mono resize-y';
+  const labelClasses =
+    'block text-xs font-medium text-neutral-700 dark:text-neutral-300 mb-1';
+  const checkboxClasses =
+    'rounded border-neutral-300 dark:border-neutral-600 text-emerald-500 focus:ring-emerald-500 focus:ring-offset-0 bg-white dark:bg-neutral-800';
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
@@ -130,7 +166,7 @@ const TemplateEditor: React.FC<TemplateEditorProps> = ({
           <div className="flex gap-3">
             <div className="flex-shrink-0">
               <label className={labelClasses}>Icon</label>
-              <div className="relative">
+              <div className="relative" data-emoji-picker>
                 <button
                   type="button"
                   onClick={(e) => {
@@ -232,7 +268,8 @@ const TemplateEditor: React.FC<TemplateEditorProps> = ({
             {showAdvanced && (
               <div className="mt-3 space-y-3 pl-1">
                 <p className="text-xs text-neutral-500 dark:text-neutral-400">
-                  Configure additional options that will be applied when this template is selected:
+                  Configure additional options that will be applied when this
+                  template is selected:
                 </p>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -240,7 +277,9 @@ const TemplateEditor: React.FC<TemplateEditorProps> = ({
                     <input
                       type="checkbox"
                       checked={enableSmartOptimization}
-                      onChange={(e) => setEnableSmartOptimization(e.target.checked)}
+                      onChange={(e) =>
+                        setEnableSmartOptimization(e.target.checked)
+                      }
                       className={checkboxClasses}
                     />
                     ⚡ Smart Optimization
@@ -270,7 +309,9 @@ const TemplateEditor: React.FC<TemplateEditorProps> = ({
                     <input
                       type="checkbox"
                       checked={prioritizeDocumentation}
-                      onChange={(e) => setPrioritizeDocumentation(e.target.checked)}
+                      onChange={(e) =>
+                        setPrioritizeDocumentation(e.target.checked)
+                      }
                       className={checkboxClasses}
                     />
                     📚 Prioritize Docs
@@ -308,7 +349,9 @@ const TemplateEditor: React.FC<TemplateEditorProps> = ({
                       max="2000000"
                       step="10000"
                       value={maxTotalTokens}
-                      onChange={(e) => setMaxTotalTokens(parseInt(e.target.value))}
+                      onChange={(e) =>
+                        setMaxTotalTokens(parseInt(e.target.value))
+                      }
                       className="w-full h-2 bg-neutral-200 dark:bg-neutral-700 rounded-lg appearance-none cursor-pointer accent-emerald-600"
                     />
                     <div className="flex justify-between text-xs text-neutral-500 dark:text-neutral-400">
