@@ -9,11 +9,16 @@ import {
 import type React from 'react';
 import { useCallback, useState } from 'react';
 import {
+  addCustomTemplate,
+  deleteCustomTemplate,
+  loadCustomTemplates,
+  updateCustomTemplate,
+} from '../services/templateStorageService';
+import {
   applyTemplate,
-  documentationTemplates,
   type DocumentationTemplate,
+  documentationTemplates,
 } from '../types/documentationTemplates';
-import { addCustomTemplate, deleteCustomTemplate, loadCustomTemplates, updateCustomTemplate } from '../services/templateStorageService';
 import TemplateEditor from './TemplateEditor';
 
 interface TemplateSelectorProps {
@@ -31,11 +36,13 @@ const TemplateSelector: React.FC<TemplateSelectorProps> = ({
 }) => {
   const [selectedTemplate, setSelectedTemplate] = useState<string>('');
   const [showDetails, setShowDetails] = useState<string | null>(null);
-  const [customTemplates, setCustomTemplates] = useState<DocumentationTemplate[]>(
-    () => loadCustomTemplates(),
-  );
+  const [customTemplates, setCustomTemplates] = useState<
+    DocumentationTemplate[]
+  >(() => loadCustomTemplates());
   const [editorMode, setEditorMode] = useState<'create' | 'edit' | null>(null);
-  const [editingTemplate, setEditingTemplate] = useState<DocumentationTemplate | undefined>(undefined);
+  const [editingTemplate, setEditingTemplate] = useState<
+    DocumentationTemplate | undefined
+  >(undefined);
 
   const allTemplates = [...documentationTemplates, ...customTemplates];
 
@@ -60,26 +67,41 @@ const TemplateSelector: React.FC<TemplateSelectorProps> = ({
     setEditorMode('edit');
   };
 
-  const handleSaveTemplate = useCallback((templateData: Omit<DocumentationTemplate, 'id' | 'isCustom' | 'createdAt' | 'updatedAt'>) => {
-    if (editorMode === 'create') {
-      addCustomTemplate(templateData);
-    } else if (editorMode === 'edit' && editingTemplate) {
-      updateCustomTemplate(editingTemplate.id, templateData);
-    }
-    setCustomTemplates(loadCustomTemplates());
-    setEditorMode(null);
-    setEditingTemplate(undefined);
-  }, [editorMode, editingTemplate]);
-
-  const handleDeleteTemplate = useCallback((template: DocumentationTemplate) => {
-    if (window.confirm(`Delete template "${template.name}"? This cannot be undone.`)) {
-      deleteCustomTemplate(template.id);
-      setCustomTemplates(loadCustomTemplates());
-      if (selectedTemplate === template.id) {
-        setSelectedTemplate('');
+  const handleSaveTemplate = useCallback(
+    (
+      templateData: Omit<
+        DocumentationTemplate,
+        'id' | 'isCustom' | 'createdAt' | 'updatedAt'
+      >,
+    ) => {
+      if (editorMode === 'create') {
+        addCustomTemplate(templateData);
+      } else if (editorMode === 'edit' && editingTemplate) {
+        updateCustomTemplate(editingTemplate.id, templateData);
       }
-    }
-  }, [selectedTemplate]);
+      setCustomTemplates(loadCustomTemplates());
+      setEditorMode(null);
+      setEditingTemplate(undefined);
+    },
+    [editorMode, editingTemplate],
+  );
+
+  const handleDeleteTemplate = useCallback(
+    (template: DocumentationTemplate) => {
+      if (
+        window.confirm(
+          `Delete template "${template.name}"? This cannot be undone.`,
+        )
+      ) {
+        deleteCustomTemplate(template.id);
+        setCustomTemplates(loadCustomTemplates());
+        if (selectedTemplate === template.id) {
+          setSelectedTemplate('');
+        }
+      }
+    },
+    [selectedTemplate],
+  );
 
   const handleCloseEditor = useCallback(() => {
     setEditorMode(null);
@@ -203,7 +225,8 @@ const TemplateSelector: React.FC<TemplateSelectorProps> = ({
                         Additional Options:
                       </span>
                       <div className="mt-1 pl-2 flex flex-wrap gap-1">
-                        {activeTemplate.configuredOptions.enableSmartOptimization && (
+                        {activeTemplate.configuredOptions
+                          .enableSmartOptimization && (
                           <span className="text-[10px] px-1.5 py-0.5 rounded bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-400">
                             Smart Opt
                           </span>
@@ -228,10 +251,15 @@ const TemplateSelector: React.FC<TemplateSelectorProps> = ({
         )}
 
         <div className="text-xs text-neutral-500 dark:text-neutral-400 space-y-1 pt-1">
-          <p>💡 Templates automatically configure system context and task instructions</p>
+          <p>
+            💡 Templates automatically configure system context and task
+            instructions
+          </p>
           <p>✨ Customize the applied template in sections below</p>
           {customTemplates.length === 0 && (
-            <p>🎨 Click &quot;Create New&quot; to make your own custom template</p>
+            <p>
+              🎨 Click &quot;Create New&quot; to make your own custom template
+            </p>
           )}
         </div>
       </div>

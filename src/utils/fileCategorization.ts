@@ -43,31 +43,65 @@ const FILE_TYPE_PATTERNS: Record<FileType, RegExp[]> = {
 // checks for .test/.spec before the last extension
 const COMMON_EXTENSIONS: Record<string, FileType> = {
   // Source files
-  '.ts': 'source', '.tsx': 'source', '.js': 'source', '.jsx': 'source',
-  '.py': 'source', '.java': 'source', '.cpp': 'source', '.c': 'source',
-  '.go': 'source', '.rs': 'source', '.rb': 'source', '.php': 'source',
-  '.cs': 'source', '.swift': 'source', '.kt': 'source',
+  '.ts': 'source',
+  '.tsx': 'source',
+  '.js': 'source',
+  '.jsx': 'source',
+  '.py': 'source',
+  '.java': 'source',
+  '.cpp': 'source',
+  '.c': 'source',
+  '.go': 'source',
+  '.rs': 'source',
+  '.rb': 'source',
+  '.php': 'source',
+  '.cs': 'source',
+  '.swift': 'source',
+  '.kt': 'source',
   // Config files
-  '.json': 'config', '.yaml': 'config', '.yml': 'config',
-  '.toml': 'config', '.ini': 'config', '.env': 'config',
+  '.json': 'config',
+  '.yaml': 'config',
+  '.yml': 'config',
+  '.toml': 'config',
+  '.ini': 'config',
+  '.env': 'config',
   // Documentation
-  '.md': 'documentation', '.txt': 'documentation',
-  '.rst': 'documentation', '.adoc': 'documentation',
+  '.md': 'documentation',
+  '.txt': 'documentation',
+  '.rst': 'documentation',
+  '.adoc': 'documentation',
   // Tests (compound extensions handled in detectFileType)
-  '.test.ts': 'test', '.test.tsx': 'test', '.test.js': 'test',
-  '.test.jsx': 'test', '.test.py': 'test',
-  '.spec.ts': 'test', '.spec.tsx': 'test', '.spec.js': 'test',
-  '.spec.jsx': 'test', '.spec.py': 'test',
+  '.test.ts': 'test',
+  '.test.tsx': 'test',
+  '.test.js': 'test',
+  '.test.jsx': 'test',
+  '.test.py': 'test',
+  '.spec.ts': 'test',
+  '.spec.tsx': 'test',
+  '.spec.js': 'test',
+  '.spec.jsx': 'test',
+  '.spec.py': 'test',
   // Styles
-  '.css': 'style', '.scss': 'style', '.sass': 'style',
-  '.less': 'style', '.styl': 'style',
+  '.css': 'style',
+  '.scss': 'style',
+  '.sass': 'style',
+  '.less': 'style',
+  '.styl': 'style',
   // Assets
-  '.png': 'asset', '.jpg': 'asset', '.jpeg': 'asset',
-  '.gif': 'asset', '.svg': 'asset', '.ico': 'asset',
-  '.woff': 'asset', '.woff2': 'asset', '.ttf': 'asset',
+  '.png': 'asset',
+  '.jpg': 'asset',
+  '.jpeg': 'asset',
+  '.gif': 'asset',
+  '.svg': 'asset',
+  '.ico': 'asset',
+  '.woff': 'asset',
+  '.woff2': 'asset',
+  '.ttf': 'asset',
   '.eot': 'asset',
   // Build
-  '.lock': 'build', '.log': 'build', '.cache': 'build',
+  '.lock': 'build',
+  '.log': 'build',
+  '.cache': 'build',
 };
 
 const PRIORITY_KEYWORDS = [
@@ -124,18 +158,27 @@ export const detectFileType = (path: string): FileType => {
   }
 
   // Check for config filename patterns
-  if (lowerPath.includes('package.json') || lowerPath.includes('tsconfig.json') ||
-      lowerPath.includes('.eslintrc') || lowerPath.includes('.prettierrc') ||
-      lowerPath.includes('vite.config') || lowerPath.includes('rspack.config') ||
-      lowerPath.includes('webpack.config')) {
+  if (
+    lowerPath.includes('package.json') ||
+    lowerPath.includes('tsconfig.json') ||
+    lowerPath.includes('.eslintrc') ||
+    lowerPath.includes('.prettierrc') ||
+    lowerPath.includes('vite.config') ||
+    lowerPath.includes('rspack.config') ||
+    lowerPath.includes('webpack.config')
+  ) {
     fileTypeCache.set(path, 'config');
     return 'config';
   }
 
   // Check for documentation filename patterns
-  if (lowerPath.includes('readme') || lowerPath.includes('changelog') ||
-      lowerPath.includes('contributing') || lowerPath.includes('license') ||
-      lowerPath.includes('docs')) {
+  if (
+    lowerPath.includes('readme') ||
+    lowerPath.includes('changelog') ||
+    lowerPath.includes('contributing') ||
+    lowerPath.includes('license') ||
+    lowerPath.includes('docs')
+  ) {
     fileTypeCache.set(path, 'documentation');
     return 'documentation';
   }
@@ -147,9 +190,14 @@ export const detectFileType = (path: string): FileType => {
   }
 
   // Check for dist/build/node_modules
-  if (lowerPath.includes('/dist/') || lowerPath.includes('/build/') ||
-      lowerPath.includes('/node_modules/') || lowerPath.includes('\\dist\\') ||
-      lowerPath.includes('\\build\\') || lowerPath.includes('\\node_modules\\')) {
+  if (
+    lowerPath.includes('/dist/') ||
+    lowerPath.includes('/build/') ||
+    lowerPath.includes('/node_modules/') ||
+    lowerPath.includes('\\dist\\') ||
+    lowerPath.includes('\\build\\') ||
+    lowerPath.includes('\\node_modules\\')
+  ) {
     fileTypeCache.set(path, 'build');
     return 'build';
   }
