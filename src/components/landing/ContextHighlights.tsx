@@ -15,13 +15,15 @@ const highlights = [
   },
   {
     title: 'File Filtering',
-    description: 'Exclude common build folders and respect root .gitignore rules',
+    description:
+      'Exclude common build folders and respect root .gitignore rules',
     iconClass: 'bg-purple-100 dark:bg-purple-500/20',
     iconColor: 'text-purple-600 dark:text-purple-400',
   },
   {
     title: 'Smart Optimization',
-    description: 'Heuristic file-aware compression to fit within a token budget',
+    description:
+      'Heuristic file-aware compression to fit within a token budget',
     iconClass: 'bg-amber-100 dark:bg-amber-500/20',
     iconColor: 'text-amber-600 dark:text-amber-400',
   },

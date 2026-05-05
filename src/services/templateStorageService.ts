@@ -50,7 +50,10 @@ function saveCustomTemplates(templates: DocumentationTemplate[]): void {
  * Add a new custom template
  */
 export function addCustomTemplate(
-  template: Omit<DocumentationTemplate, 'id' | 'isCustom' | 'createdAt' | 'updatedAt'>
+  template: Omit<
+    DocumentationTemplate,
+    'id' | 'isCustom' | 'createdAt' | 'updatedAt'
+  >,
 ): DocumentationTemplate {
   const newTemplate: DocumentationTemplate = {
     ...template,
@@ -72,7 +75,9 @@ export function addCustomTemplate(
  */
 export function updateCustomTemplate(
   id: string,
-  updates: Partial<Omit<DocumentationTemplate, 'id' | 'isCustom' | 'createdAt'>>
+  updates: Partial<
+    Omit<DocumentationTemplate, 'id' | 'isCustom' | 'createdAt'>
+  >,
 ): DocumentationTemplate | null {
   const existing = loadCustomTemplates();
   const index = existing.findIndex((t) => t.id === id);

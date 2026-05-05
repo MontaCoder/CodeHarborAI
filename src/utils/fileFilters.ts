@@ -37,7 +37,6 @@ const TEXT_EXTENSIONS = [
   '.bat',
   '.ps1',
   '.svelte',
-  '.lock',
   '.vue',
   '.dart',
   '.kt',

@@ -116,10 +116,13 @@ export const useStatsMetrics = ({
       transformationRatio *= 0.85; // ~15% reduction
     }
     if (minifyOutput) {
-      transformationRatio *= 0.70; // ~30% additional reduction
+      transformationRatio *= 0.7; // ~30% additional reduction
     }
-    const fileTokensAfterTransformations = Math.floor(baseFileTokens * transformationRatio);
-    const transformationSavings = baseFileTokens - fileTokensAfterTransformations;
+    const fileTokensAfterTransformations = Math.floor(
+      baseFileTokens * transformationRatio,
+    );
+    const transformationSavings =
+      baseFileTokens - fileTokensAfterTransformations;
 
     // Total raw tokens (files + templates + context7 docs, with transformations)
     const rawTokens =
@@ -135,12 +138,10 @@ export const useStatsMetrics = ({
       : rawTokens;
 
     const tokenSavings = rawTokens - optimizedTokens;
-    const savingsPercent = rawTokens > 0
-      ? Math.round((tokenSavings / rawTokens) * 100)
-      : 0;
+    const savingsPercent =
+      rawTokens > 0 ? Math.round((tokenSavings / rawTokens) * 100) : 0;
 
-    const sizeKB =
-      totalSize > 0 ? totalSize / 1024 : 0;
+    const sizeKB = totalSize > 0 ? totalSize / 1024 : 0;
 
     const budgetTokens = Math.max(maxTotalTokens, 1);
 
@@ -187,15 +188,16 @@ export const useStatsMetrics = ({
     const docs = smartOptions.prioritizeDocumentation
       ? 'Documentation prioritized.'
       : 'Documentation treated normally.';
-    
+
     // Include transformation info in summary
     const transformInfo = [];
     if (removeComments) transformInfo.push('comments stripped');
     if (minifyOutput) transformInfo.push('minified');
-    const transformText = transformInfo.length > 0
-      ? `Transformations: ${transformInfo.join(', ')}.`
-      : 'No basic transformations.';
-    
+    const transformText =
+      transformInfo.length > 0
+        ? `Transformations: ${transformInfo.join(', ')}.`
+        : 'No basic transformations.';
+
     const savings = `Estimated savings: ${savingsPercent}% (${tokenSavings.toLocaleString()} tokens)`;
     smartSummary = `${compression} ${structure} ${docs}. ${transformText} ${savings}`;
     if (!smartOptions.enableSmartOptimization) {

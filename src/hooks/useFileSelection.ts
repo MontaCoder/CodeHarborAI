@@ -1,9 +1,10 @@
 import { useCallback, useMemo, useState } from 'react';
 import type { GitHubRepoInfo } from '../services/githubService';
 import { GitHubService } from '../services/githubService';
+import { SmartContextService } from '../services/smartContextService';
 import type { GitHubFileEntry, LocalFileEntry } from '../types/files';
 import { clearFileCategorizationCache } from '../utils/fileCategorization';
-import { SmartContextService } from '../services/smartContextService';
+
 interface UseFileSelectionResult {
   folderHandle: FileSystemDirectoryHandle | null;
   fileHandles: LocalFileEntry[];
