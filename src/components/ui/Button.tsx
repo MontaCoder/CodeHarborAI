@@ -10,6 +10,7 @@ interface ButtonProps {
   disabled?: boolean;
   variant?: ButtonVariant;
   className?: string;
+  title?: string;
 }
 
 const VARIANT_CLASSES: Record<ButtonVariant, string> = {
@@ -30,6 +31,7 @@ const Button: React.FC<ButtonProps> = ({
   disabled = false,
   variant = 'default',
   className = '',
+  title,
 }) => {
   const buttonClass = [
     'flex items-center justify-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all duration-200',
@@ -38,7 +40,13 @@ const Button: React.FC<ButtonProps> = ({
   ].join(' ');
 
   return (
-    <button className={buttonClass} onClick={onClick} disabled={disabled}>
+    <button
+      type="button"
+      className={buttonClass}
+      onClick={onClick}
+      disabled={disabled}
+      title={title}
+    >
       {icon && <span className="flex-shrink-0">{icon}</span>}
       {children}
     </button>

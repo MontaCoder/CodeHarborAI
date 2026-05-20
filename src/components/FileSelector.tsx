@@ -8,10 +8,14 @@ import {
   X,
 } from 'lucide-react';
 import type React from 'react';
-import { memo, useEffect, useMemo, useState } from 'react';
-import { scanLocalDirectory } from '../services/fileContentService';
+import { memo, useEffect, useMemo, useRef, useState } from 'react';
+import {
+  scanLocalDirectory,
+  scanMockDirectory,
+} from '../services/fileContentService';
 import type { GitHubRepoInfo } from '../services/githubService';
 import type {
+  FolderHandle,
   GitHubFileEntry,
   LocalFileEntry,
   LocalScanIgnoreInfo,
@@ -58,7 +62,7 @@ const formatIgnoreStatus = (ignoreInfo: LocalScanIgnoreInfo): string => {
 };
 
 interface FileSelectorProps {
-  onFolderSelected: (handle: FileSystemDirectoryHandle | null) => void;
+  onFolderSelected: (handle: FolderHandle | null) => void;
   onFilesSelected: (files: LocalFileEntry[]) => void;
   onGitHubFilesSelected: (
     files: GitHubFileEntry[],
@@ -66,7 +70,7 @@ interface FileSelectorProps {
   ) => void;
   onSelectFile: (path: string, selected: boolean) => void;
   onSelectAll: (paths: string[]) => void;
-  folderHandle: FileSystemDirectoryHandle | null;
+  folderHandle: FolderHandle | null;
   fileHandles: LocalFileEntry[];
   githubFiles: GitHubFileEntry[];
   githubRepoInfo: GitHubRepoInfo | null;
@@ -97,12 +101,27 @@ const FileSelector: React.FC<FileSelectorProps> = ({
   const [githubError, setGithubError] = useState<string>('');
   const [isPrioritized, setIsPrioritized] = useState<boolean>(false);
 
-  const scanFolder = async (handle: FileSystemDirectoryHandle) => {
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const scanFolder = async (handle: FolderHandle) => {
     setIsProcessing(true);
 
     try {
-      const { files, ignoreInfo: nextIgnoreInfo } =
-        await scanLocalDirectory(handle);
+      let files: LocalFileEntry[];
+      let nextIgnoreInfo: LocalScanIgnoreInfo;
+
+      if (handle && 'isMock' in handle) {
+        const scanned = await scanMockDirectory(handle.files, handle.name);
+        files = scanned.files;
+        nextIgnoreInfo = scanned.ignoreInfo;
+      } else {
+        const scanned = await scanLocalDirectory(
+          handle as FileSystemDirectoryHandle,
+        );
+        files = scanned.files;
+        nextIgnoreInfo = scanned.ignoreInfo;
+      }
+
       setIgnoreInfo(nextIgnoreInfo);
       onFilesSelected(files);
       return files;
@@ -112,21 +131,51 @@ const FileSelector: React.FC<FileSelectorProps> = ({
   };
 
   const handleFolderSelect = async () => {
-    try {
-      // @ts-expect-error File System Access API may not be fully typed in all environments
-      const handle = await window.showDirectoryPicker();
-      onFolderSelected(handle);
-      await scanFolder(handle);
-    } catch (err) {
-      console.error('Error selecting folder:', err);
-      setIgnoreInfo(null);
-      onFilesSelected([]);
+    if (typeof window !== 'undefined' && 'showDirectoryPicker' in window) {
+      try {
+        // @ts-expect-error File System Access API may not be fully typed in all environments
+        const handle = await window.showDirectoryPicker();
+        onFolderSelected(handle);
+        await scanFolder(handle);
+      } catch (err) {
+        console.error('Error selecting folder:', err);
+        setIgnoreInfo(null);
+        onFilesSelected([]);
+      }
+    } else {
+      fileInputRef.current?.click();
     }
+  };
+
+  const handleFileInputChange = async (
+    e: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    const filesList = e.target.files;
+    if (!filesList || filesList.length === 0) return;
+
+    const files = Array.from(filesList);
+    const firstFile = files.find((f) => f.webkitRelativePath);
+    const folderName = firstFile
+      ? firstFile.webkitRelativePath.split('/')[0]
+      : 'Selected Folder';
+
+    const mockHandle: FolderHandle = {
+      name: folderName,
+      isMock: true,
+      files,
+    };
+
+    onFolderSelected(mockHandle);
+    await scanFolder(mockHandle);
   };
 
   const handleRefresh = async () => {
     if (folderHandle) {
-      await scanFolder(folderHandle);
+      if ('isMock' in folderHandle) {
+        fileInputRef.current?.click();
+      } else {
+        await scanFolder(folderHandle);
+      }
     }
   };
 
@@ -253,6 +302,16 @@ const FileSelector: React.FC<FileSelectorProps> = ({
 
       {sourceType === 'local' && (
         <div className="flex flex-col sm:flex-row flex-wrap gap-3 items-center">
+          <input
+            type="file"
+            ref={fileInputRef}
+            onChange={handleFileInputChange}
+            className="hidden"
+            // @ts-expect-error webkitdirectory is a non-standard attribute but widely supported
+            webkitdirectory=""
+            directory=""
+            multiple
+          />
           <Button
             icon={<FolderOpen className="h-4 w-4" />}
             onClick={handleFolderSelect}
