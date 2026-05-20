@@ -18,3 +18,11 @@ export interface LocalFileEntry extends FileSummary {
 export interface GitHubFileEntry extends FileSummary {
   file: GitHubFile;
 }
+
+export interface MockDirectoryHandle {
+  name: string;
+  isMock: true;
+  files: File[];
+}
+
+export type FolderHandle = FileSystemDirectoryHandle | MockDirectoryHandle;

@@ -111,3 +111,70 @@ export const readLocalFile = async (entry: LocalFileEntry): Promise<string> => {
   const file = await entry.handle.getFile();
   return file.text();
 };
+
+export const scanMockDirectory = async (
+  filesList: File[],
+  folderName: string,
+): Promise<{ files: LocalFileEntry[]; ignoreInfo: LocalScanIgnoreInfo }> => {
+  const prefix = folderName + '/';
+
+  // Find the root .gitignore file
+  const rootGitignoreFile = filesList.find((f) => {
+    const relPath = f.webkitRelativePath.startsWith(prefix)
+      ? f.webkitRelativePath.slice(prefix.length)
+      : f.webkitRelativePath;
+    return relPath === '.gitignore';
+  });
+
+  let rootGitignore: string | null = null;
+  if (rootGitignoreFile) {
+    rootGitignore = await rootGitignoreFile.text();
+  }
+
+  const rootIgnoreMatcher = createIgnoreMatcher(rootGitignore);
+  let ignoredCount = 0;
+  const files: LocalFileEntry[] = [];
+
+  for (const file of filesList) {
+    const entryPath = file.webkitRelativePath.startsWith(prefix)
+      ? file.webkitRelativePath.slice(prefix.length)
+      : file.webkitRelativePath;
+
+    // Check if path is ignored (e.g., standard directories like .git or node_modules)
+    if (
+      shouldIgnorePath(entryPath) ||
+      isIgnoredByRootGitignore(rootIgnoreMatcher, entryPath, 'file')
+    ) {
+      ignoredCount++;
+      continue;
+    }
+
+    if (!isTextFileName(file.name)) continue;
+
+    const size = file.size;
+    const text = await file.text();
+    const lines = countLines(text);
+
+    // Mock FileSystemFileHandle
+    const mockFileHandle = {
+      kind: 'file' as const,
+      name: file.name,
+      getFile: async () => file,
+    } as unknown as FileSystemFileHandle;
+
+    files.push({
+      handle: mockFileHandle,
+      path: entryPath,
+      size,
+      lines,
+    });
+  }
+
+  return {
+    files,
+    ignoreInfo: {
+      usedRootGitignore: rootIgnoreMatcher !== null,
+      ignoredCount,
+    },
+  };
+};
