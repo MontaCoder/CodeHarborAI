@@ -2,11 +2,15 @@ import { useCallback, useMemo, useState } from 'react';
 import type { GitHubRepoInfo } from '../services/githubService';
 import { GitHubService } from '../services/githubService';
 import { SmartContextService } from '../services/smartContextService';
-import type { GitHubFileEntry, LocalFileEntry } from '../types/files';
+import type {
+  FolderHandle,
+  GitHubFileEntry,
+  LocalFileEntry,
+} from '../types/files';
 import { clearFileCategorizationCache } from '../utils/fileCategorization';
 
 interface UseFileSelectionResult {
-  folderHandle: FileSystemDirectoryHandle | null;
+  folderHandle: FolderHandle | null;
   fileHandles: LocalFileEntry[];
   githubFiles: GitHubFileEntry[];
   githubRepoInfo: GitHubRepoInfo | null;
@@ -18,14 +22,13 @@ interface UseFileSelectionResult {
     files: GitHubFileEntry[],
     repoInfo: GitHubRepoInfo,
   ) => void;
-  handleFolderSelected: (handle: FileSystemDirectoryHandle | null) => void;
+  handleFolderSelected: (handle: FolderHandle | null) => void;
   handleSelectFile: (path: string, selected: boolean) => void;
   handleSelectAll: (paths: string[]) => void;
 }
 
 export const useFileSelection = (): UseFileSelectionResult => {
-  const [folderHandle, setFolderHandle] =
-    useState<FileSystemDirectoryHandle | null>(null);
+  const [folderHandle, setFolderHandle] = useState<FolderHandle | null>(null);
   const [fileHandles, setFileHandles] = useState<LocalFileEntry[]>([]);
   const [githubFiles, setGithubFiles] = useState<GitHubFileEntry[]>([]);
   const [githubRepoInfo, setGithubRepoInfo] = useState<GitHubRepoInfo | null>(
@@ -74,12 +77,9 @@ export const useFileSelection = (): UseFileSelectionResult => {
     [],
   );
 
-  const handleFolderSelected = useCallback(
-    (handle: FileSystemDirectoryHandle | null) => {
-      setFolderHandle(handle);
-    },
-    [],
-  );
+  const handleFolderSelected = useCallback((handle: FolderHandle | null) => {
+    setFolderHandle(handle);
+  }, []);
 
   const handleSelectFile = useCallback((path: string, selected: boolean) => {
     setSelectedFiles((prev) => {

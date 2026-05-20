@@ -9,7 +9,11 @@ import {
   SmartContextService,
   type TransformationOptions,
 } from '../services/smartContextService';
-import type { GitHubFileEntry, LocalFileEntry } from '../types/files';
+import type {
+  FolderHandle,
+  GitHubFileEntry,
+  LocalFileEntry,
+} from '../types/files';
 import { clearFileCategorizationCache } from '../utils/fileCategorization';
 
 export interface PromptOptions {
@@ -47,7 +51,7 @@ interface UsePromptBuilderArgs {
   selectedFiles: Set<string>;
   fileHandles: LocalFileEntry[];
   githubFiles: GitHubFileEntry[];
-  folderHandle: FileSystemDirectoryHandle | null;
+  folderHandle: FolderHandle | null;
   githubRepoInfo: GitHubRepoInfo | null;
   totalSize: number;
   totalLines: number;
