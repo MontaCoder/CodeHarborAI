@@ -37,7 +37,6 @@ const FileTree: React.FC<FileTreeProps> = ({
   filteredPaths,
 }) => {
   const [expandedDirs, setExpandedDirs] = useState<Set<string>>(new Set(['']));
-  const [hoveredPath, setHoveredPath] = useState<string | null>(null);
 
   const treeData = useMemo(() => {
     const root: TreeNode = {
@@ -220,7 +219,9 @@ const FileTree: React.FC<FileTreeProps> = ({
             if (a.type !== b.type) return a.type === 'directory' ? -1 : 1;
             return a.name.localeCompare(b.name);
           })
-          .forEach((child) => addNode(child, depth + 1));
+          .forEach((child) => {
+            addNode(child, depth + 1);
+          });
       }
     };
 
@@ -230,7 +231,9 @@ const FileTree: React.FC<FileTreeProps> = ({
           if (a.type !== b.type) return a.type === 'directory' ? -1 : 1;
           return a.name.localeCompare(b.name);
         })
-        .forEach((node) => addNode(node, 0));
+        .forEach((node) => {
+          addNode(node, 0);
+        });
     }
 
     return nodes;
@@ -262,7 +265,6 @@ const FileTree: React.FC<FileTreeProps> = ({
         const isExpanded = effectiveExpandedDirs.has(node.path);
         const isSelected =
           node.type === 'file' ? selectedFiles.has(node.path) : false;
-        const isHover = hoveredPath === node.path;
 
         let dirCheckboxState: 'checked' | 'indeterminate' | 'unchecked' =
           'unchecked';
@@ -299,15 +301,14 @@ const FileTree: React.FC<FileTreeProps> = ({
             style={{
               paddingLeft: `${node.depth * 1.5}rem`,
             }}
-            onMouseEnter={() => setHoveredPath(node.path)}
-            onMouseLeave={() => setHoveredPath(null)}
           >
             <div
-              className={`${baseRowClasses} ${hoverClasses} ${selectedClasses} ${interactionDisabledClass}`}
+              className={`group ${baseRowClasses} ${hoverClasses} ${selectedClasses} ${interactionDisabledClass}`}
             >
               {node.type === 'directory' ? (
                 <>
                   <button
+                    type="button"
                     onClick={() => !isLoading && toggleDir(node.path)}
                     disabled={isLoading}
                     className="mr-1.5 p-0.5 rounded hover:bg-neutral-200 dark:hover:bg-neutral-600 text-neutral-500 dark:text-neutral-400"
@@ -347,12 +348,14 @@ const FileTree: React.FC<FileTreeProps> = ({
                       }`}
                     />
                   )}
-                  <span
-                    className="text-sm text-neutral-700 dark:text-neutral-200 select-none truncate"
+                  <button
+                    type="button"
+                    className="text-left text-sm text-neutral-700 dark:text-neutral-200 select-none truncate"
                     onClick={() => !isLoading && toggleDir(node.path)}
+                    disabled={isLoading}
                   >
                     {node.name || 'Project Root'}
-                  </span>
+                  </button>
                 </>
               ) : (
                 <>
@@ -371,24 +374,25 @@ const FileTree: React.FC<FileTreeProps> = ({
                     disabled={isLoading}
                     aria-label={`Select file ${node.name}`}
                   />
-                  <span
-                    className="text-sm text-neutral-700 dark:text-neutral-200 select-none truncate"
+                  <button
+                    type="button"
+                    className="text-left text-sm text-neutral-700 dark:text-neutral-200 select-none truncate"
                     onClick={() =>
                       !isLoading && onSelectFile(node.path, !isSelected)
                     }
+                    disabled={isLoading}
                   >
                     {node.name}
+                  </button>
+                  <span
+                    className={`ml-auto pl-2 text-xs text-neutral-500 dark:text-neutral-400 whitespace-nowrap select-none ${
+                      isSelected ? '' : 'hidden group-hover:inline'
+                    }`}
+                  >
+                    {node.size === undefined
+                      ? `${node.lines ?? 0} lines`
+                      : `${(node.size / 1024).toFixed(1).replace(/\.0$/, '')} KB, ${node.lines ?? 0} lines`}
                   </span>
-                  {(isHover || isSelected) && (
-                    <span className="ml-auto pl-2 text-xs text-neutral-400 dark:text-neutral-500 whitespace-nowrap select-none">
-                      {(
-                        (node.size! / 1024).toFixed(1) +
-                        ' KB, ' +
-                        node.lines +
-                        ' lines'
-                      ).replace(/\.0(?= KB)/, '')}
-                    </span>
-                  )}
                 </>
               )}
             </div>

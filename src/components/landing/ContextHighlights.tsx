@@ -52,6 +52,7 @@ const ContextHighlights: React.FC = () => {
           <div key={title} className="flex items-start space-x-3">
             <div className={`mt-1 ${iconClass} p-2 rounded-lg flex-shrink-0`}>
               <svg
+                aria-hidden="true"
                 className={`h-4 w-4 ${iconColor}`}
                 fill="none"
                 viewBox="0 0 24 24"

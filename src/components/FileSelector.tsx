@@ -3,12 +3,11 @@ import {
   CheckSquare,
   Filter,
   FolderOpen,
-  Github,
   RefreshCw,
   X,
 } from 'lucide-react';
 import type React from 'react';
-import { memo, useEffect, useMemo, useRef, useState } from 'react';
+import { memo, useMemo, useRef, useState } from 'react';
 import {
   scanLocalDirectory,
   scanMockDirectory,
@@ -23,6 +22,7 @@ import type {
 import { prioritizeFiles } from '../utils/filePrioritization';
 import FileTree from './FileTree';
 import GitHubLoader from './GitHubLoader';
+import { GitHubIcon } from './icons/BrandIcons';
 import Button from './ui/Button';
 
 const FILE_TYPE_FILTERS: Record<string, string[]> = {
@@ -97,7 +97,6 @@ const FileSelector: React.FC<FileSelectorProps> = ({
     null,
   );
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
-  const [filteredPaths, setFilteredPaths] = useState<string[]>([]);
   const [githubError, setGithubError] = useState<string>('');
   const [isPrioritized, setIsPrioritized] = useState<boolean>(false);
 
@@ -219,7 +218,9 @@ const FileSelector: React.FC<FileSelectorProps> = ({
       .map((file) => file.path);
 
     const newSelectedFiles = new Set(selectedFiles);
-    paths.forEach((path) => newSelectedFiles.add(path));
+    for (const path of paths) {
+      newSelectedFiles.add(path);
+    }
     onSelectAll(Array.from(newSelectedFiles));
   };
 
@@ -241,7 +242,6 @@ const FileSelector: React.FC<FileSelectorProps> = ({
     setFilterText('');
     setGithubError('');
     setIgnoreInfo(null);
-    setFilteredPaths([]); // Reset filtered paths immediately to prevent stale data
 
     if (type === 'local') {
       onFilesSelected([]);
@@ -261,22 +261,19 @@ const FileSelector: React.FC<FileSelectorProps> = ({
     [githubFiles, isPrioritized],
   );
 
-  useEffect(() => {
-    const currentFiles = sourceType === 'local' ? fileHandles : githubFiles;
-    if (filterText.trim() === '') {
-      setFilteredPaths(currentFiles.map((f) => f.path));
-    } else {
-      const filtered = currentFiles
-        .filter((f) => f.path.toLowerCase().includes(filterText.toLowerCase()))
-        .map((f) => f.path);
-      setFilteredPaths(filtered);
-    }
-  }, [filterText, fileHandles, githubFiles, sourceType]);
+  const currentFiles = sourceType === 'local' ? fileHandles : githubFiles;
+  const filterQuery = filterText.trim().toLowerCase();
+  const filteredPaths = filterQuery
+    ? currentFiles
+        .filter((file) => file.path.toLowerCase().includes(filterQuery))
+        .map((file) => file.path)
+    : currentFiles.map((file) => file.path);
 
   return (
     <div className="animate-fade-in space-y-6">
       <div className="flex items-center justify-center space-x-1 p-1 bg-neutral-100 dark:bg-neutral-800 rounded-lg">
         <button
+          type="button"
           onClick={() => handleSourceTypeChange('local')}
           className={`flex items-center space-x-2 px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
             sourceType === 'local'
@@ -288,6 +285,7 @@ const FileSelector: React.FC<FileSelectorProps> = ({
           <span>Local Folder</span>
         </button>
         <button
+          type="button"
           onClick={() => handleSourceTypeChange('github')}
           className={`flex items-center space-x-2 px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
             sourceType === 'github'
@@ -295,7 +293,7 @@ const FileSelector: React.FC<FileSelectorProps> = ({
               : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-100'
           }`}
         >
-          <Github className="h-4 w-4" />
+          <GitHubIcon className="h-4 w-4" />
           <span>GitHub Repo</span>
         </button>
       </div>
@@ -398,6 +396,7 @@ const FileSelector: React.FC<FileSelectorProps> = ({
               />
               {filterText && (
                 <button
+                  type="button"
                   onClick={handleClearFilter}
                   className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-neutral-400 hover:text-neutral-600 dark:text-neutral-500 dark:hover:text-neutral-300 transition-colors"
                   aria-label="Clear filter"
@@ -446,6 +445,7 @@ const FileSelector: React.FC<FileSelectorProps> = ({
               .map(([typeName, extensions]) => (
                 <button
                   key={typeName}
+                  type="button"
                   onClick={() => applyFileTypeFilter(extensions)}
                   disabled={isProcessing || isLoading}
                   className="px-3 py-1 text-xs font-medium rounded-full transition-colors duration-150

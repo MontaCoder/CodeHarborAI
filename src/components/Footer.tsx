@@ -1,5 +1,6 @@
-import { Code2, Github, Heart, Linkedin, Mail, Twitter } from 'lucide-react';
+import { Code2, Heart, Mail } from 'lucide-react';
 import type React from 'react';
+import { GitHubIcon } from './icons/BrandIcons';
 
 const Footer: React.FC = () => {
   return (
@@ -74,31 +75,9 @@ const Footer: React.FC = () => {
                 className="inline-flex items-center space-x-2 text-neutral-600 dark:text-neutral-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors group"
               >
                 <div className="p-2 rounded-lg bg-neutral-100 dark:bg-neutral-800 group-hover:bg-emerald-50 dark:group-hover:bg-emerald-500/10 transition-colors">
-                  <Github className="h-4 w-4" />
+                  <GitHubIcon className="h-4 w-4" />
                 </div>
                 <span className="text-sm font-medium">GitHub</span>
-              </a>
-              <a
-                href="https://github.com/MontaCoder"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center space-x-2 text-neutral-600 dark:text-neutral-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors group"
-              >
-                <div className="p-2 rounded-lg bg-neutral-100 dark:bg-neutral-800 group-hover:bg-emerald-50 dark:group-hover:bg-emerald-500/10 transition-colors">
-                  <Twitter className="h-4 w-4" />
-                </div>
-                <span className="text-sm font-medium">Twitter</span>
-              </a>
-              <a
-                href="https://github.com/MontaCoder"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center space-x-2 text-neutral-600 dark:text-neutral-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors group"
-              >
-                <div className="p-2 rounded-lg bg-neutral-100 dark:bg-neutral-800 group-hover:bg-emerald-50 dark:group-hover:bg-emerald-500/10 transition-colors">
-                  <Linkedin className="h-4 w-4" />
-                </div>
-                <span className="text-sm font-medium">LinkedIn</span>
               </a>
               <a
                 href="mailto:contact@montassar.dev"

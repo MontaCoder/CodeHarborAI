@@ -78,7 +78,7 @@ export function extractImports(content: string): string[] {
         }
       }
     } else {
-      currentImport += ' ' + trimmed;
+      currentImport += ` ${trimmed}`;
       if (trimmed.includes('}')) {
         inMultiline = false;
         imports.push(currentImport.trim());
@@ -114,7 +114,7 @@ function extractJSDocAbove(content: string, pos: number): string {
     const trimmed = lines[i].trim();
     if (trimmed === '*/') foundStart = true;
     if (foundStart) {
-      jsdoc = lines[i] + '\n' + jsdoc;
+      jsdoc = `${lines[i]}\n${jsdoc}`;
       if (trimmed.startsWith('/**')) return jsdoc.trim();
     } else if (
       trimmed &&
@@ -152,8 +152,9 @@ export function extractFunctionSkeletons(
           ? extractJSDocAbove(content, content.indexOf(fullText))
           : '';
         const openBraceIdx = signature.lastIndexOf('{');
+        const jsdocPrefix = jsdoc ? `${jsdoc}\n` : '';
         if (openBraceIdx === -1) {
-          functions.push((jsdoc ? jsdoc + '\n' : '') + signature);
+          functions.push(`${jsdocPrefix}${signature}`);
           i += signature.split('\n').length;
           break;
         }
@@ -161,13 +162,10 @@ export function extractFunctionSkeletons(
         const block = extractBalancedBlock(content, blockStart);
         const blockLines = block.split('\n').length;
         if (blockLines <= threshold) {
-          functions.push(
-            (jsdoc ? jsdoc + '\n' : '') + signature + block.slice(1),
-          );
+          functions.push(`${jsdocPrefix}${signature}${block.slice(1)}`);
         } else {
-          const elided =
-            signature + '\n  // ... ' + (blockLines - 2) + ' lines elided\n}';
-          functions.push((jsdoc ? jsdoc + '\n' : '') + elided);
+          const elided = `${signature}\n  // ... ${blockLines - 2} lines elided\n}`;
+          functions.push(`${jsdocPrefix}${elided}`);
         }
         i += countLines(
           content,
@@ -194,8 +192,8 @@ export function extractClassSkeletons(
   const classes: string[] = [];
   const classPattern =
     /(?:export\s+)?class\s+\w+(?:\s+extends\s+\w+)?(?:\s+implements\s+[^{]+)?\s*\{/g;
-  let match;
-  while ((match = classPattern.exec(content)) !== null) {
+  let match: RegExpExecArray | null = classPattern.exec(content);
+  while (match !== null) {
     const classStart = match.index;
     const classHeader = match[0];
     const openBraceIdx = classHeader.lastIndexOf('{');
@@ -226,9 +224,7 @@ export function extractClassSkeletons(
             j += methodLines;
           } else {
             processedBody.push(line);
-            processedBody.push(
-              '  // ... ' + (methodLines - 2) + ' lines elided',
-            );
+            processedBody.push(`  // ... ${methodLines - 2} lines elided`);
             processedBody.push('  }');
             j += methodLines;
           }
@@ -241,13 +237,10 @@ export function extractClassSkeletons(
         j++;
       }
     }
-    const skeleton =
-      (jsdoc ? jsdoc + '\n' : '') +
-      classHeader +
-      '\n' +
-      processedBody.join('\n') +
-      '\n}';
+    const jsdocPrefix = jsdoc ? `${jsdoc}\n` : '';
+    const skeleton = `${jsdocPrefix}${classHeader}\n${processedBody.join('\n')}\n}`;
     classes.push(skeleton);
+    match = classPattern.exec(content);
   }
   return classes;
 }
@@ -258,7 +251,8 @@ export function extractTopLevelConstants(content: string): string[] {
   for (const line of lines) {
     const trimmed = line.trim();
     const match = trimmed.match(/^(?:export\s+)?const\s+\w+\s*[:=]\s*(.+);?$/);
-    if (match && match[1] && match[1].length < 100) {
+    const constant = match?.[1];
+    if (constant && constant.length < 100) {
       constants.push(trimmed);
     }
   }

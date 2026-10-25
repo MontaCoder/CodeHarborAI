@@ -116,7 +116,7 @@ export const scanMockDirectory = async (
   filesList: File[],
   folderName: string,
 ): Promise<{ files: LocalFileEntry[]; ignoreInfo: LocalScanIgnoreInfo }> => {
-  const prefix = folderName + '/';
+  const prefix = `${folderName}/`;
 
   // Find the root .gitignore file
   const rootGitignoreFile = filesList.find((f) => {

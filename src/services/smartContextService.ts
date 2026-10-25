@@ -111,6 +111,7 @@ export interface TransformationOptions {
   minifyOutput: boolean;
 }
 
+// biome-ignore lint/complexity/noStaticOnlyClass: stateless service namespace; static-only API is intentional.
 export class SmartContextService {
   private static readonly HEADER_DIVIDER = '-'.repeat(60);
 

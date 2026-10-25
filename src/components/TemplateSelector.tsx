@@ -121,6 +121,7 @@ const TemplateSelector: React.FC<TemplateSelectorProps> = ({
           </h3>
         </div>
         <button
+          type="button"
           onClick={handleCreateNew}
           className="flex items-center gap-1 px-2.5 py-1 text-xs font-medium text-emerald-700 dark:text-emerald-400 bg-emerald-100 dark:bg-emerald-900/40 rounded-lg hover:bg-emerald-200 dark:hover:bg-emerald-900/60 transition-colors"
         >
@@ -132,6 +133,7 @@ const TemplateSelector: React.FC<TemplateSelectorProps> = ({
       <div className="space-y-2.5">
         <div className="relative">
           <select
+            aria-label="Choose a context template"
             value={selectedTemplate}
             onChange={(e) => handleTemplateSelect(e.target.value)}
             className={`${inputBaseClasses} appearance-none pr-10 font-medium`}
@@ -165,6 +167,7 @@ const TemplateSelector: React.FC<TemplateSelectorProps> = ({
           <div className="bg-white dark:bg-neutral-800 rounded-lg p-3 shadow-sm ring-1 ring-neutral-200 dark:ring-neutral-700">
             <div className="flex items-start justify-between">
               <button
+                type="button"
                 onClick={() =>
                   setShowDetails(
                     showDetails === selectedTemplate ? null : selectedTemplate,
@@ -191,16 +194,20 @@ const TemplateSelector: React.FC<TemplateSelectorProps> = ({
               {activeTemplate.isCustom && (
                 <div className="flex items-center gap-1 ml-2">
                   <button
+                    type="button"
                     onClick={() => handleEdit(activeTemplate)}
                     className="p-1 rounded hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-colors"
                     title="Edit template"
+                    aria-label="Edit template"
                   >
                     <Pencil className="w-3.5 h-3.5 text-neutral-500 dark:text-neutral-400" />
                   </button>
                   <button
+                    type="button"
                     onClick={() => handleDeleteTemplate(activeTemplate)}
                     className="p-1 rounded hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors"
                     title="Delete template"
+                    aria-label="Delete template"
                   >
                     <Trash2 className="w-3.5 h-3.5 text-red-500 dark:text-red-400" />
                   </button>

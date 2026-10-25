@@ -3,6 +3,7 @@ import type React from 'react';
 import {
   createContext,
   type ReactNode,
+  useCallback,
   useContext,
   useEffect,
   useMemo,
@@ -54,16 +55,16 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
     localStorage.setItem('theme', theme);
   }, [theme]);
 
-  const toggleTheme = () => {
+  const toggleTheme = useCallback(() => {
     setTheme((prevTheme) => (prevTheme === 'dark' ? 'light' : 'dark'));
-  };
+  }, []);
 
   const contextValue = useMemo(
     () => ({
       theme,
       toggleTheme,
     }),
-    [theme],
+    [theme, toggleTheme],
   );
 
   return (

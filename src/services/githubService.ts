@@ -22,6 +22,7 @@ export interface GitHubRepoInfo {
   branch: string;
 }
 
+// biome-ignore lint/complexity/noStaticOnlyClass: stateless service namespace; static-only API is intentional.
 export class GitHubService {
   private static readonly API_BASE = 'https://api.github.com';
   private static readonly CACHE_PREFIX = 'gh_cache_';
@@ -121,6 +122,7 @@ export class GitHubService {
       );
       throw new Error(
         `Failed to fetch repository contents: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        { cause: error },
       );
     }
   }

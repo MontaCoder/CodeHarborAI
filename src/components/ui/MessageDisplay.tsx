@@ -32,24 +32,16 @@ const MessageDisplay: React.FC<MessageDisplayProps> = ({ message, type }) => {
       clearTimeout(exitTimer);
       if (hideTimer) clearTimeout(hideTimer);
     };
-  }, [message, type]); // Re-trigger on new message or type change
+  }, [message]); // Re-trigger on new message
 
   const baseClasses =
     'fixed top-5 left-1/2 transform -translate-x-1/2 z-[100] w-auto max-w-md px-5 py-3.5 rounded-xl shadow-2xl flex items-center space-x-3 transition-all duration-300 ease-out';
 
-  let typeClasses = '';
-  let IconComponent = AlertCircle;
-
-  if (type === 'success') {
-    typeClasses =
-      'bg-emerald-500 border border-emerald-600/50 text-white dark:bg-emerald-600 dark:border-emerald-700/50';
-    IconComponent = CheckCircle;
-  } else {
-    // error
-    typeClasses =
-      'bg-red-500 border border-red-600/50 text-white dark:bg-red-600 dark:border-red-700/50';
-    IconComponent = AlertCircle;
-  }
+  const typeClasses =
+    type === 'success'
+      ? 'bg-emerald-700 border border-emerald-800/50 text-white dark:bg-emerald-800 dark:border-emerald-900/50'
+      : 'bg-red-600 border border-red-700/50 text-white dark:bg-red-700 dark:border-red-800/50';
+  const IconComponent = type === 'success' ? CheckCircle : AlertCircle;
 
   const animationClass = exiting
     ? 'opacity-0 -translate-y-full'
@@ -67,6 +59,7 @@ const MessageDisplay: React.FC<MessageDisplayProps> = ({ message, type }) => {
       <IconComponent className="h-6 w-6 flex-shrink-0 opacity-90" />
       <div className="flex-1 text-sm font-medium leading-snug">{message}</div>
       <button
+        type="button"
         onClick={() => {
           setExiting(true);
           setTimeout(() => setVisible(false), 300);

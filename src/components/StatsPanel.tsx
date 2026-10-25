@@ -119,9 +119,11 @@ const StatsPanel: React.FC<StatsPanelProps> = memo(
                 className={`absolute top-0 left-0 h-full rounded-full transition-all duration-500 ease-out ${progressBarVariants[metrics.budgetStatus]}`}
                 style={{ width: `${metrics.percentOfBudget}%` }}
                 role="progressbar"
+                aria-label="Token budget usage"
                 aria-valuenow={metrics.percentOfBudget}
                 aria-valuemin={0}
                 aria-valuemax={100}
+                aria-valuetext={`${metrics.percentOfBudget.toFixed(0)}% of ${metrics.budgetTokens.toLocaleString()} token budget`}
               ></div>
             </div>
             <div className="mt-1 space-y-0.5 text-xs text-neutral-500 dark:text-neutral-400">
@@ -166,6 +168,7 @@ const StatsPanel: React.FC<StatsPanelProps> = memo(
           {/* Token Breakdown Section - Collapsible */}
           <div className="space-y-1">
             <button
+              type="button"
               onClick={() => setShowBreakdown(!showBreakdown)}
               className="flex items-center justify-between w-full text-xs font-semibold uppercase tracking-wide text-neutral-500 dark:text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-300 transition-colors"
             >
@@ -259,7 +262,7 @@ const StatsPanel: React.FC<StatsPanelProps> = memo(
 
           <div className="flex flex-col gap-2 mt-2 text-xs text-neutral-600 dark:text-neutral-400">
             <div className="rounded-lg bg-neutral-100 dark:bg-neutral-800/40 px-2 py-1.5">
-              <p className="text-[10px] uppercase tracking-wide text-neutral-500 dark:text-neutral-500">
+              <p className="text-[10px] uppercase tracking-wide text-neutral-500 dark:text-neutral-400">
                 Selected Files
               </p>
               <p className="text-base font-semibold text-neutral-800 dark:text-neutral-100">
@@ -268,7 +271,7 @@ const StatsPanel: React.FC<StatsPanelProps> = memo(
               <p className="text-[10px]">of {metrics.totalCount} scanned</p>
             </div>
             <div className="rounded-lg bg-neutral-100 dark:bg-neutral-800/40 px-2 py-1.5">
-              <p className="text-[10px] uppercase tracking-wide text-neutral-500 dark:text-neutral-500">
+              <p className="text-[10px] uppercase tracking-wide text-neutral-500 dark:text-neutral-400">
                 Smart Optimizer
               </p>
               <p className="text-[10px] text-neutral-600 dark:text-neutral-300 leading-snug">
@@ -276,7 +279,7 @@ const StatsPanel: React.FC<StatsPanelProps> = memo(
               </p>
             </div>
             <div className="rounded-lg bg-neutral-100 dark:bg-neutral-800/40 px-2 py-1.5">
-              <p className="text-[10px] uppercase tracking-wide text-neutral-500 dark:text-neutral-500">
+              <p className="text-[10px] uppercase tracking-wide text-neutral-500 dark:text-neutral-400">
                 Context7 Docs
               </p>
               <p className="text-base font-semibold text-neutral-800 dark:text-neutral-100">
@@ -343,7 +346,7 @@ const StatsPanel: React.FC<StatsPanelProps> = memo(
 
           {metrics.topFiles.length > 0 && (
             <div className="mt-4 space-y-2">
-              <p className="text-xs font-semibold uppercase tracking-wide text-neutral-500 dark:text-neutral-500">
+              <p className="text-xs font-semibold uppercase tracking-wide text-neutral-500 dark:text-neutral-400">
                 Largest Selected Files
               </p>
               <div className="space-y-1.5">

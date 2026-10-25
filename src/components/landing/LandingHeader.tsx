@@ -25,6 +25,7 @@ const LandingHeader: React.FC<LandingHeaderProps> = ({
         </h1>
       </div>
       <button
+        type="button"
         onClick={onToggleTheme}
         className={themeToggleClasses}
         aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}

@@ -9,6 +9,7 @@ export interface Context7Doc {
   url: string;
 }
 
+// biome-ignore lint/complexity/noStaticOnlyClass: stateless service namespace; static-only API is intentional.
 export class Context7Service {
   private static readonly allowedHosts = [
     'context7.ai',
@@ -77,7 +78,9 @@ export class Context7Service {
         : new Error('Failed to fetch Context7 documentation: Unknown error');
     } catch (error) {
       if (error instanceof Error) throw error;
-      throw new Error('Failed to fetch Context7 documentation: Unknown error');
+      throw new Error('Failed to fetch Context7 documentation: Unknown error', {
+        cause: error,
+      });
     }
   }
 
@@ -174,7 +177,7 @@ ${doc.content}
     fallbackTitle: string,
   ): { title: string; content: string } {
     let title = fallbackTitle;
-    let content = body;
+    let content: string;
 
     if (contentType.includes('text/html')) {
       const titleMatch = body.match(/<title>(.*?)<\/title>/i);

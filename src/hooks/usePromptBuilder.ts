@@ -143,6 +143,7 @@ export const usePromptBuilder = ({
   );
 
   // Clear analysis cache when files change to avoid stale data
+  // biome-ignore lint/correctness/useExhaustiveDependencies: cache invalidation is keyed to file-list identity; the arrays are the trigger, not effect inputs.
   useEffect(() => {
     SmartContextService.clearAnalysisCache();
     GitHubService.clearRequestCache();
@@ -185,7 +186,7 @@ export const usePromptBuilder = ({
         `**Smart Optimization:** ${options.enableSmartOptimization ? 'Enabled' : 'Disabled'}`,
       ];
 
-      return overviewLines.join('\n') + '\n';
+      return `${overviewLines.join('\n')}\n`;
     },
     [
       options.enableSmartOptimization,

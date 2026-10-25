@@ -34,6 +34,7 @@ const PreviewCard: React.FC = () => {
             >
               <div className="w-4 h-4 bg-emerald-50 dark:bg-emerald-500/10 rounded-sm flex items-center justify-center flex-shrink-0 animate-pulse-slow">
                 <svg
+                  aria-hidden="true"
                   className="w-2.5 h-2.5 text-emerald-600 dark:text-emerald-400"
                   fill="none"
                   viewBox="0 0 24 24"
@@ -60,6 +61,7 @@ const PreviewCard: React.FC = () => {
                 style={{ animationDelay: '0.5s' }}
               >
                 <svg
+                  aria-hidden="true"
                   className="w-2.5 h-2.5 text-emerald-600 dark:text-emerald-400"
                   fill="none"
                   viewBox="0 0 24 24"

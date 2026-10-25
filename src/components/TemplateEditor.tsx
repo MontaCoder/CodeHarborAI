@@ -1,6 +1,6 @@
 import { Check, ChevronDown, Trash2, X } from 'lucide-react';
 import type React from 'react';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { DocumentationTemplate } from '../types/documentationTemplates';
 
 interface TemplateEditorProps {
@@ -54,6 +54,7 @@ const TemplateEditor: React.FC<TemplateEditorProps> = ({
     initialData?.taskInstructions ?? '',
   );
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const nameInputRef = useRef<HTMLInputElement>(null);
 
   // Configured options
   const [enableSmartOptimization, setEnableSmartOptimization] = useState(
@@ -120,6 +121,11 @@ const TemplateEditor: React.FC<TemplateEditorProps> = ({
     });
   };
 
+  // Focus the template name when the editor opens.
+  useEffect(() => {
+    nameInputRef.current?.focus();
+  }, []);
+
   // Close emoji picker on outside click
   useEffect(() => {
     if (!showEmojiPicker) return;
@@ -152,6 +158,7 @@ const TemplateEditor: React.FC<TemplateEditorProps> = ({
             {mode === 'create' ? 'Create New Template' : 'Edit Template'}
           </h2>
           <button
+            type="button"
             onClick={onCancel}
             className="p-1.5 rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
             aria-label="Close"
@@ -165,7 +172,7 @@ const TemplateEditor: React.FC<TemplateEditorProps> = ({
           {/* Name & Icon */}
           <div className="flex gap-3">
             <div className="flex-shrink-0">
-              <label className={labelClasses}>Icon</label>
+              <span className={labelClasses}>Icon</span>
               <div className="relative" data-emoji-picker>
                 <button
                   type="button"
@@ -198,10 +205,12 @@ const TemplateEditor: React.FC<TemplateEditorProps> = ({
               </div>
             </div>
             <div className="flex-1">
-              <label className={labelClasses}>
+              <label className={labelClasses} htmlFor="template-name">
                 Template Name <span className="text-red-500">*</span>
               </label>
               <input
+                id="template-name"
+                ref={nameInputRef}
                 type="text"
                 value={name}
                 onChange={(e) => {
@@ -210,7 +219,6 @@ const TemplateEditor: React.FC<TemplateEditorProps> = ({
                 }}
                 placeholder="e.g., React Component Review"
                 className={`${inputClasses} ${errors.name ? 'border-red-500' : ''}`}
-                autoFocus
               />
               {errors.name && (
                 <p className="text-xs text-red-500 mt-1">{errors.name}</p>
@@ -220,8 +228,11 @@ const TemplateEditor: React.FC<TemplateEditorProps> = ({
 
           {/* Description */}
           <div>
-            <label className={labelClasses}>Description</label>
+            <label className={labelClasses} htmlFor="template-description">
+              Description
+            </label>
             <input
+              id="template-description"
               type="text"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
@@ -232,8 +243,11 @@ const TemplateEditor: React.FC<TemplateEditorProps> = ({
 
           {/* System Context */}
           <div>
-            <label className={labelClasses}>System Context</label>
+            <label className={labelClasses} htmlFor="template-system-context">
+              System Context
+            </label>
             <textarea
+              id="template-system-context"
               value={systemContext}
               onChange={(e) => setSystemContext(e.target.value)}
               placeholder="Background context, persona, or project info for the AI..."
@@ -243,8 +257,11 @@ const TemplateEditor: React.FC<TemplateEditorProps> = ({
 
           {/* Task Instructions */}
           <div>
-            <label className={labelClasses}>Task Instructions</label>
+            <label className={labelClasses} htmlFor="template-task-instructions">
+              Task Instructions
+            </label>
             <textarea
+              id="template-task-instructions"
               value={taskInstructions}
               onChange={(e) => setTaskInstructions(e.target.value)}
               placeholder="Define specific instructions, output format, or tasks for the AI..."
@@ -340,17 +357,18 @@ const TemplateEditor: React.FC<TemplateEditorProps> = ({
 
                 {enableSmartOptimization && (
                   <div>
-                    <label className={labelClasses}>
+                    <label className={labelClasses} htmlFor="template-max-tokens">
                       Max Token Budget: {maxTotalTokens.toLocaleString()}
                     </label>
                     <input
+                      id="template-max-tokens"
                       type="range"
                       min="10000"
                       max="2000000"
                       step="10000"
                       value={maxTotalTokens}
                       onChange={(e) =>
-                        setMaxTotalTokens(parseInt(e.target.value))
+                        setMaxTotalTokens(parseInt(e.target.value, 10))
                       }
                       className="w-full h-2 bg-neutral-200 dark:bg-neutral-700 rounded-lg appearance-none cursor-pointer accent-emerald-600"
                     />
@@ -390,7 +408,7 @@ const TemplateEditor: React.FC<TemplateEditorProps> = ({
             <button
               type="button"
               onClick={handleSave}
-              className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg transition-colors"
+              className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-emerald-700 hover:bg-emerald-800 rounded-lg transition-colors"
             >
               <Check className="w-4 h-4" />
               {mode === 'create' ? 'Create Template' : 'Save Changes'}

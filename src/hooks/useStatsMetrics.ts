@@ -178,7 +178,6 @@ export const useStatsMetrics = ({
       .sort((a, b) => b.sizeKB - a.sizeKB)
       .slice(0, 3);
 
-    let smartSummary = '';
     const compression = smartOptions.adaptiveCompression
       ? 'Adaptive compression on.'
       : 'Adaptive compression off.';
@@ -199,7 +198,7 @@ export const useStatsMetrics = ({
         : 'No basic transformations.';
 
     const savings = `Estimated savings: ${savingsPercent}% (${tokenSavings.toLocaleString()} tokens)`;
-    smartSummary = `${compression} ${structure} ${docs}. ${transformText} ${savings}`;
+    let smartSummary = `${compression} ${structure} ${docs}. ${transformText} ${savings}`;
     if (!smartOptions.enableSmartOptimization) {
       smartSummary += '. Enable optimizer to achieve these savings.';
     }

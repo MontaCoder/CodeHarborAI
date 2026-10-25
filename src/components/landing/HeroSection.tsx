@@ -88,6 +88,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ onGetStarted }) => {
             Perfect AI Prompts
           </span>
           <svg
+            aria-hidden="true"
             className="absolute -bottom-2 left-0 w-full"
             height="8"
             viewBox="0 0 300 8"
@@ -174,7 +175,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ onGetStarted }) => {
             Get Started Free
             <ChevronRight className="h-4 w-4 group-hover:translate-x-1 transition-transform duration-300" />
           </span>
-          <div className="absolute inset-0 bg-gradient-to-r from-emerald-600 to-sky-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+          <div className="absolute inset-0 bg-gradient-to-r from-emerald-700 to-sky-700 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
         </Button>
       </div>
     </div>

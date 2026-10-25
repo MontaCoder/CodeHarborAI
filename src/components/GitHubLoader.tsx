@@ -1,9 +1,10 @@
-import { AlertCircle, CheckCircle, Github, Loader2 } from 'lucide-react';
+import { AlertCircle, CheckCircle, Loader2 } from 'lucide-react';
 import type React from 'react';
 import { useCallback, useState } from 'react';
 import { type GitHubRepoInfo, GitHubService } from '../services/githubService';
 import type { GitHubFileEntry } from '../types/files';
 import { isTextFileName } from '../utils/fileFilters';
+import { GitHubIcon } from './icons/BrandIcons';
 import Button from './ui/Button';
 
 interface GitHubLoaderProps {
@@ -174,7 +175,7 @@ const GitHubLoader: React.FC<GitHubLoaderProps> = ({
   return (
     <div className="space-y-4">
       <div className="flex items-center space-x-2 mb-4">
-        <Github className="h-5 w-5 text-neutral-600 dark:text-neutral-400" />
+        <GitHubIcon className="h-5 w-5 text-neutral-600 dark:text-neutral-400" />
         <h3 className="text-lg font-medium text-neutral-900 dark:text-neutral-100">
           Load from GitHub
         </h3>

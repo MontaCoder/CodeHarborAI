@@ -85,6 +85,7 @@ const MainApp: React.FC<MainAppProps> = ({ onBackToLanding }) => {
             onClick={onBackToLanding}
             className="p-2 rounded-full hover:bg-neutral-100 dark:hover:bg-neutral-800 text-neutral-500 dark:text-neutral-400 transition-colors duration-150"
             title="Return to landing page (Esc)"
+            aria-label="Return to landing page"
           >
             <ArrowLeft className="h-5 w-5" />
           </button>
@@ -109,6 +110,7 @@ const MainApp: React.FC<MainAppProps> = ({ onBackToLanding }) => {
             </span>
           )}
           <button
+            type="button"
             onClick={toggleTheme}
             className={themeToggleClasses}
             aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}

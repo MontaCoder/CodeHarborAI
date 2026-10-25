@@ -92,7 +92,10 @@ const AdvancedOptionsPanel: React.FC<AdvancedOptionsPanelProps> = memo(
       setDocError('');
       try {
         const doc = await Context7Service.fetchDocumentation(context7Url);
-        onChange('context7Docs', [...options.context7Docs, doc]);
+        const nextDocs = options.context7Docs.filter(
+          (existing) => existing.url !== doc.url,
+        );
+        onChange('context7Docs', [...nextDocs, doc]);
         onChange('includeContext7Docs', true);
         setContext7Url('');
       } catch (error) {
@@ -218,7 +221,9 @@ const AdvancedOptionsPanel: React.FC<AdvancedOptionsPanelProps> = memo(
                     max="2000000"
                     step="10000"
                     value={options.maxTotalTokens}
-                    onChange={(e) => onChange('maxTotalTokens', parseInt(e.target.value))}
+                    onChange={(e) =>
+                      onChange('maxTotalTokens', parseInt(e.target.value, 10))
+                    }
                     className="w-full h-1.5 bg-neutral-200 dark:bg-neutral-700 rounded-lg appearance-none cursor-pointer accent-emerald-600"
                   />
                   <div className="flex justify-between text-[10px] text-neutral-400 dark:text-neutral-500">
@@ -328,7 +333,7 @@ const AdvancedOptionsPanel: React.FC<AdvancedOptionsPanelProps> = memo(
               <div className="space-y-1.5">
                 {options.context7Docs.map((doc, index) => (
                   <div
-                    key={index}
+                    key={doc.url}
                     className="flex items-center justify-between p-2.5 bg-white/80 dark:bg-neutral-800/60 rounded-lg ring-1 ring-neutral-200/60 dark:ring-neutral-700/40"
                   >
                     <div className="flex-1 min-w-0 mr-2">
@@ -348,8 +353,10 @@ const AdvancedOptionsPanel: React.FC<AdvancedOptionsPanelProps> = memo(
                       </a>
                     </div>
                     <button
+                      type="button"
                       onClick={() => handleRemoveDoc(index)}
                       className="p-1 text-neutral-400 hover:text-red-500 dark:hover:text-red-400 transition-colors rounded"
+                      aria-label={`Remove ${doc.title}`}
                     >
                       <X className="w-4 h-4" />
                     </button>

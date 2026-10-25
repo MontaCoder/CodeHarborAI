@@ -13,13 +13,16 @@ interface ButtonProps {
   title?: string;
 }
 
+const DISABLED_CLASSES =
+  'bg-neutral-200 text-neutral-600 dark:bg-neutral-700 dark:text-neutral-300 cursor-not-allowed';
+
 const VARIANT_CLASSES: Record<ButtonVariant, string> = {
   primary:
-    'bg-emerald-500 hover:bg-emerald-600 text-white shadow-sm hover:shadow',
+    'bg-emerald-700 hover:bg-emerald-800 text-white shadow-sm hover:shadow',
   secondary:
     'bg-neutral-100 hover:bg-neutral-200 text-neutral-700 dark:bg-neutral-800 dark:hover:bg-neutral-700 dark:text-neutral-200',
-  accent: 'bg-purple-500 hover:bg-purple-600 text-white shadow-sm hover:shadow',
-  danger: 'bg-red-500 hover:bg-red-600 text-white shadow-sm hover:shadow',
+  accent: 'bg-purple-600 hover:bg-purple-700 text-white shadow-sm hover:shadow',
+  danger: 'bg-red-600 hover:bg-red-700 text-white shadow-sm hover:shadow',
   default:
     'bg-white hover:bg-neutral-50 text-neutral-700 border border-neutral-300 dark:bg-neutral-800 dark:hover:bg-neutral-700 dark:text-neutral-200 dark:border-neutral-700',
 };
@@ -35,7 +38,7 @@ const Button: React.FC<ButtonProps> = ({
 }) => {
   const buttonClass = [
     'flex items-center justify-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all duration-200',
-    disabled ? 'opacity-50 cursor-not-allowed' : VARIANT_CLASSES[variant],
+    disabled ? DISABLED_CLASSES : VARIANT_CLASSES[variant],
     className,
   ].join(' ');
 

@@ -77,14 +77,16 @@ const OutputPanel: React.FC<OutputPanelProps> = memo(({ output }) => {
 
           <div className="absolute top-2.5 right-2.5 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
             <button
+              type="button"
               onClick={handleCopy}
               className={`p-2 rounded-md flex items-center justify-center transition-all duration-150 ease-in-out active:scale-95
                 ${
                   copied
-                    ? 'bg-emerald-500 text-white dark:bg-emerald-600'
+                    ? 'bg-emerald-700 text-white dark:bg-emerald-700'
                     : 'bg-neutral-200 text-neutral-600 hover:bg-neutral-300 dark:bg-neutral-700 dark:text-neutral-300 dark:hover:bg-neutral-600'
                 }`}
               title={copied ? 'Copied!' : 'Copy to clipboard (Ctrl+Shift+C)'}
+              aria-label={copied ? 'Copied to clipboard' : 'Copy to clipboard'}
               aria-live="polite"
             >
               {copied ? (
@@ -127,7 +129,7 @@ const OutputPanel: React.FC<OutputPanelProps> = memo(({ output }) => {
             aria-live="polite"
           >
             {copied ? 'Copied to Clipboard!' : 'Copy to Clipboard'}
-            <kbd className="hidden sm:inline-flex ml-2 px-1.5 py-0.5 text-[10px] font-mono bg-neutral-200 dark:bg-neutral-700 text-neutral-500 dark:text-neutral-400 rounded">
+            <kbd className="hidden sm:inline-flex ml-2 px-1.5 py-0.5 text-[10px] font-mono bg-neutral-200 dark:bg-neutral-700 text-neutral-500 dark:text-neutral-300 rounded">
               {isMac ? '⌘' : 'Ctrl'}+⇧+C
             </kbd>
           </Button>
