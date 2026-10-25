@@ -8,6 +8,18 @@
 		<meta name="description" content="Securely select and combine your project files on your own machine to create optimized prompts for AI coding assistants. Transform code into perfect AI prompts with CodeHarbor AI." />
 		<meta name="keywords" content="AI coding assistant, code prompts, file selection, code optimization, AI development tools, prompt engineering" />
 		<meta name="author" content="Montassar Hajri" />
+		<script>
+			// Apply the saved theme before first paint to avoid a flash of the wrong theme.
+			try {
+				const savedTheme = localStorage.getItem('theme');
+				const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+				if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
+					document.documentElement.classList.add('dark');
+				}
+			} catch {
+				// localStorage can be unavailable in private or restricted contexts.
+			}
+		</script>
 
 		<!-- Open Graph / Facebook -->
 		<meta property="og:type" content="website" />
@@ -31,6 +43,5 @@
 	</head>
 	<body>
 		<div id="root"></div>
-		<script type="module" src="/src/main.tsx"></script>
 	</body>
 </html>

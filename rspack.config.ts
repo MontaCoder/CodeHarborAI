@@ -55,6 +55,9 @@ export default defineConfig({
     new rspack.HtmlRspackPlugin({
       template: './index.html',
     }),
+    new rspack.CopyRspackPlugin({
+      patterns: [{ from: 'public', to: '.' }],
+    }),
     isDev ? new ReactRefreshRspackPlugin() : null,
   ].filter(Boolean),
   optimization: {
