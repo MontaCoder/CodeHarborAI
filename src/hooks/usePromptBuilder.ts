@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { type Context7Doc, Context7Service } from '../services/context7Service';
 import { readLocalFile } from '../services/fileContentService';
 import type { GitHubRepoInfo } from '../services/githubService';
@@ -10,6 +10,7 @@ import {
   type TransformationOptions,
 } from '../services/smartContextService';
 import type {
+  FileSourceType,
   FolderHandle,
   GitHubFileEntry,
   LocalFileEntry,
@@ -41,6 +42,7 @@ export interface PromptBuilderState {
   showOutput: boolean;
   isLoading: boolean;
   message: {
+    id: number;
     text: string;
     type: 'error' | 'success';
   } | null;
@@ -53,6 +55,7 @@ interface UsePromptBuilderArgs {
   githubFiles: GitHubFileEntry[];
   folderHandle: FolderHandle | null;
   githubRepoInfo: GitHubRepoInfo | null;
+  activeSource: FileSourceType;
   totalSize: number;
   totalLines: number;
 }
@@ -115,6 +118,7 @@ export const usePromptBuilder = ({
   githubFiles,
   folderHandle,
   githubRepoInfo,
+  activeSource,
   totalSize,
   totalLines,
 }: UsePromptBuilderArgs): UsePromptBuilderResult => {
@@ -131,6 +135,12 @@ export const usePromptBuilder = ({
     isLoading: false,
     message: null,
   });
+  const messageIdRef = useRef(0);
+
+  const nextMessageId = useCallback(() => {
+    messageIdRef.current += 1;
+    return messageIdRef.current;
+  }, []);
 
   const smartOptions = useMemo(() => buildSmartOptions(options), [options]);
   const fileHandleMap = useMemo(
@@ -163,7 +173,7 @@ export const usePromptBuilder = ({
 
   const loadContent = useCallback(
     async (filePath: string): Promise<string> => {
-      if (folderHandle) {
+      if (activeSource === 'local') {
         const entry = fileHandleMap.get(filePath);
         return entry ? readLocalFile(entry) : '';
       }
@@ -172,7 +182,7 @@ export const usePromptBuilder = ({
       if (!entry?.file.download_url) return '';
       return GitHubService.downloadFileContent(entry.file.download_url);
     },
-    [fileHandleMap, folderHandle, githubFileMap],
+    [activeSource, fileHandleMap, githubFileMap],
   );
 
   const buildOverview = useCallback(
@@ -200,7 +210,11 @@ export const usePromptBuilder = ({
     if (selectedFiles.size === 0) {
       setState((prev) => ({
         ...prev,
-        message: { text: 'Please select at least one file', type: 'error' },
+        message: {
+          id: nextMessageId(),
+          text: 'Please select at least one file',
+          type: 'error',
+        },
       }));
       return;
     }
@@ -233,11 +247,12 @@ export const usePromptBuilder = ({
         );
       }
 
-      const projectName = folderHandle
-        ? folderHandle.name
-        : githubRepoInfo
-          ? `${githubRepoInfo.owner}/${githubRepoInfo.repo}`
-          : 'Project';
+      const projectName =
+        activeSource === 'local' && folderHandle
+          ? folderHandle.name
+          : githubRepoInfo
+            ? `${githubRepoInfo.owner}/${githubRepoInfo.repo}`
+            : 'Project';
 
       sections.push(buildOverview(projectName));
 
@@ -285,9 +300,10 @@ export const usePromptBuilder = ({
         fileContents.set(filePath, content);
 
         if (options.enableSmartOptimization) {
-          const sourceMeta = folderHandle
-            ? fileHandleMap.get(filePath)
-            : githubFileMap.get(filePath);
+          const sourceMeta =
+            activeSource === 'local'
+              ? fileHandleMap.get(filePath)
+              : githubFileMap.get(filePath);
           const metadata = {
             size: sourceMeta?.size ?? content.length,
             lines: sourceMeta?.lines ?? content.split('\n').length,
@@ -396,6 +412,7 @@ export const usePromptBuilder = ({
         showOutput: true,
         isLoading: false,
         message: {
+          id: nextMessageId(),
           text: options.enableSmartOptimization
             ? 'Smart context generated successfully.'
             : 'Context generated successfully!',
@@ -408,6 +425,7 @@ export const usePromptBuilder = ({
         showOutput: false,
         isLoading: false,
         message: {
+          id: nextMessageId(),
           text: `Error generating context: ${error instanceof Error ? error.message : 'Unknown error'}`,
           type: 'error',
         },
@@ -416,6 +434,7 @@ export const usePromptBuilder = ({
   }, [
     selectedFiles,
     options,
+    activeSource,
     folderHandle,
     githubRepoInfo,
     loadContent,
@@ -423,6 +442,7 @@ export const usePromptBuilder = ({
     githubFileMap,
     smartOptions,
     buildOverview,
+    nextMessageId,
   ]);
 
   useEffect(() => {

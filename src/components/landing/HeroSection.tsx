@@ -1,183 +1,96 @@
 import {
-  ChevronRight,
-  Clock,
-  Code,
-  FileText,
-  Save,
-  Shield,
-  Sparkles,
-  Zap,
+  ArrowRight,
+  FolderTree,
+  HardDrive,
+  LayoutTemplate,
+  ShieldCheck,
 } from 'lucide-react';
 import type React from 'react';
+import { GitHubIcon } from '../icons/BrandIcons';
 import Button from '../ui/Button';
 
 interface HeroSectionProps {
   onGetStarted: () => void;
 }
 
-const stats = [
+const trustPoints = [
   {
-    iconWrapperClass: 'bg-emerald-100 dark:bg-emerald-500/20',
-    icon: <Shield className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />,
-    label: '100% Private',
+    icon: <FolderTree aria-hidden="true" className="h-3.5 w-3.5" />,
+    label: 'Local folders & GitHub',
   },
   {
-    iconWrapperClass: 'bg-sky-100 dark:bg-sky-500/20',
-    icon: <Clock className="h-4 w-4 text-sky-600 dark:text-sky-400" />,
-    label: 'Save Hours',
+    icon: <LayoutTemplate aria-hidden="true" className="h-3.5 w-3.5" />,
+    label: '10+ ready-made templates',
   },
   {
-    iconWrapperClass: 'bg-purple-100 dark:bg-purple-500/20',
-    icon: <Code className="h-4 w-4 text-purple-600 dark:text-purple-400" />,
-    label: 'Any AI Model',
-  },
-];
-
-const featureCards = [
-  {
-    iconWrapperClass:
-      'bg-gradient-to-br from-emerald-50 to-emerald-100 dark:from-emerald-500/10 dark:to-emerald-500/20',
-    icon: (
-      <FileText className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
-    ),
-    borderClass:
-      'border-neutral-200 dark:border-neutral-800 hover:border-emerald-300 dark:hover:border-emerald-700 hover:shadow-lg hover:shadow-emerald-500/10',
-    title: 'Select Any Files',
-    description:
-      'Choose local files or a public GitHub repository, then refine the selection with filtering.',
-    chevronClass: 'group-hover:text-emerald-500',
-  },
-  {
-    iconWrapperClass:
-      'bg-gradient-to-br from-sky-50 to-sky-100 dark:from-sky-500/10 dark:to-sky-500/20',
-    icon: <Code className="h-5 w-5 text-sky-600 dark:text-sky-400" />,
-    borderClass:
-      'border-neutral-200 dark:border-neutral-800 hover:border-sky-300 dark:hover:border-sky-700 hover:shadow-lg hover:shadow-sky-500/10',
-    title: 'Optimize Output',
-    description:
-      'Remove comments, minify code, and track estimated prompt size before you export.',
-    chevronClass: 'group-hover:text-sky-500',
-  },
-  {
-    iconWrapperClass:
-      'bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-500/10 dark:to-purple-500/20',
-    icon: <Save className="h-5 w-5 text-purple-600 dark:text-purple-400" />,
-    borderClass:
-      'border-neutral-200 dark:border-neutral-800 hover:border-purple-300 dark:hover:border-purple-700 hover:shadow-lg hover:shadow-purple-500/10',
-    title: 'Smart Optimization',
-    description:
-      'Heuristic file-aware compression prioritizes important files within a configurable token budget.',
-    chevronClass: 'group-hover:text-purple-500',
+    icon: <ShieldCheck aria-hidden="true" className="h-3.5 w-3.5" />,
+    label: 'Zero uploads, ever',
   },
 ];
 
 const HeroSection: React.FC<HeroSectionProps> = ({ onGetStarted }) => {
   return (
-    <div className="max-w-xl text-center md:text-left animate-fade-in">
-      <div className="inline-flex items-center space-x-2 bg-emerald-50 dark:bg-emerald-500/10 px-4 py-2 rounded-full mb-6 border border-emerald-200 dark:border-emerald-500/20">
-        <Sparkles className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
-        <span className="text-sm font-medium text-emerald-700 dark:text-emerald-300">
-          100% Local & Secure
+    <div className="animate-fade-in">
+      <div className="inline-flex items-center gap-2 rounded-full border border-emerald-200/80 bg-emerald-50/80 px-3 py-1.5 text-xs font-medium text-emerald-800 shadow-sm dark:border-emerald-500/20 dark:bg-emerald-500/10 dark:text-emerald-300">
+        <span className="relative flex h-1.5 w-1.5">
+          <span className="absolute inline-flex h-full w-full rounded-full bg-emerald-500 motion-safe:animate-ping" />
+          <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-emerald-500" />
         </span>
+        Runs entirely in your browser
       </div>
 
-      <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-neutral-900 dark:text-white mb-6 leading-tight">
-        Transform Your Code Into{' '}
-        <span className="relative inline-block">
-          <span className="bg-gradient-to-r from-emerald-500 via-sky-500 to-purple-500 text-transparent bg-clip-text animate-gradient">
-            Perfect AI Prompts
-          </span>
-          <svg
-            aria-hidden="true"
-            className="absolute -bottom-2 left-0 w-full"
-            height="8"
-            viewBox="0 0 300 8"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <path
-              d="M1 5.5C50 2.5 100 1 150 3C200 5 250 3.5 299 5.5"
-              stroke="url(#gradient)"
-              strokeWidth="3"
-              strokeLinecap="round"
-            />
-            <defs>
-              <linearGradient id="gradient" x1="0" y1="0" x2="300" y2="0">
-                <stop offset="0%" stopColor="#10b981" />
-                <stop offset="50%" stopColor="#0ea5e9" />
-                <stop offset="100%" stopColor="#a855f7" />
-              </linearGradient>
-            </defs>
-          </svg>
-        </span>
-      </h2>
+      <h1 className="mt-6 text-balance text-[2.6rem] font-semibold leading-[1.08] tracking-[-0.035em] text-neutral-950 sm:text-[3.4rem] lg:text-[3.75rem] dark:text-white">
+        Transform your code into{' '}
+        <span className="font-serif font-normal italic text-emerald-600 dark:text-emerald-400">
+          perfect
+        </span>{' '}
+        AI prompts.
+      </h1>
 
-      <p className="text-lg sm:text-xl text-neutral-600 dark:text-neutral-400 mb-8 leading-relaxed">
-        Securely select and combine project files on your own machine to build
-        structured prompts for AI coding assistants.
+      <p className="mt-6 max-w-xl text-pretty text-base leading-relaxed text-neutral-600 sm:text-lg dark:text-neutral-400">
+        Pick the files that matter, add the context an assistant needs, and
+        export one structured prompt. Everything is processed on your machine
+        and works with any AI model.
       </p>
 
-      <div className="flex flex-wrap justify-center md:justify-start gap-6 mb-10">
-        {stats.map(({ iconWrapperClass, icon, label }) => (
-          <div
-            key={label}
-            className="flex items-center space-x-2 text-neutral-600 dark:text-neutral-400"
-          >
-            <div className={`${iconWrapperClass} p-2 rounded-lg`}>{icon}</div>
-            <span className="text-sm font-medium">{label}</span>
-          </div>
-        ))}
-      </div>
-
-      <div className="space-y-4 text-left mb-10">
-        {featureCards.map(
-          ({
-            iconWrapperClass,
-            icon,
-            borderClass,
-            title,
-            description,
-            chevronClass,
-          }) => (
-            <div
-              key={title}
-              className={`group flex items-start space-x-4 p-4 rounded-xl bg-white dark:bg-neutral-900 border ${borderClass} transition-all duration-300 cursor-default`}
-            >
-              <div
-                className={`${iconWrapperClass} mt-0.5 p-3 rounded-xl flex-shrink-0 group-hover:scale-110 transition-transform duration-300`}
-              >
-                {icon}
-              </div>
-              <div className="flex-1">
-                <h3 className="font-semibold text-neutral-900 dark:text-white text-base mb-1">
-                  {title}
-                </h3>
-                <p className="text-neutral-600 dark:text-neutral-400 text-sm leading-relaxed">
-                  {description}
-                </p>
-              </div>
-              <ChevronRight
-                className={`h-5 w-5 text-neutral-400 group-hover:translate-x-1 transition-all duration-300 ${chevronClass}`}
-              />
-            </div>
-          ),
-        )}
-      </div>
-
-      <div className="flex justify-center md:justify-start">
+      <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
         <Button
           onClick={onGetStarted}
-          icon={<Zap className="h-5 w-5" />}
           variant="primary"
-          className="group relative px-8 py-4 text-base shadow-lg hover:shadow-2xl hover:shadow-emerald-500/30 w-full sm:w-auto transform hover:scale-105 transition-all duration-300 overflow-hidden"
+          className="group w-full px-5 py-3 text-sm font-semibold shadow-md shadow-emerald-900/10 sm:w-auto"
         >
-          <span className="relative z-10 flex items-center justify-center gap-2">
-            Get Started Free
-            <ChevronRight className="h-4 w-4 group-hover:translate-x-1 transition-transform duration-300" />
-          </span>
-          <div className="absolute inset-0 bg-gradient-to-r from-emerald-700 to-sky-700 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+          Start building
+          <ArrowRight
+            aria-hidden="true"
+            className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5"
+          />
         </Button>
+        <a
+          href="https://github.com/MontaCoder/CodeHarborAI"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex w-full items-center justify-center gap-2 rounded-lg border border-neutral-300/90 bg-white px-5 py-3 text-sm font-medium text-neutral-700 shadow-sm transition-colors hover:bg-neutral-50 sm:w-auto dark:border-neutral-700 dark:bg-neutral-900/60 dark:text-neutral-200 dark:hover:bg-neutral-800"
+        >
+          <GitHubIcon aria-hidden="true" className="h-4 w-4" />
+          Star on GitHub
+        </a>
       </div>
+
+      <ul className="mt-10 flex flex-wrap items-center gap-x-6 gap-y-3 border-t border-neutral-200/80 pt-6 text-xs font-medium text-neutral-500 dark:border-neutral-800 dark:text-neutral-400">
+        {trustPoints.map(({ icon, label }) => (
+          <li key={label} className="inline-flex items-center gap-2">
+            <span className="flex h-6 w-6 items-center justify-center rounded-md bg-white text-emerald-600 shadow-sm ring-1 ring-neutral-200/70 dark:bg-neutral-900 dark:text-emerald-400 dark:ring-neutral-800">
+              {icon}
+            </span>
+            {label}
+          </li>
+        ))}
+      </ul>
+
+      <p className="mt-6 inline-flex items-center gap-2 text-xs text-neutral-500 dark:text-neutral-400">
+        <HardDrive aria-hidden="true" className="h-3.5 w-3.5" />0 bytes
+        uploaded. Your code never leaves this device.
+      </p>
     </div>
   );
 };

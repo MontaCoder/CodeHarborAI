@@ -24,39 +24,51 @@ const MessageDisplay: React.FC<MessageDisplayProps> = ({ message, type }) => {
 
     const exitTimer = setTimeout(() => {
       setExiting(true);
-      hideTimer = setTimeout(() => setVisible(false), 300); // animation duration
-    }, 4700); // start fade out before 5s
+      hideTimer = setTimeout(() => setVisible(false), 300);
+    }, 4700);
 
     return () => {
       clearTimeout(showTimer);
       clearTimeout(exitTimer);
       if (hideTimer) clearTimeout(hideTimer);
     };
-  }, [message]); // Re-trigger on new message
+  }, [message]);
 
-  const baseClasses =
-    'fixed top-5 left-1/2 transform -translate-x-1/2 z-[100] w-auto max-w-md px-5 py-3.5 rounded-xl shadow-2xl flex items-center space-x-3 transition-all duration-300 ease-out';
+  useEffect(() => {
+    if (!visible) return;
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setExiting(true);
+        setTimeout(() => setVisible(false), 300);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [visible]);
 
   const typeClasses =
     type === 'success'
-      ? 'bg-emerald-700 border border-emerald-800/50 text-white dark:bg-emerald-800 dark:border-emerald-900/50'
-      : 'bg-red-600 border border-red-700/50 text-white dark:bg-red-700 dark:border-red-800/50';
+      ? 'bg-emerald-700 text-white dark:bg-emerald-500 dark:text-emerald-950'
+      : 'bg-red-700 text-white dark:bg-red-500 dark:text-red-950';
   const IconComponent = type === 'success' ? CheckCircle : AlertCircle;
 
   const animationClass = exiting
-    ? 'opacity-0 -translate-y-full'
-    : 'opacity-100 translate-y-0';
+    ? 'pointer-events-none -translate-y-3 opacity-0'
+    : 'translate-y-0 opacity-100';
 
-  if (!visible && !exiting) return null; // Don't render if not visible and not in process of exiting
-  if (!message) return null; // Don't render if no message
+  if (!visible) return null;
+  if (!message) return null;
 
   return (
     <div
       role="alert"
       aria-live={type === 'error' ? 'assertive' : 'polite'}
-      className={`${baseClasses} ${typeClasses} ${animationClass}`}
+      className={`fixed left-1/2 top-5 z-[100] flex w-[calc(100%-2rem)] max-w-md -translate-x-1/2 items-start gap-3 rounded-xl px-4 py-3 shadow-lift transition-all duration-300 ease-out ${typeClasses} ${animationClass}`}
     >
-      <IconComponent className="h-6 w-6 flex-shrink-0 opacity-90" />
+      <IconComponent
+        aria-hidden="true"
+        className="mt-0.5 h-5 w-5 flex-shrink-0 opacity-90"
+      />
       <div className="flex-1 text-sm font-medium leading-snug">{message}</div>
       <button
         type="button"
@@ -64,10 +76,10 @@ const MessageDisplay: React.FC<MessageDisplayProps> = ({ message, type }) => {
           setExiting(true);
           setTimeout(() => setVisible(false), 300);
         }}
-        className="ml-auto -mr-1 p-1 rounded-full hover:bg-black/10 dark:hover:bg-white/10 transition-colors text-current opacity-70 hover:opacity-100"
+        className="-mr-1 rounded-md p-1 text-current opacity-70 transition-opacity hover:opacity-100"
         aria-label="Dismiss message"
       >
-        <X className="h-5 w-5" />
+        <X aria-hidden="true" className="h-4 w-4" />
       </button>
     </div>
   );

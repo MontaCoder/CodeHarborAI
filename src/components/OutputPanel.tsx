@@ -1,9 +1,4 @@
-import {
-  CheckCircle,
-  Copy,
-  Download,
-  FileText as FileTextIcon,
-} from 'lucide-react';
+import { Check, ClipboardCopy, Download, FileTerminal } from 'lucide-react';
 import type React from 'react';
 import { memo, useCallback, useEffect, useState } from 'react';
 import Button from './ui/Button';
@@ -19,6 +14,8 @@ const OutputPanel: React.FC<OutputPanelProps> = memo(({ output }) => {
     typeof navigator !== 'undefined' &&
     /Mac|iPhone|iPad/.test(navigator.userAgent);
 
+  const lineCount = output ? output.split('\n').length : 0;
+
   const handleCopy = useCallback(async () => {
     try {
       await navigator.clipboard.writeText(output);
@@ -29,9 +26,16 @@ const OutputPanel: React.FC<OutputPanelProps> = memo(({ output }) => {
     }
   }, [output]);
 
-  // Keyboard shortcut: Ctrl/Cmd + Shift + C to copy output
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement | null;
+      if (
+        target?.closest(
+          'input:not([readonly]), textarea:not([readonly]), select, [contenteditable="true"]',
+        )
+      ) {
+        return;
+      }
       const modKey = isMac ? e.metaKey : e.ctrlKey;
       if (modKey && e.shiftKey && e.key.toLowerCase() === 'c') {
         e.preventDefault();
@@ -58,82 +62,82 @@ const OutputPanel: React.FC<OutputPanelProps> = memo(({ output }) => {
   }, [output]);
 
   return (
-    <div className="animate-fade-in space-y-5">
-      <div className="flex items-center">
-        <FileTextIcon className="w-5 h-5 mr-2.5 text-emerald-500 dark:text-emerald-400" />
-        <h2 className="text-lg font-semibold text-neutral-800 dark:text-neutral-100">
-          Generated Prompt Output
-        </h2>
-      </div>
-
-      <div className="space-y-4">
-        <div className="relative group">
-          <textarea
-            value={output}
-            readOnly
-            className="w-full h-[24rem] min-h-[16rem] p-4 border-0 ring-1 ring-inset ring-neutral-300 dark:ring-neutral-700 rounded-lg bg-neutral-50 dark:bg-neutral-800/60 text-neutral-800 dark:text-neutral-100 font-mono text-sm focus:ring-2 focus:ring-inset focus:ring-emerald-500 transition-all duration-150 resize-y shadow-sm"
-            aria-label="Combined output text"
-          />
-
-          <div className="absolute top-2.5 right-2.5 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-            <button
-              type="button"
-              onClick={handleCopy}
-              className={`p-2 rounded-md flex items-center justify-center transition-all duration-150 ease-in-out active:scale-95
-                ${
-                  copied
-                    ? 'bg-emerald-700 text-white dark:bg-emerald-700'
-                    : 'bg-neutral-200 text-neutral-600 hover:bg-neutral-300 dark:bg-neutral-700 dark:text-neutral-300 dark:hover:bg-neutral-600'
-                }`}
-              title={copied ? 'Copied!' : 'Copy to clipboard (Ctrl+Shift+C)'}
-              aria-label={copied ? 'Copied to clipboard' : 'Copy to clipboard'}
-              aria-live="polite"
-            >
-              {copied ? (
-                <CheckCircle className="h-4 w-4" />
-              ) : (
-                <Copy className="h-4 w-4" />
-              )}
-            </button>
-          </div>
+    <div className="animate-fade-in space-y-4">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h2 className="flex items-center gap-2 text-sm font-semibold tracking-tight text-neutral-900 dark:text-neutral-100">
+            <FileTerminal
+              aria-hidden="true"
+              className="h-4 w-4 text-emerald-600 dark:text-emerald-400"
+            />
+            Generated prompt
+          </h2>
+          <p className="mt-1 text-xs text-neutral-500 dark:text-neutral-400">
+            Review the context, then copy it into any AI assistant.
+          </p>
         </div>
-
-        <div className="flex flex-col sm:flex-row gap-3 pt-1">
+        <div className="flex flex-col gap-2 sm:flex-row">
           <Button
             onClick={handleDownload}
             icon={
               downloaded ? (
-                <CheckCircle className="h-4 w-4" />
+                <Check aria-hidden="true" className="h-4 w-4" />
               ) : (
-                <Download className="h-4 w-4" />
+                <Download aria-hidden="true" className="h-4 w-4" />
               )
             }
-            variant="primary"
-            className="w-full sm:w-auto text-sm px-5 py-2.5 shadow-md hover:shadow-lg"
+            variant="default"
+            className="px-3 py-2 text-xs"
             title="Download the generated prompt as a .txt file"
           >
-            {downloaded ? 'Downloaded!' : 'Download as .txt'}
+            {downloaded ? 'Downloaded' : 'Download .txt'}
           </Button>
 
           <Button
             onClick={handleCopy}
             icon={
               copied ? (
-                <CheckCircle className="h-4 w-4" />
+                <Check aria-hidden="true" className="h-4 w-4" />
               ) : (
-                <Copy className="h-4 w-4" />
+                <ClipboardCopy aria-hidden="true" className="h-4 w-4" />
               )
             }
-            variant="secondary"
-            className="w-full sm:w-auto text-sm px-5 py-2.5 shadow-md hover:shadow-lg"
+            variant="primary"
+            className="px-3 py-2 text-xs"
             aria-live="polite"
           >
-            {copied ? 'Copied to Clipboard!' : 'Copy to Clipboard'}
-            <kbd className="hidden sm:inline-flex ml-2 px-1.5 py-0.5 text-[10px] font-mono bg-neutral-200 dark:bg-neutral-700 text-neutral-500 dark:text-neutral-300 rounded">
+            {copied ? 'Copied to clipboard' : 'Copy prompt'}
+            <kbd className="ml-1 hidden font-mono text-[10px] font-normal text-current sm:inline">
               {isMac ? '⌘' : 'Ctrl'}+⇧+C
             </kbd>
           </Button>
         </div>
+      </div>
+
+      <div className="overflow-hidden rounded-xl border border-neutral-800 bg-neutral-950 shadow-inner">
+        <div className="flex items-center justify-between gap-3 border-b border-white/10 bg-white/[0.03] px-4 py-2.5">
+          <div className="flex min-w-0 items-center gap-2.5">
+            <div aria-hidden="true" className="flex items-center gap-1.5">
+              <span className="h-2 w-2 rounded-full bg-neutral-600" />
+              <span className="h-2 w-2 rounded-full bg-neutral-700" />
+              <span className="h-2 w-2 rounded-full bg-neutral-800" />
+            </div>
+            <span className="truncate font-mono text-[11px] text-neutral-400">
+              codeharbor-context.txt
+            </span>
+          </div>
+          <span className="whitespace-nowrap font-mono text-[10px] tabular-nums text-neutral-400">
+            {lineCount.toLocaleString()} lines ·{' '}
+            {output.length.toLocaleString()} chars
+          </span>
+        </div>
+        <textarea
+          value={output}
+          readOnly
+          spellCheck={false}
+          className="h-[clamp(16rem,45vh,32rem)] w-full resize-y bg-transparent p-4 font-mono text-[12.5px] leading-relaxed text-neutral-200 outline-none selection:bg-emerald-500/30 placeholder:text-neutral-600 focus-visible:ring-1 focus-visible:ring-emerald-500/60 focus-visible:ring-inset"
+          aria-label="Generated prompt text"
+        />
       </div>
     </div>
   );

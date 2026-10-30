@@ -1,19 +1,21 @@
 import {
   ArrowUpDown,
   CheckSquare,
-  Filter,
+  FileWarning,
   FolderOpen,
   RefreshCw,
+  Search,
   X,
 } from 'lucide-react';
 import type React from 'react';
-import { memo, useMemo, useRef, useState } from 'react';
+import { memo, useCallback, useMemo, useRef, useState } from 'react';
 import {
   scanLocalDirectory,
   scanMockDirectory,
 } from '../services/fileContentService';
 import type { GitHubRepoInfo } from '../services/githubService';
 import type {
+  FileSourceType,
   FolderHandle,
   GitHubFileEntry,
   LocalFileEntry,
@@ -55,10 +57,9 @@ const sortByPriority = <T extends { path: string }>(
 
 const formatIgnoreStatus = (ignoreInfo: LocalScanIgnoreInfo): string => {
   const mode = ignoreInfo.usedRootGitignore
-    ? 'defaults + root .gitignore'
-    : 'defaults only';
-
-  return `${mode}; ${ignoreInfo.ignoredCount} skipped`;
+    ? 'Defaults + .gitignore'
+    : 'Defaults only';
+  return `${mode} · ${ignoreInfo.ignoredCount} skipped`;
 };
 
 interface FileSelectorProps {
@@ -70,6 +71,8 @@ interface FileSelectorProps {
   ) => void;
   onSelectFile: (path: string, selected: boolean) => void;
   onSelectAll: (paths: string[]) => void;
+  onSourceChange: (source: FileSourceType) => void;
+  sourceType: FileSourceType;
   folderHandle: FolderHandle | null;
   fileHandles: LocalFileEntry[];
   githubFiles: GitHubFileEntry[];
@@ -84,6 +87,8 @@ const FileSelector: React.FC<FileSelectorProps> = ({
   onGitHubFilesSelected,
   onSelectFile,
   onSelectAll,
+  onSourceChange,
+  sourceType,
   folderHandle,
   fileHandles,
   githubFiles,
@@ -91,7 +96,6 @@ const FileSelector: React.FC<FileSelectorProps> = ({
   selectedFiles,
   isLoading,
 }) => {
-  const [sourceType, setSourceType] = useState<'local' | 'github'>('local');
   const [filterText, setFilterText] = useState<string>('');
   const [ignoreInfo, setIgnoreInfo] = useState<LocalScanIgnoreInfo | null>(
     null,
@@ -137,6 +141,7 @@ const FileSelector: React.FC<FileSelectorProps> = ({
         onFolderSelected(handle);
         await scanFolder(handle);
       } catch (err) {
+        if (err instanceof DOMException && err.name === 'AbortError') return;
         console.error('Error selecting folder:', err);
         setIgnoreInfo(null);
         onFilesSelected([]);
@@ -176,14 +181,6 @@ const FileSelector: React.FC<FileSelectorProps> = ({
         await scanFolder(folderHandle);
       }
     }
-  };
-
-  const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFilterText(e.target.value);
-  };
-
-  const handleClearFilter = () => {
-    setFilterText('');
   };
 
   const handleSelectAll = () => {
@@ -237,18 +234,23 @@ const FileSelector: React.FC<FileSelectorProps> = ({
     setGithubError(error);
   };
 
-  const handleSourceTypeChange = (type: 'local' | 'github') => {
-    setSourceType(type);
-    setFilterText('');
-    setGithubError('');
-    setIgnoreInfo(null);
+  const handleSourceTypeChange = useCallback(
+    (type: FileSourceType) => {
+      if (type === sourceType) return;
+      onSourceChange(type);
+      setFilterText('');
+      setGithubError('');
+    },
+    [onSourceChange, sourceType],
+  );
 
-    if (type === 'local') {
-      onFilesSelected([]);
-    } else {
-      onFolderSelected(null);
-      onFilesSelected([]);
-    }
+  const handleTabKeyDown = (event: React.KeyboardEvent<HTMLButtonElement>) => {
+    if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return;
+    event.preventDefault();
+    const nextSource: FileSourceType =
+      sourceType === 'local' ? 'github' : 'local';
+    handleSourceTypeChange(nextSource);
+    document.getElementById(`source-tab-${nextSource}`)?.focus();
   };
 
   const sortedFileHandles = useMemo(
@@ -269,237 +271,315 @@ const FileSelector: React.FC<FileSelectorProps> = ({
         .map((file) => file.path)
     : currentFiles.map((file) => file.path);
 
+  const allFilteredSelected =
+    filteredPaths.length > 0 &&
+    filteredPaths.every((path) => selectedFiles.has(path));
+
+  const hasSource =
+    sourceType === 'local' ? Boolean(folderHandle) : Boolean(githubRepoInfo);
+
   return (
-    <div className="animate-fade-in space-y-6">
-      <div className="flex items-center justify-center space-x-1 p-1 bg-neutral-100 dark:bg-neutral-800 rounded-lg">
+    <div className="animate-fade-in space-y-4">
+      <div
+        role="tablist"
+        aria-label="Choose a file source"
+        className="grid grid-cols-2 gap-1 rounded-xl border border-neutral-200/80 bg-neutral-100/70 p-1 dark:border-neutral-800 dark:bg-neutral-800/50"
+      >
         <button
+          id="source-tab-local"
           type="button"
+          role="tab"
+          aria-selected={sourceType === 'local'}
+          aria-controls="source-panel"
+          tabIndex={sourceType === 'local' ? 0 : -1}
           onClick={() => handleSourceTypeChange('local')}
-          className={`flex items-center space-x-2 px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
+          onKeyDown={handleTabKeyDown}
+          className={`flex items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-150 ${
             sourceType === 'local'
-              ? 'bg-white dark:bg-neutral-700 text-neutral-900 dark:text-neutral-100 shadow-sm'
-              : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-100'
+              ? 'bg-white text-neutral-900 shadow-sm ring-1 ring-neutral-200/70 dark:bg-neutral-900 dark:text-white dark:ring-neutral-700/70'
+              : 'text-neutral-600 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-neutral-200'
           }`}
         >
-          <FolderOpen className="h-4 w-4" />
-          <span>Local Folder</span>
+          <FolderOpen aria-hidden="true" className="h-4 w-4" />
+          Local folder
         </button>
         <button
+          id="source-tab-github"
           type="button"
+          role="tab"
+          aria-selected={sourceType === 'github'}
+          aria-controls="source-panel"
+          tabIndex={sourceType === 'github' ? 0 : -1}
           onClick={() => handleSourceTypeChange('github')}
-          className={`flex items-center space-x-2 px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
+          onKeyDown={handleTabKeyDown}
+          className={`flex items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-150 ${
             sourceType === 'github'
-              ? 'bg-white dark:bg-neutral-700 text-neutral-900 dark:text-neutral-100 shadow-sm'
-              : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-100'
+              ? 'bg-white text-neutral-900 shadow-sm ring-1 ring-neutral-200/70 dark:bg-neutral-900 dark:text-white dark:ring-neutral-700/70'
+              : 'text-neutral-600 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-neutral-200'
           }`}
         >
-          <GitHubIcon className="h-4 w-4" />
-          <span>GitHub Repo</span>
+          <GitHubIcon aria-hidden="true" className="h-4 w-4" />
+          GitHub repo
         </button>
       </div>
 
-      {sourceType === 'local' && (
-        <div className="flex flex-col sm:flex-row flex-wrap gap-3 items-center">
-          <input
-            type="file"
-            ref={fileInputRef}
-            onChange={handleFileInputChange}
-            className="hidden"
-            // @ts-expect-error webkitdirectory is a non-standard attribute but widely supported
-            webkitdirectory=""
-            directory=""
-            multiple
-          />
-          <Button
-            icon={<FolderOpen className="h-4 w-4" />}
-            onClick={handleFolderSelect}
-            disabled={isProcessing || isLoading}
-            variant="primary"
-            className="w-full sm:w-auto text-sm px-4 py-2 shadow-md hover:shadow-lg"
-          >
-            Select Project Folder
-          </Button>
+      <div
+        id="source-panel"
+        role="tabpanel"
+        aria-labelledby={`source-tab-${sourceType}`}
+        className="space-y-4"
+      >
+        <input
+          type="file"
+          ref={fileInputRef}
+          onChange={handleFileInputChange}
+          className="hidden"
+          // @ts-expect-error webkitdirectory is a non-standard attribute but widely supported
+          webkitdirectory=""
+          directory=""
+          multiple
+        />
 
-          {folderHandle && (
+        {sourceType === 'local' && !folderHandle && (
+          <div className="rounded-2xl border border-dashed border-neutral-300 bg-neutral-50/60 px-6 py-12 text-center dark:border-neutral-700 dark:bg-neutral-900/30">
+            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-white text-sky-600 shadow-sm ring-1 ring-neutral-200/80 dark:bg-neutral-900 dark:text-sky-400 dark:ring-neutral-800">
+              <FolderOpen aria-hidden="true" className="h-6 w-6" />
+            </div>
+            <h3 className="mt-4 text-sm font-semibold text-neutral-900 dark:text-neutral-100">
+              Open your project folder
+            </h3>
+            <p className="mx-auto mt-1.5 max-w-sm text-xs leading-relaxed text-neutral-500 dark:text-neutral-400">
+              Files are scanned and filtered locally. Build output,
+              dependencies, and anything in the root .gitignore are skipped
+              automatically.
+            </p>
+            <Button
+              icon={<FolderOpen aria-hidden="true" className="h-4 w-4" />}
+              onClick={handleFolderSelect}
+              disabled={isProcessing || isLoading}
+              variant="primary"
+              className="mt-5"
+            >
+              {isProcessing ? 'Scanning…' : 'Choose folder'}
+            </Button>
+            <p className="mt-3 text-[11px] text-neutral-500 dark:text-neutral-400">
+              No uploads · Works with Chrome, Edge, and Brave
+            </p>
+          </div>
+        )}
+
+        {sourceType === 'local' && folderHandle && (
+          <div className="flex flex-wrap items-center gap-2 rounded-xl border border-neutral-200/80 bg-neutral-50/60 px-3 py-2.5 dark:border-neutral-800 dark:bg-neutral-900/40">
+            <span className="inline-flex min-w-0 items-center gap-1.5 text-xs font-medium text-neutral-700 dark:text-neutral-300">
+              <FolderOpen
+                aria-hidden="true"
+                className="h-3.5 w-3.5 flex-shrink-0 text-sky-500 dark:text-sky-400"
+              />
+              <span className="truncate">{folderHandle.name}</span>
+            </span>
+            {ignoreInfo && (
+              <span
+                className="rounded-md bg-white px-1.5 py-0.5 text-[10px] font-medium text-neutral-500 ring-1 ring-neutral-200/80 dark:bg-neutral-800 dark:text-neutral-400 dark:ring-neutral-700"
+                title="Scan rules applied to this folder"
+              >
+                {formatIgnoreStatus(ignoreInfo)}
+              </span>
+            )}
             <Button
               icon={
                 <RefreshCw
-                  className={`h-4 w-4 ${isProcessing ? 'animate-spin' : ''}`}
+                  aria-hidden="true"
+                  className={`h-3.5 w-3.5 ${isProcessing ? 'animate-spin' : ''}`}
                 />
               }
               onClick={handleRefresh}
               disabled={isProcessing || isLoading}
-              variant="secondary"
-              className="w-full sm:w-auto text-sm px-4 py-2"
+              variant="default"
+              className="ml-auto px-2.5 py-1.5 text-xs"
+              title="Rescan this folder"
             >
-              Refresh Folder
+              Refresh
             </Button>
-          )}
+          </div>
+        )}
 
-          {folderHandle && (
-            <span className="text-sm text-neutral-600 dark:text-neutral-400 flex-1 min-w-0 truncate">
-              <strong className="font-medium text-neutral-700 dark:text-neutral-300">
-                Project:
-              </strong>{' '}
-              {folderHandle.name}
-              {ignoreInfo && (
-                <span className="text-xs ml-1 p-1 rounded-md bg-neutral-100 dark:bg-neutral-700">
-                  ({formatIgnoreStatus(ignoreInfo)})
+        {sourceType === 'github' && (
+          <div className="space-y-4">
+            <GitHubLoader
+              onRepositoryLoaded={handleGitHubRepositoryLoaded}
+              onError={handleGitHubError}
+              isLoading={isLoading}
+            />
+            {githubRepoInfo && (
+              <div className="flex flex-wrap items-center gap-2 rounded-xl border border-neutral-200/80 bg-neutral-50/60 px-3 py-2.5 dark:border-neutral-800 dark:bg-neutral-900/40">
+                <GitHubIcon
+                  aria-hidden="true"
+                  className="h-3.5 w-3.5 flex-shrink-0 text-neutral-600 dark:text-neutral-300"
+                />
+                <span className="truncate text-xs font-medium text-neutral-700 dark:text-neutral-300">
+                  {githubRepoInfo.owner}/{githubRepoInfo.repo}
                 </span>
-              )}
-            </span>
-          )}
-        </div>
-      )}
-
-      {sourceType === 'github' && (
-        <div className="space-y-4">
-          <GitHubLoader
-            onRepositoryLoaded={handleGitHubRepositoryLoaded}
-            onError={handleGitHubError}
-            isLoading={isLoading}
-          />
-          {githubRepoInfo && (
-            <div className="text-sm text-neutral-600 dark:text-neutral-400 text-center">
-              <strong className="font-medium text-neutral-700 dark:text-neutral-300">
-                Repository:
-              </strong>{' '}
-              {githubRepoInfo.owner}/{githubRepoInfo.repo} (
-              {githubRepoInfo.branch})
-            </div>
-          )}
-        </div>
-      )}
-
-      {(folderHandle || githubRepoInfo) && (
-        <div className="space-y-4">
-          {githubError && (
-            <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
-              <p className="text-red-700 dark:text-red-400 text-sm">
-                {githubError}
-              </p>
-            </div>
-          )}
-
-          <div className="flex flex-col sm:flex-row gap-3 items-center">
-            <div className="relative flex-grow w-full sm:w-auto">
-              <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                <Filter className="h-4 w-4 text-neutral-400 dark:text-neutral-500" />
+                <span className="rounded-md bg-white px-1.5 py-0.5 font-mono text-[10px] text-neutral-500 ring-1 ring-neutral-200/80 dark:bg-neutral-800 dark:text-neutral-400 dark:ring-neutral-700">
+                  {githubRepoInfo.branch}
+                </span>
+                <span className="ml-auto text-[10px] text-neutral-500 dark:text-neutral-400">
+                  {githubFiles.length.toLocaleString()} files cached
+                </span>
               </div>
-              <input
-                type="text"
-                placeholder="Filter files (e.g., utils, .ts, /components/)"
-                value={filterText}
-                onChange={handleFilterChange}
-                className="pl-10 pr-10 w-full py-2.5 px-4 border-0 ring-1 ring-inset ring-neutral-300 dark:ring-neutral-700 rounded-lg bg-white dark:bg-neutral-800/50 text-neutral-900 dark:text-neutral-100 focus:ring-2 focus:ring-inset focus:ring-emerald-500 transition-all duration-150 text-sm placeholder-neutral-400 dark:placeholder-neutral-500 shadow-sm"
-                disabled={isProcessing || isLoading}
-              />
-              {filterText && (
-                <button
-                  type="button"
-                  onClick={handleClearFilter}
-                  className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-neutral-400 hover:text-neutral-600 dark:text-neutral-500 dark:hover:text-neutral-300 transition-colors"
-                  aria-label="Clear filter"
+            )}
+          </div>
+        )}
+
+        {githubError && (
+          <div
+            role="alert"
+            className="rounded-lg border border-red-200 bg-red-50 px-3 py-2.5 text-xs text-red-700 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-300"
+          >
+            {githubError}
+          </div>
+        )}
+
+        {hasSource && (
+          <div className="space-y-3">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+              <div className="relative min-w-0 flex-1">
+                <label htmlFor="file-filter" className="sr-only">
+                  Filter files
+                </label>
+                <Search
+                  aria-hidden="true"
+                  className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-500 dark:text-neutral-400"
+                />
+                <input
+                  id="file-filter"
+                  type="text"
+                  placeholder="Filter by path or extension…"
+                  value={filterText}
+                  onChange={(e) => setFilterText(e.target.value)}
+                  className="w-full rounded-lg border border-neutral-300 bg-white py-2 pl-9 pr-9 text-sm text-neutral-900 shadow-sm outline-none transition-colors placeholder:text-neutral-500 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 dark:border-neutral-700 dark:bg-neutral-900/60 dark:text-neutral-100 dark:placeholder:text-neutral-400"
+                  disabled={isProcessing || isLoading}
+                />
+                {filterText && (
+                  <button
+                    type="button"
+                    onClick={() => setFilterText('')}
+                    className="absolute right-2.5 top-1/2 flex h-5 w-5 -translate-y-1/2 items-center justify-center rounded text-neutral-500 transition-colors hover:text-neutral-700 dark:text-neutral-400 dark:hover:text-neutral-200"
+                    aria-label="Clear filter"
+                  >
+                    <X aria-hidden="true" className="h-3.5 w-3.5" />
+                  </button>
+                )}
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  icon={<CheckSquare aria-hidden="true" className="h-4 w-4" />}
+                  onClick={handleSelectAll}
+                  disabled={
+                    isProcessing || isLoading || filteredPaths.length === 0
+                  }
+                  variant="secondary"
+                  className="flex-1 whitespace-nowrap px-3 py-2 text-xs sm:flex-none"
+                  title="Select or deselect all files matching the current filter"
                 >
-                  <X className="h-4 w-4" />
-                </button>
+                  {allFilteredSelected ? 'Deselect' : 'Select all'}
+                </Button>
+                <Button
+                  icon={<ArrowUpDown aria-hidden="true" className="h-4 w-4" />}
+                  onClick={() => setIsPrioritized(!isPrioritized)}
+                  disabled={isProcessing || isLoading}
+                  variant="default"
+                  className={`flex-1 whitespace-nowrap px-3 py-2 text-xs sm:flex-none ${
+                    isPrioritized
+                      ? 'border-emerald-300 bg-emerald-50 text-emerald-700 dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-300'
+                      : ''
+                  }`}
+                  aria-pressed={isPrioritized}
+                  title={
+                    isPrioritized
+                      ? 'Sorted by importance'
+                      : 'Sorted alphabetically'
+                  }
+                >
+                  {isPrioritized ? 'Smart sort' : 'A–Z'}
+                </Button>
+              </div>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-1.5">
+              <span className="mr-1 inline-flex items-center gap-1 text-[11px] font-medium text-neutral-500 dark:text-neutral-400">
+                Select by type
+              </span>
+              {Object.entries(FILE_TYPE_FILTERS).map(
+                ([typeName, extensions]) => (
+                  <button
+                    key={typeName}
+                    type="button"
+                    onClick={() => applyFileTypeFilter(extensions)}
+                    disabled={isProcessing || isLoading}
+                    className="rounded-full border border-neutral-200/80 bg-white px-2.5 py-1 text-[11px] font-medium text-neutral-600 shadow-sm transition-colors hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-700 disabled:cursor-not-allowed disabled:opacity-50 dark:border-neutral-700 dark:bg-neutral-900/60 dark:text-neutral-300 dark:hover:border-emerald-500/30 dark:hover:bg-emerald-500/10 dark:hover:text-emerald-300"
+                  >
+                    {typeName}
+                  </button>
+                ),
               )}
             </div>
-            <Button
-              icon={<CheckSquare className="h-4 w-4" />}
-              onClick={handleSelectAll}
-              disabled={isProcessing || isLoading || filteredPaths.length === 0}
-              variant="secondary"
-              className="w-full sm:w-auto text-sm px-4 py-2.5 whitespace-nowrap"
-              title="Select or deselect all files matching the current filter"
-            >
-              {filteredPaths.every((path) => selectedFiles.has(path)) &&
-              filteredPaths.length > 0
-                ? 'Deselect Filtered'
-                : 'Select Filtered'}
-            </Button>
-            <Button
-              icon={<ArrowUpDown className="h-4 w-4" />}
-              onClick={() => setIsPrioritized(!isPrioritized)}
-              disabled={isProcessing || isLoading}
-              variant="secondary"
-              className={`w-full sm:w-auto text-sm px-4 py-2.5 whitespace-nowrap ${
-                isPrioritized ? 'ring-2 ring-emerald-500' : ''
-              }`}
-              title={
-                isPrioritized
-                  ? 'Smart Sort: files prioritized by importance'
-                  : 'Sort A-Z: alphabetical order'
-              }
-            >
-              {isPrioritized ? 'Smart Sort' : 'Sort A-Z'}
-            </Button>
           </div>
+        )}
 
-          <div className="flex flex-wrap gap-2 items-center">
-            <span className="text-sm font-medium text-neutral-700 dark:text-neutral-300 mr-2">
-              Quick Filters:
-            </span>
-            {Object.entries(FILE_TYPE_FILTERS)
-              .slice(0, 5)
-              .map(([typeName, extensions]) => (
-                <button
-                  key={typeName}
-                  type="button"
-                  onClick={() => applyFileTypeFilter(extensions)}
-                  disabled={isProcessing || isLoading}
-                  className="px-3 py-1 text-xs font-medium rounded-full transition-colors duration-150
-                          bg-neutral-100 text-neutral-700 hover:bg-emerald-100 hover:text-emerald-700
-                          dark:bg-neutral-700/80 dark:text-neutral-200 dark:hover:bg-emerald-500/30 dark:hover:text-emerald-300
-                          focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
-                >
-                  {typeName}
-                </button>
-              ))}
+        {isProcessing ? (
+          <div className="flex flex-col items-center justify-center gap-3 rounded-xl border border-neutral-200/80 bg-neutral-50/60 py-14 dark:border-neutral-800 dark:bg-neutral-900/30">
+            <RefreshCw
+              aria-hidden="true"
+              className="h-6 w-6 animate-spin text-emerald-500"
+            />
+            <p className="text-sm text-neutral-600 dark:text-neutral-400">
+              Scanning folder…
+            </p>
           </div>
-
-          {isProcessing ? (
-            <div className="text-center py-10">
-              <RefreshCw className="h-8 w-8 text-emerald-500 animate-spin mx-auto mb-3" />
-              <p className="text-neutral-600 dark:text-neutral-400">
-                {sourceType === 'local'
-                  ? 'Scanning folder...'
-                  : 'Loading repository...'}
-              </p>
+        ) : sourceType === 'local' && fileHandles.length > 0 ? (
+          <FileTree
+            files={sortedFileHandles}
+            filterText={filterText}
+            selectedFiles={selectedFiles}
+            onSelectFile={onSelectFile}
+            isLoading={isLoading}
+            filteredPaths={filteredPaths}
+          />
+        ) : sourceType === 'github' && githubFiles.length > 0 ? (
+          <FileTree
+            files={sortedGithubFiles}
+            filterText={filterText}
+            selectedFiles={selectedFiles}
+            onSelectFile={onSelectFile}
+            isLoading={isLoading}
+            filteredPaths={filteredPaths}
+          />
+        ) : hasSource ? (
+          <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-neutral-300 bg-neutral-50/60 px-6 py-12 text-center dark:border-neutral-700 dark:bg-neutral-900/30">
+            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-white text-neutral-500 shadow-sm ring-1 ring-neutral-200/80 dark:bg-neutral-900 dark:text-neutral-400 dark:ring-neutral-800">
+              <FileWarning aria-hidden="true" className="h-5 w-5" />
             </div>
-          ) : sourceType === 'local' && fileHandles.length > 0 ? (
-            <FileTree
-              files={sortedFileHandles}
-              filterText={filterText}
-              selectedFiles={selectedFiles}
-              onSelectFile={onSelectFile}
-              isLoading={isLoading}
-              filteredPaths={filteredPaths}
-            />
-          ) : sourceType === 'github' && githubFiles.length > 0 ? (
-            <FileTree
-              files={sortedGithubFiles}
-              filterText={filterText}
-              selectedFiles={selectedFiles}
-              onSelectFile={onSelectFile}
-              isLoading={isLoading}
-              filteredPaths={filteredPaths}
-            />
-          ) : folderHandle || githubRepoInfo ? (
-            <p className="text-center text-neutral-500 dark:text-neutral-400 py-10">
-              {sourceType === 'local'
-                ? 'No text files found in the selected folder or matching filters.'
-                : 'No text files found in the repository or matching filters.'}
+            <p className="mt-3 text-sm font-medium text-neutral-800 dark:text-neutral-200">
+              No readable text files found
             </p>
-          ) : (
-            <p className="text-center text-neutral-500 dark:text-neutral-400 py-10">
+            <p className="mt-1 max-w-xs text-xs leading-relaxed text-neutral-500 dark:text-neutral-400">
               {sourceType === 'local'
-                ? 'Select a project folder to view files.'
-                : 'Load a GitHub repository to view files.'}
+                ? 'Try another folder or check that it contains text files.'
+                : 'This repository may only contain binary or unsupported files.'}
             </p>
-          )}
-        </div>
-      )}
+            {sourceType === 'local' && (
+              <Button
+                onClick={handleFolderSelect}
+                variant="secondary"
+                className="mt-4"
+                disabled={isProcessing || isLoading}
+              >
+                Choose another folder
+              </Button>
+            )}
+          </div>
+        ) : null}
+      </div>
     </div>
   );
 };

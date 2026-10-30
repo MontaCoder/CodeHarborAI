@@ -1,6 +1,9 @@
 import {
   ChevronDown,
   ChevronRight,
+  File,
+  FileCode2,
+  FileJson,
   FileText,
   Folder,
   FolderOpen as FolderOpenIcon,
@@ -27,6 +30,44 @@ interface FileTreeProps {
   isLoading: boolean;
   filteredPaths: string[];
 }
+
+const getFileVisual = (
+  fileName: string,
+): { Icon: typeof File; className: string } => {
+  const extension = fileName.split('.').pop()?.toLowerCase() ?? '';
+
+  if (extension === 'ts' || extension === 'tsx') {
+    return { Icon: FileCode2, className: 'text-sky-500 dark:text-sky-400' };
+  }
+  if (['js', 'jsx', 'mjs', 'cjs'].includes(extension)) {
+    return { Icon: FileCode2, className: 'text-amber-500 dark:text-amber-400' };
+  }
+  if (extension === 'json') {
+    return {
+      Icon: FileJson,
+      className: 'text-violet-500 dark:text-violet-400',
+    };
+  }
+  if (['md', 'mdx', 'txt'].includes(extension)) {
+    return {
+      Icon: FileText,
+      className: 'text-emerald-600 dark:text-emerald-400',
+    };
+  }
+  return { Icon: File, className: 'text-neutral-500 dark:text-neutral-400' };
+};
+
+const formatFileMeta = (node: TreeNode): string => {
+  const lines = node.lines ?? 0;
+  if (node.size === undefined) return `${lines.toLocaleString()} lines`;
+  const size =
+    node.size < 1024
+      ? `${node.size} B`
+      : node.size >= 1024 * 1024
+        ? `${(node.size / (1024 * 1024)).toFixed(1)} MB`
+        : `${(node.size / 1024).toFixed(1).replace(/\.0$/, '')} KB`;
+  return `${size} · ${lines.toLocaleString()} lines`;
+};
 
 const FileTree: React.FC<FileTreeProps> = ({
   files,
@@ -84,24 +125,19 @@ const FileTree: React.FC<FileTreeProps> = ({
 
     const expanded = new Set<string>(['']);
     const collectExpanded = (node: TreeNode) => {
-      if (node.type === 'directory') {
-        const hasMatchingDescendant = Object.values(node.children).some(
-          (child) =>
-            child.path.toLowerCase().includes(filterText.toLowerCase()) ||
-            (child.type === 'directory' &&
-              Object.values(child.children).some((gc) =>
-                gc.path.toLowerCase().includes(filterText.toLowerCase()),
-              )),
-        );
-        if (hasMatchingDescendant) {
-          expanded.add(node.path);
-        }
-        Object.values(node.children).forEach(collectExpanded);
+      if (node.type !== 'directory') return;
+      if (
+        node.path === '' ||
+        filteredPaths.some((path) => path.startsWith(`${node.path}/`))
+      ) {
+        expanded.add(node.path);
       }
+      Object.values(node.children).forEach(collectExpanded);
     };
+
     collectExpanded(treeData);
     return expanded;
-  }, [treeData, filterText]);
+  }, [treeData, filterText, filteredPaths]);
 
   const effectiveExpandedDirs = useMemo(() => {
     if (filterText.trim() === '') {
@@ -194,7 +230,6 @@ const FileTree: React.FC<FileTreeProps> = ({
     });
   };
 
-  // Build flat list of visible nodes for optimized rendering
   const visibleNodes = useMemo(() => {
     const nodes: (TreeNode & { depth: number })[] = [];
     const addNode = (node: TreeNode, depth = 0) => {
@@ -241,7 +276,7 @@ const FileTree: React.FC<FileTreeProps> = ({
 
   if (files.length === 0) {
     return (
-      <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+      <div className="rounded-xl border border-dashed border-neutral-300 px-6 py-8 text-center text-sm text-neutral-500 dark:border-neutral-700 dark:text-neutral-400">
         {filterText.trim()
           ? 'No files match your filter.'
           : 'Please select a folder to view files.'}
@@ -251,7 +286,7 @@ const FileTree: React.FC<FileTreeProps> = ({
 
   if (!filteredAndSortedTree || visibleNodes.length === 0) {
     return (
-      <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+      <div className="rounded-xl border border-dashed border-neutral-300 px-6 py-8 text-center text-sm text-neutral-500 dark:border-neutral-700 dark:text-neutral-400">
         {filterText
           ? 'No files or folders match your filter.'
           : 'Project is empty or contains no text files.'}
@@ -260,75 +295,95 @@ const FileTree: React.FC<FileTreeProps> = ({
   }
 
   return (
-    <div className="bg-neutral-50/50 dark:bg-neutral-800/30 rounded-lg p-3 space-y-1 max-h-[600px] overflow-y-auto ring-1 ring-neutral-200 dark:ring-neutral-700/50 shadow-inner">
-      {visibleNodes.map((node) => {
-        const isExpanded = effectiveExpandedDirs.has(node.path);
-        const isSelected =
-          node.type === 'file' ? selectedFiles.has(node.path) : false;
+    <div className="overflow-hidden rounded-xl border border-neutral-200/80 bg-neutral-50/40 dark:border-neutral-800 dark:bg-neutral-900/30">
+      <div className="flex items-center justify-between border-b border-neutral-200/80 bg-white/60 px-3 py-2 dark:border-neutral-800 dark:bg-neutral-900/50">
+        <span className="text-[11px] font-semibold uppercase tracking-[0.12em] text-neutral-500 dark:text-neutral-400">
+          Files
+        </span>
+        <span className="text-[11px] tabular-nums text-neutral-500 dark:text-neutral-400">
+          {selectedFiles.size.toLocaleString()} selected
+        </span>
+      </div>
 
-        let dirCheckboxState: 'checked' | 'indeterminate' | 'unchecked' =
-          'unchecked';
-        let filesInCurrentFilteredDir: string[] = [];
+      <div className="max-h-[clamp(18rem,46vh,34rem)] space-y-0.5 overflow-y-auto p-1.5">
+        {visibleNodes.map((node) => {
+          const isExpanded = effectiveExpandedDirs.has(node.path);
+          const isSelected =
+            node.type === 'file' ? selectedFiles.has(node.path) : false;
 
-        if (node.type === 'directory') {
-          filesInCurrentFilteredDir = getFilesInDirectory(node);
-          const selectedFilesInDirCount = filesInCurrentFilteredDir.filter(
-            (p) => selectedFiles.has(p),
-          ).length;
+          let dirCheckboxState: 'checked' | 'indeterminate' | 'unchecked' =
+            'unchecked';
+          let filesInCurrentFilteredDir: string[] = [];
 
-          if (filesInCurrentFilteredDir.length > 0) {
-            if (selectedFilesInDirCount === filesInCurrentFilteredDir.length) {
-              dirCheckboxState = 'checked';
-            } else if (selectedFilesInDirCount > 0) {
-              dirCheckboxState = 'indeterminate';
+          if (node.type === 'directory') {
+            filesInCurrentFilteredDir = getFilesInDirectory(node);
+            const selectedFilesInDirCount = filesInCurrentFilteredDir.filter(
+              (p) => selectedFiles.has(p),
+            ).length;
+
+            if (filesInCurrentFilteredDir.length > 0) {
+              if (
+                selectedFilesInDirCount === filesInCurrentFilteredDir.length
+              ) {
+                dirCheckboxState = 'checked';
+              } else if (selectedFilesInDirCount > 0) {
+                dirCheckboxState = 'indeterminate';
+              }
             }
           }
-        }
 
-        const baseRowClasses =
-          'flex items-center py-2 px-2.5 rounded-md transition-colors duration-100 cursor-pointer';
-        const hoverClasses = 'hover:bg-neutral-100 dark:hover:bg-neutral-800';
-        const selectedClasses = isSelected
-          ? 'bg-emerald-50 dark:bg-emerald-500/10'
-          : '';
-        const interactionDisabledClass = isLoading
-          ? 'opacity-60 cursor-not-allowed'
-          : '';
+          const interactionDisabledClass = isLoading
+            ? 'cursor-not-allowed opacity-60'
+            : '';
+          const selectedClasses = isSelected
+            ? 'bg-emerald-50/80 dark:bg-emerald-500/10'
+            : 'hover:bg-white/80 dark:hover:bg-neutral-800/60';
+          const FileIcon =
+            node.type === 'file' ? getFileVisual(node.name) : undefined;
 
-        return (
-          <div
-            key={node.path}
-            style={{
-              paddingLeft: `${node.depth * 1.5}rem`,
-            }}
-          >
+          return (
             <div
-              className={`group ${baseRowClasses} ${hoverClasses} ${selectedClasses} ${interactionDisabledClass}`}
+              key={node.path}
+              style={{ paddingLeft: `${node.depth * 1.1}rem` }}
             >
-              {node.type === 'directory' ? (
-                <>
-                  <button
-                    type="button"
-                    onClick={() => !isLoading && toggleDir(node.path)}
-                    disabled={isLoading}
-                    className="mr-1.5 p-0.5 rounded hover:bg-neutral-200 dark:hover:bg-neutral-600 text-neutral-500 dark:text-neutral-400"
-                    aria-label={
-                      isExpanded ? 'Collapse folder' : 'Expand folder'
-                    }
-                  >
+              <div
+                className={`group flex items-center rounded-lg px-2 py-1.5 transition-colors duration-100 ${interactionDisabledClass} ${selectedClasses}`}
+              >
+                {node.type === 'directory' ? (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => !isLoading && toggleDir(node.path)}
+                      disabled={isLoading}
+                      className="mr-1 flex h-5 w-5 flex-shrink-0 cursor-pointer items-center justify-center rounded text-neutral-500 transition-colors hover:bg-neutral-200/70 hover:text-neutral-700 disabled:cursor-not-allowed dark:hover:bg-neutral-700 dark:hover:text-neutral-200"
+                      aria-label={
+                        isExpanded ? 'Collapse folder' : 'Expand folder'
+                      }
+                      aria-expanded={isExpanded}
+                    >
+                      {isExpanded ? (
+                        <ChevronDown
+                          aria-hidden="true"
+                          className="h-3.5 w-3.5"
+                        />
+                      ) : (
+                        <ChevronRight
+                          aria-hidden="true"
+                          className="h-3.5 w-3.5"
+                        />
+                      )}
+                    </button>
                     {isExpanded ? (
-                      <ChevronDown className="h-4 w-4" />
+                      <FolderOpenIcon
+                        aria-hidden="true"
+                        className="mr-1.5 h-4 w-4 flex-shrink-0 text-sky-500 dark:text-sky-400"
+                      />
                     ) : (
-                      <ChevronRight className="h-4 w-4" />
+                      <Folder
+                        aria-hidden="true"
+                        className="mr-1.5 h-4 w-4 flex-shrink-0 text-sky-500 dark:text-sky-400"
+                      />
                     )}
-                  </button>
-                  {isExpanded ? (
-                    <FolderOpenIcon className="h-4 w-4 text-sky-500 dark:text-sky-400 mr-2 flex-shrink-0" />
-                  ) : (
-                    <Folder className="h-4 w-4 text-sky-500 dark:text-sky-400 mr-2 flex-shrink-0" />
-                  )}
-
-                  {filesInCurrentFilteredDir.length > 0 && (
                     <input
                       type="checkbox"
                       checked={dirCheckboxState === 'checked'}
@@ -341,64 +396,63 @@ const FileTree: React.FC<FileTreeProps> = ({
                         !isLoading &&
                         handleDirectoryCheckboxChange(node, e.target.checked)
                       }
-                      className="mr-2 h-4 w-4 rounded border-neutral-300 dark:border-neutral-600 text-emerald-600 focus:ring-emerald-500 bg-white dark:bg-neutral-700 dark:checked:bg-emerald-600 dark:checked:border-emerald-600 shadow-sm transition-all"
+                      className="mr-2 h-4 w-4 cursor-pointer rounded border-neutral-300 focus:ring-emerald-500 focus:ring-offset-0 dark:border-neutral-600"
                       disabled={isLoading}
                       aria-label={`Select all files in ${
                         node.name || 'Project Root'
                       }`}
                     />
-                  )}
-                  <button
-                    type="button"
-                    className="text-left text-sm text-neutral-700 dark:text-neutral-200 select-none truncate"
-                    onClick={() => !isLoading && toggleDir(node.path)}
-                    disabled={isLoading}
-                  >
-                    {node.name || 'Project Root'}
-                  </button>
-                </>
-              ) : (
-                <>
-                  <span
-                    style={{ width: `${1.5}rem` }}
-                    className="mr-1.5 flex-shrink-0"
-                  />
-                  <FileText className="h-4 w-4 text-neutral-500 dark:text-neutral-400 mr-2 flex-shrink-0" />
-                  <input
-                    type="checkbox"
-                    checked={isSelected}
-                    onChange={(e) =>
-                      !isLoading && onSelectFile(node.path, e.target.checked)
-                    }
-                    className="mr-2 h-4 w-4 rounded border-neutral-300 dark:border-neutral-600 text-emerald-600 focus:ring-emerald-500 bg-white dark:bg-neutral-700 dark:checked:bg-emerald-600 dark:checked:border-emerald-600 shadow-sm transition-all"
-                    disabled={isLoading}
-                    aria-label={`Select file ${node.name}`}
-                  />
-                  <button
-                    type="button"
-                    className="text-left text-sm text-neutral-700 dark:text-neutral-200 select-none truncate"
-                    onClick={() =>
-                      !isLoading && onSelectFile(node.path, !isSelected)
-                    }
-                    disabled={isLoading}
-                  >
-                    {node.name}
-                  </button>
-                  <span
-                    className={`ml-auto pl-2 text-xs text-neutral-500 dark:text-neutral-400 whitespace-nowrap select-none ${
-                      isSelected ? '' : 'hidden group-hover:inline'
-                    }`}
-                  >
-                    {node.size === undefined
-                      ? `${node.lines ?? 0} lines`
-                      : `${(node.size / 1024).toFixed(1).replace(/\.0$/, '')} KB, ${node.lines ?? 0} lines`}
-                  </span>
-                </>
-              )}
+                    <button
+                      type="button"
+                      className="min-w-0 flex-1 cursor-pointer truncate text-left text-sm text-neutral-700 select-none disabled:cursor-not-allowed dark:text-neutral-200"
+                      onClick={() => !isLoading && toggleDir(node.path)}
+                      disabled={isLoading}
+                    >
+                      {node.name}
+                    </button>
+                    <span className="ml-auto hidden pl-2 text-[10px] whitespace-nowrap text-neutral-600 group-hover:inline dark:text-neutral-400">
+                      {filesInCurrentFilteredDir.length.toLocaleString()} files
+                    </span>
+                  </>
+                ) : (
+                  <>
+                    <span className="mr-1 h-5 w-5 flex-shrink-0" />
+                    {FileIcon && (
+                      <FileIcon.Icon
+                        aria-hidden="true"
+                        className={`mr-1.5 h-4 w-4 flex-shrink-0 ${FileIcon.className}`}
+                      />
+                    )}
+                    <input
+                      type="checkbox"
+                      checked={isSelected}
+                      onChange={(e) =>
+                        !isLoading && onSelectFile(node.path, e.target.checked)
+                      }
+                      className="mr-2 h-4 w-4 cursor-pointer rounded border-neutral-300 focus:ring-emerald-500 focus:ring-offset-0 dark:border-neutral-600"
+                      disabled={isLoading}
+                      aria-label={`Select file ${node.name}`}
+                    />
+                    <button
+                      type="button"
+                      className="min-w-0 flex-1 cursor-pointer truncate text-left text-sm text-neutral-700 select-none disabled:cursor-not-allowed dark:text-neutral-200"
+                      onClick={() =>
+                        !isLoading && onSelectFile(node.path, !isSelected)
+                      }
+                      disabled={isLoading}
+                    >
+                      {node.name}
+                    </button>
+                    <span className="ml-auto hidden pl-2 text-[10px] whitespace-nowrap text-neutral-600 sm:inline dark:text-neutral-400">
+                      {formatFileMeta(node)}
+                    </span>
+                  </>
+                )}
+              </div>
             </div>
-          </div>
-        );
-      })}
+          );
+        })}
+      </div>
     </div>
   );
 };

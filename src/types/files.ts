@@ -26,3 +26,5 @@ export interface MockDirectoryHandle {
 }
 
 export type FolderHandle = FileSystemDirectoryHandle | MockDirectoryHandle;
+
+export type FileSourceType = 'local' | 'github';

@@ -3,53 +3,47 @@ import type { ReactNode } from 'react';
 
 type ButtonVariant = 'primary' | 'secondary' | 'accent' | 'danger' | 'default';
 
-interface ButtonProps {
+interface ButtonProps extends Omit<
+  React.ButtonHTMLAttributes<HTMLButtonElement>,
+  'children'
+> {
   children: ReactNode;
-  onClick: () => void;
   icon?: ReactNode;
-  disabled?: boolean;
   variant?: ButtonVariant;
-  className?: string;
-  title?: string;
 }
-
-const DISABLED_CLASSES =
-  'bg-neutral-200 text-neutral-600 dark:bg-neutral-700 dark:text-neutral-300 cursor-not-allowed';
 
 const VARIANT_CLASSES: Record<ButtonVariant, string> = {
   primary:
-    'bg-emerald-700 hover:bg-emerald-800 text-white shadow-sm hover:shadow',
+    'bg-emerald-700 text-white shadow-sm shadow-emerald-900/10 hover:bg-emerald-800 active:bg-emerald-900 dark:bg-emerald-500 dark:text-emerald-950 dark:hover:bg-emerald-400 dark:active:bg-emerald-300',
   secondary:
-    'bg-neutral-100 hover:bg-neutral-200 text-neutral-700 dark:bg-neutral-800 dark:hover:bg-neutral-700 dark:text-neutral-200',
-  accent: 'bg-purple-600 hover:bg-purple-700 text-white shadow-sm hover:shadow',
-  danger: 'bg-red-600 hover:bg-red-700 text-white shadow-sm hover:shadow',
+    'bg-neutral-100 text-neutral-700 hover:bg-neutral-200/80 active:bg-neutral-200 dark:bg-neutral-800 dark:text-neutral-200 dark:hover:bg-neutral-700/80',
+  accent:
+    'bg-sky-600 text-white shadow-sm hover:bg-sky-700 active:bg-sky-800 dark:bg-sky-500 dark:text-sky-950 dark:hover:bg-sky-400',
+  danger:
+    'bg-red-600 text-white shadow-sm hover:bg-red-700 active:bg-red-800 dark:bg-red-500 dark:text-red-950 dark:hover:bg-red-400',
   default:
-    'bg-white hover:bg-neutral-50 text-neutral-700 border border-neutral-300 dark:bg-neutral-800 dark:hover:bg-neutral-700 dark:text-neutral-200 dark:border-neutral-700',
+    'border border-neutral-300/90 bg-white text-neutral-700 shadow-sm hover:bg-neutral-50 active:bg-neutral-100 dark:border-neutral-700 dark:bg-neutral-900/60 dark:text-neutral-200 dark:hover:bg-neutral-800',
 };
 
 const Button: React.FC<ButtonProps> = ({
   children,
-  onClick,
   icon,
   disabled = false,
   variant = 'default',
   className = '',
-  title,
+  type = 'button',
+  ...props
 }) => {
   const buttonClass = [
-    'flex items-center justify-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all duration-200',
-    disabled ? DISABLED_CLASSES : VARIANT_CLASSES[variant],
+    'inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-colors duration-150',
+    disabled
+      ? 'cursor-not-allowed bg-neutral-200 text-neutral-500 shadow-none dark:bg-neutral-800 dark:text-neutral-500'
+      : VARIANT_CLASSES[variant],
     className,
   ].join(' ');
 
   return (
-    <button
-      type="button"
-      className={buttonClass}
-      onClick={onClick}
-      disabled={disabled}
-      title={title}
-    >
+    <button type={type} className={buttonClass} disabled={disabled} {...props}>
       {icon && <span className="flex-shrink-0">{icon}</span>}
       {children}
     </button>

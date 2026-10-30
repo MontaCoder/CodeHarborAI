@@ -4,22 +4,31 @@
  */
 
 export const inputClasses =
-  'w-full px-3 py-2 rounded-lg border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100 focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition-all duration-150 text-sm';
+  'w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 shadow-sm outline-none transition-colors duration-150 placeholder:text-neutral-400 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 dark:border-neutral-700 dark:bg-neutral-900/60 dark:text-neutral-100 dark:placeholder:text-neutral-500';
 
 export const inputRingClasses =
-  'w-full py-2 px-3.5 border-0 ring-1 ring-inset ring-neutral-300 dark:ring-neutral-700 rounded-lg bg-white dark:bg-neutral-800/50 text-neutral-900 dark:text-neutral-100 focus:ring-2 focus:ring-inset focus:ring-emerald-500 transition-all duration-150 text-sm placeholder-neutral-400 dark:placeholder-neutral-500 shadow-sm';
+  'w-full rounded-lg border border-neutral-300 bg-white px-3.5 py-2 text-sm text-neutral-900 shadow-sm outline-none transition-colors duration-150 placeholder:text-neutral-400 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 dark:border-neutral-700 dark:bg-neutral-900/60 dark:text-neutral-100 dark:placeholder:text-neutral-500';
 
 export const checkboxClasses =
-  'rounded border-neutral-300 dark:border-neutral-600 text-emerald-500 focus:ring-emerald-500 focus:ring-offset-0 bg-white dark:bg-neutral-800';
+  'h-4 w-4 cursor-pointer rounded border-neutral-300 bg-white text-emerald-600 focus:ring-emerald-500 focus:ring-offset-0 dark:border-neutral-600 dark:bg-neutral-800';
 
 export const checkboxTreeClasses =
-  'h-4 w-4 rounded border-neutral-300 dark:border-neutral-600 text-emerald-600 focus:ring-emerald-500 bg-white dark:bg-neutral-700 dark:checked:bg-emerald-600 dark:checked:border-emerald-600 shadow-sm transition-all';
+  'h-4 w-4 cursor-pointer rounded border-neutral-300 bg-white text-emerald-600 shadow-sm transition-all focus:ring-emerald-500 focus:ring-offset-0 dark:border-neutral-600 dark:bg-neutral-800';
 
 export const cardClasses =
-  'bg-white dark:bg-neutral-900 rounded-2xl shadow-lg border border-neutral-200 dark:border-neutral-800 p-6 md:p-8';
+  'rounded-2xl border border-neutral-200/80 bg-white shadow-soft dark:border-neutral-800 dark:bg-neutral-900/60';
 
 export const themeToggleClasses =
-  'p-2 rounded-full text-neutral-500 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-neutral-950 transition-colors duration-150';
+  'flex h-9 w-9 items-center justify-center rounded-lg border border-transparent text-neutral-500 transition-colors duration-150 hover:border-neutral-200 hover:bg-white hover:text-neutral-900 dark:text-neutral-400 dark:hover:border-neutral-700 dark:hover:bg-neutral-800/70 dark:hover:text-neutral-100';
 
 export const headerClasses =
-  'backdrop-blur-md bg-white/80 dark:bg-neutral-900/80 border-b border-neutral-200 dark:border-neutral-800 px-4 sm:px-8 py-3 flex justify-between items-center sticky top-0 z-20 shadow-sm';
+  'sticky top-0 z-30 border-b border-neutral-200/80 bg-stone-50/85 backdrop-blur-xl dark:border-neutral-800/80 dark:bg-neutral-950/80';
+
+export const sectionTitleClasses =
+  'text-sm font-semibold tracking-tight text-neutral-900 dark:text-neutral-100';
+
+export const sectionHintClasses =
+  'text-xs leading-relaxed text-neutral-500 dark:text-neutral-400';
+
+export const chipClasses =
+  'inline-flex items-center gap-1.5 rounded-full border border-neutral-200/80 bg-white px-2.5 py-1 text-xs font-medium text-neutral-600 shadow-sm dark:border-neutral-700/70 dark:bg-neutral-900/60 dark:text-neutral-300';

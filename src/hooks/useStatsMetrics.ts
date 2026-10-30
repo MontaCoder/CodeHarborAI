@@ -1,7 +1,11 @@
 import { useMemo } from 'react';
 import type { Context7Doc } from '../services/context7Service';
 import { Context7Service } from '../services/context7Service';
-import type { GitHubFileEntry, LocalFileEntry } from '../types/files';
+import type {
+  FileSourceType,
+  GitHubFileEntry,
+  LocalFileEntry,
+} from '../types/files';
 import {
   estimateTextTokens,
   estimateTokensFromBytesLines,
@@ -25,6 +29,7 @@ interface UseStatsMetricsArgs {
   selectedFiles: Set<string>;
   fileHandles: LocalFileEntry[];
   githubFiles: GitHubFileEntry[];
+  activeSource: FileSourceType;
   includeContext7Docs: boolean;
   context7Docs: Context7Doc[];
   smartOptions: SmartOptionsSnapshot;
@@ -42,7 +47,7 @@ interface SelectedFileSummary {
   lines: number;
 }
 
-interface StatsMetricsResult {
+export interface StatsMetricsResult {
   sizeKB: number;
   estimatedTokens: number;
   budgetTokens: number;
@@ -76,6 +81,7 @@ export const useStatsMetrics = ({
   selectedFiles,
   fileHandles,
   githubFiles,
+  activeSource,
   includeContext7Docs,
   context7Docs,
   smartOptions,
@@ -85,7 +91,7 @@ export const useStatsMetrics = ({
   minifyOutput,
 }: UseStatsMetricsArgs): StatsMetricsResult => {
   return useMemo(() => {
-    const activeFiles = fileHandles.length > 0 ? fileHandles : githubFiles;
+    const activeFiles = activeSource === 'local' ? fileHandles : githubFiles;
     const selectedPaths = new Set(selectedFiles);
     const selectedCount = selectedPaths.size;
     const totalCount = activeFiles.length;
@@ -137,7 +143,9 @@ export const useStatsMetrics = ({
       ? optimizedTokens
       : rawTokens;
 
-    const tokenSavings = rawTokens - optimizedTokens;
+    const tokenSavings = smartOptions.enableSmartOptimization
+      ? rawTokens - optimizedTokens
+      : 0;
     const savingsPercent =
       rawTokens > 0 ? Math.round((tokenSavings / rawTokens) * 100) : 0;
 
@@ -233,6 +241,7 @@ export const useStatsMetrics = ({
     selectedFiles,
     fileHandles,
     githubFiles,
+    activeSource,
     includeContext7Docs,
     context7Docs,
     smartOptions.enableSmartOptimization,

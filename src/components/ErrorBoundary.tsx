@@ -1,3 +1,4 @@
+import { AlertTriangle, RotateCcw } from 'lucide-react';
 import { Component, type ErrorInfo, type ReactNode } from 'react';
 
 interface ErrorBoundaryProps {
@@ -32,21 +33,25 @@ export class ErrorBoundary extends Component<
       if (this.props.fallback) return this.props.fallback;
 
       return (
-        <div className="min-h-screen flex items-center justify-center bg-neutral-50 dark:bg-neutral-950 p-8">
-          <div className="text-center max-w-md">
-            <div className="text-6xl mb-4">⚠️</div>
-            <h2 className="text-xl font-bold text-neutral-900 dark:text-white mb-2">
+        <div className="flex min-h-[70vh] items-center justify-center p-6">
+          <div className="w-full max-w-md rounded-2xl border border-neutral-200/80 bg-white p-8 text-center shadow-soft dark:border-neutral-800 dark:bg-neutral-900">
+            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-red-50 text-red-600 ring-1 ring-red-200/70 dark:bg-red-500/10 dark:text-red-400 dark:ring-red-500/20">
+              <AlertTriangle aria-hidden="true" className="h-6 w-6" />
+            </div>
+            <h2 className="mt-5 text-lg font-semibold tracking-tight text-neutral-900 dark:text-white">
               Something went wrong
             </h2>
-            <p className="text-neutral-600 dark:text-neutral-400 mb-6 text-sm">
-              {this.state.error?.message ?? 'An unexpected error occurred.'}
+            <p className="mt-2 text-sm leading-relaxed text-neutral-600 dark:text-neutral-400">
+              {this.state.error?.message ??
+                'An unexpected error occurred while rendering this page.'}
             </p>
             <button
               type="button"
               onClick={() => this.setState({ hasError: false, error: null })}
-              className="px-4 py-2 bg-emerald-700 hover:bg-emerald-800 text-white rounded-md text-sm font-medium transition-colors"
+              className="mt-6 inline-flex items-center gap-2 rounded-lg bg-emerald-700 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-emerald-800 dark:bg-emerald-500 dark:text-emerald-950 dark:hover:bg-emerald-400"
             >
-              Try Again
+              <RotateCcw aria-hidden="true" className="h-4 w-4" />
+              Try again
             </button>
           </div>
         </div>

@@ -1,10 +1,11 @@
 import {
   BookOpen,
-  Brain,
+  BookTemplate,
   FileText,
   Link as LinkIcon,
   Loader2,
-  Settings2,
+  MessageSquareText,
+  SlidersHorizontal,
   Sparkles,
   X,
 } from 'lucide-react';
@@ -13,6 +14,7 @@ import { memo, useState } from 'react';
 import { type Context7Doc, Context7Service } from '../services/context7Service';
 import TemplateSelector from './TemplateSelector';
 import Button from './ui/Button';
+import Toggle from './ui/Toggle';
 
 interface AdvancedOptionsPanelProps {
   options: {
@@ -40,6 +42,31 @@ interface AdvancedOptionsPanelProps {
   ) => void;
 }
 
+const TOKEN_PRESETS = [
+  { label: '128k', value: 128000 },
+  { label: '256k', value: 256000 },
+  { label: '512k', value: 512000 },
+  { label: '1M', value: 1000000 },
+];
+
+const SectionLabel: React.FC<{
+  icon: typeof BookOpen;
+  title: string;
+  badge?: string;
+}> = ({ icon: Icon, title, badge }) => (
+  <div className="flex items-center justify-between gap-2">
+    <h3 className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.12em] text-neutral-500 dark:text-neutral-400">
+      <Icon aria-hidden="true" className="h-3.5 w-3.5" />
+      {title}
+    </h3>
+    {badge && (
+      <span className="rounded-full bg-violet-50 px-2 py-0.5 text-[10px] font-medium text-violet-600 ring-1 ring-violet-200/70 dark:bg-violet-500/10 dark:text-violet-300 dark:ring-violet-500/20">
+        {badge}
+      </span>
+    )}
+  </div>
+);
+
 const AdvancedOptionsPanel: React.FC<AdvancedOptionsPanelProps> = memo(
   ({ options, onChange }) => {
     const [context7Url, setContext7Url] = useState('');
@@ -64,7 +91,10 @@ const AdvancedOptionsPanel: React.FC<AdvancedOptionsPanelProps> = memo(
       onChange('includeSystemContext', templateData.includeSystemContext);
       onChange('includeTaskInstructions', templateData.includeTaskInstructions);
       if (templateData.enableSmartOptimization !== undefined)
-        onChange('enableSmartOptimization', templateData.enableSmartOptimization);
+        onChange(
+          'enableSmartOptimization',
+          templateData.enableSmartOptimization,
+        );
       if (templateData.removeComments !== undefined)
         onChange('removeComments', templateData.removeComments);
       if (templateData.minifyOutput !== undefined)
@@ -72,7 +102,10 @@ const AdvancedOptionsPanel: React.FC<AdvancedOptionsPanelProps> = memo(
       if (templateData.maxTotalTokens !== undefined)
         onChange('maxTotalTokens', templateData.maxTotalTokens);
       if (templateData.prioritizeDocumentation !== undefined)
-        onChange('prioritizeDocumentation', templateData.prioritizeDocumentation);
+        onChange(
+          'prioritizeDocumentation',
+          templateData.prioritizeDocumentation,
+        );
       if (templateData.includeStructureMap !== undefined)
         onChange('includeStructureMap', templateData.includeStructureMap);
       if (templateData.adaptiveCompression !== undefined)
@@ -100,7 +133,9 @@ const AdvancedOptionsPanel: React.FC<AdvancedOptionsPanelProps> = memo(
         setContext7Url('');
       } catch (error) {
         setDocError(
-          error instanceof Error ? error.message : 'Failed to load documentation',
+          error instanceof Error
+            ? error.message
+            : 'Failed to load documentation',
         );
       } finally {
         setIsLoadingDoc(false);
@@ -114,258 +149,267 @@ const AdvancedOptionsPanel: React.FC<AdvancedOptionsPanelProps> = memo(
     };
 
     const inputBase =
-      'w-full py-2 px-3.5 border-0 ring-1 ring-inset ring-neutral-300 dark:ring-neutral-700 rounded-lg bg-white dark:bg-neutral-800/50 text-neutral-900 dark:text-neutral-100 focus:ring-2 focus:ring-inset focus:ring-emerald-500 transition-all duration-150 text-sm placeholder-neutral-400 dark:placeholder-neutral-500 disabled:opacity-60';
-    const checkboxBase =
-      'h-4 w-4 rounded border-neutral-300 dark:border-neutral-600 text-emerald-600 focus:ring-emerald-500 bg-white dark:bg-neutral-700 dark:checked:bg-emerald-600 dark:checked:border-emerald-600 cursor-pointer';
-    const labelBase =
-      'text-sm font-medium text-neutral-700 dark:text-neutral-200 select-none cursor-pointer';
+      'w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 shadow-sm outline-none transition-colors placeholder:text-neutral-500 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 dark:border-neutral-700 dark:bg-neutral-900/60 dark:text-neutral-100 dark:placeholder:text-neutral-400 disabled:opacity-60';
+    const textareaBase = `${inputBase} min-h-[80px] resize-y leading-relaxed`;
 
     return (
-      <div className="animate-fade-in space-y-5">
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Brain className="w-5 h-5 text-emerald-500 dark:text-emerald-400" />
-            <h2 className="text-base font-semibold text-neutral-800 dark:text-neutral-100">
-              Context Engineering
-            </h2>
-          </div>
-          <Sparkles className="w-4 h-4 text-neutral-400 dark:text-neutral-500" />
+      <div className="animate-fade-in space-y-6">
+        <div>
+          <h2 className="flex items-center gap-2 text-sm font-semibold tracking-tight text-neutral-900 dark:text-neutral-100">
+            <SlidersHorizontal
+              aria-hidden="true"
+              className="h-4 w-4 text-emerald-600 dark:text-emerald-400"
+            />
+            Prompt setup
+          </h2>
+          <p className="mt-1 text-xs leading-relaxed text-neutral-500 dark:text-neutral-400">
+            Control the context and instructions the model receives.
+          </p>
         </div>
 
-        <div className="space-y-4">
-          {/* ── Context Templates & Instructions ── */}
-          <div className="p-4 rounded-xl bg-gradient-to-br from-emerald-50/80 to-teal-50/80 dark:from-emerald-950/20 dark:to-teal-950/20 ring-1 ring-emerald-200/60 dark:ring-emerald-800/40 space-y-3">
-            <div className="flex items-center gap-2 text-sm font-semibold text-neutral-800 dark:text-neutral-100">
-              <Settings2 className="w-4 h-4 text-emerald-500 dark:text-emerald-400" />
-              <span>Context Templates</span>
-            </div>
+        <section className="space-y-3">
+          <SectionLabel icon={BookTemplate} title="Template" />
+          <TemplateSelector onTemplateApply={handleTemplateApply} />
+        </section>
 
-            <TemplateSelector onTemplateApply={handleTemplateApply} />
-
-            <div className="border-t border-emerald-200/60 dark:border-emerald-800/40 pt-3 space-y-2.5">
-              <label className="flex items-center gap-2.5 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={options.includeSystemContext}
-                  onChange={(e) => onChange('includeSystemContext', e.target.checked)}
-                  className={checkboxBase}
-                />
-                <span className={labelBase}>System Context</span>
-                <span className="ml-auto text-xs text-neutral-400 dark:text-neutral-500">AI persona & background</span>
-              </label>
-              {options.includeSystemContext && (
-                <textarea
-                  placeholder="e.g., You are an expert TypeScript developer. This is a React/Next.js project using Tailwind CSS..."
-                  value={options.systemContextText}
-                  onChange={(e) => onChange('systemContextText', e.target.value)}
-                  className={`${inputBase} min-h-[70px] resize-y`}
-                  rows={3}
-                />
-              )}
-            </div>
-
-            <div className="border-t border-emerald-200/60 dark:border-emerald-800/40 pt-3 space-y-2.5">
-              <label className="flex items-center gap-2.5 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={options.includeTaskInstructions}
-                  onChange={(e) => onChange('includeTaskInstructions', e.target.checked)}
-                  className={checkboxBase}
-                />
-                <span className={labelBase}>Task Instructions</span>
-                <span className="ml-auto text-xs text-neutral-400 dark:text-neutral-500">What you want the AI to do</span>
-              </label>
-              {options.includeTaskInstructions && (
-                <textarea
-                  placeholder='e.g., Review for security issues. Return results as a Markdown table with columns: Issue, Severity, Fix'
-                  value={options.taskInstructionsText}
-                  onChange={(e) => onChange('taskInstructionsText', e.target.value)}
-                  className={`${inputBase} min-h-[70px] resize-y`}
-                  rows={3}
-                />
-              )}
-            </div>
-          </div>
-
-          {/* ── Smart Context Optimizer ── */}
-          <div className="p-4 rounded-xl bg-gradient-to-br from-emerald-50/80 to-teal-50/80 dark:from-emerald-950/20 dark:to-teal-950/20 ring-1 ring-emerald-200/60 dark:ring-emerald-800/40 space-y-3">
-            <label className="flex items-center gap-2.5 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={options.enableSmartOptimization}
-                onChange={(e) => onChange('enableSmartOptimization', e.target.checked)}
-                className={checkboxBase}
+        <section className="space-y-3 border-t border-neutral-200/80 pt-5 dark:border-neutral-800">
+          <SectionLabel icon={MessageSquareText} title="Instructions" />
+          <div className="rounded-xl border border-neutral-200/80 bg-neutral-50/50 p-3 dark:border-neutral-800 dark:bg-neutral-900/40">
+            <Toggle
+              checked={options.includeSystemContext}
+              onChange={(checked) => onChange('includeSystemContext', checked)}
+              label="System context"
+              description="AI persona and background"
+            />
+            {options.includeSystemContext && (
+              <textarea
+                placeholder="e.g., You are an expert TypeScript developer. This is a React 19 project using Tailwind CSS…"
+                value={options.systemContextText}
+                onChange={(e) => onChange('systemContextText', e.target.value)}
+                className={`${textareaBase} mt-2 min-h-[96px]`}
+                rows={4}
+                aria-label="System context text"
               />
-              <span className={`${labelBase} flex items-center gap-1.5`}>
-                <Sparkles className="w-4 h-4 text-emerald-500 dark:text-emerald-400" />
-                Smart Context Optimizer
-              </span>
-              <span className="ml-auto text-xs text-neutral-400 dark:text-neutral-500">
-                {options.enableSmartOptimization ? 'Enabled' : 'Disabled'}
-              </span>
-            </label>
-
-            {options.enableSmartOptimization && (
-              <div className="space-y-3 pl-6">
-                <div>
-                  <div className="flex justify-between text-xs mb-1">
-                    <span className="text-neutral-600 dark:text-neutral-400">Max Token Budget</span>
-                    <span className="font-semibold text-emerald-600 dark:text-emerald-400">
-                      {options.maxTotalTokens.toLocaleString()}
-                    </span>
-                  </div>
-                  <input
-                    type="range"
-                    min="10000"
-                    max="2000000"
-                    step="10000"
-                    value={options.maxTotalTokens}
-                    onChange={(e) =>
-                      onChange('maxTotalTokens', parseInt(e.target.value, 10))
-                    }
-                    className="w-full h-1.5 bg-neutral-200 dark:bg-neutral-700 rounded-lg appearance-none cursor-pointer accent-emerald-600"
-                  />
-                  <div className="flex justify-between text-[10px] text-neutral-400 dark:text-neutral-500">
-                    <span>10k</span>
-                    <span>2M</span>
-                  </div>
-                </div>
-
-                <label className="flex items-center gap-2.5 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={options.prioritizeDocumentation}
-                    onChange={(e) => onChange('prioritizeDocumentation', e.target.checked)}
-                    className={checkboxBase}
-                  />
-                  <span className={`${labelBase} text-xs`}>Prioritize documentation files</span>
-                </label>
-
-                <label className="flex items-center gap-2.5 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={options.includeStructureMap}
-                    onChange={(e) => onChange('includeStructureMap', e.target.checked)}
-                    className={checkboxBase}
-                  />
-                  <span className={`${labelBase} text-xs`}>Generate project structure map</span>
-                </label>
-
-                <label className="flex items-center gap-2.5 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={options.adaptiveCompression}
-                    onChange={(e) => onChange('adaptiveCompression', e.target.checked)}
-                    className={checkboxBase}
-                  />
-                  <span className={`${labelBase} text-xs`}>Adaptive compression & summarization</span>
-                </label>
-
-                <div className="border-t border-emerald-200/60 dark:border-emerald-800/40 pt-3">
-                  <p className="text-[10px] font-semibold text-neutral-500 dark:text-neutral-400 uppercase tracking-wider mb-2">
-                    Transformations
-                  </p>
-                  <div className="space-y-2">
-                    <label className="flex items-center gap-2.5 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={options.removeComments}
-                        onChange={(e) => onChange('removeComments', e.target.checked)}
-                        className={checkboxBase}
-                      />
-                      <span className={`${labelBase} text-xs`}>Strip code comments</span>
-                    </label>
-                    <label className="flex items-center gap-2.5 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={options.minifyOutput}
-                        onChange={(e) => onChange('minifyOutput', e.target.checked)}
-                        className={checkboxBase}
-                      />
-                      <span className={`${labelBase} text-xs`}>Minify code</span>
-                    </label>
-                  </div>
-                </div>
-              </div>
             )}
           </div>
+          <div className="rounded-xl border border-neutral-200/80 bg-neutral-50/50 p-3 dark:border-neutral-800 dark:bg-neutral-900/40">
+            <Toggle
+              checked={options.includeTaskInstructions}
+              onChange={(checked) =>
+                onChange('includeTaskInstructions', checked)
+              }
+              label="Task instructions"
+              description="What you want the AI to do"
+            />
+            {options.includeTaskInstructions && (
+              <textarea
+                placeholder="e.g., Review for security issues. Return a Markdown table with columns: Issue, Severity, Fix."
+                value={options.taskInstructionsText}
+                onChange={(e) =>
+                  onChange('taskInstructionsText', e.target.value)
+                }
+                className={`${textareaBase} mt-2 min-h-[110px]`}
+                rows={4}
+                aria-label="Task instructions text"
+              />
+            )}
+          </div>
+        </section>
 
-          {/* ── Reference Documentation ── */}
-          <div className="p-4 rounded-xl bg-gradient-to-br from-violet-50/80 to-purple-50/80 dark:from-violet-950/20 dark:to-purple-950/20 ring-1 ring-violet-200/60 dark:ring-violet-800/40 space-y-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2 text-sm font-semibold text-neutral-800 dark:text-neutral-100">
-                <BookOpen className="w-4 h-4 text-violet-500 dark:text-violet-400" />
-                <span>Reference Documentation</span>
-              </div>
-              <span className="text-[10px] px-1.5 py-0.5 rounded-full font-medium bg-violet-100 dark:bg-violet-900/40 text-violet-600 dark:text-violet-400">
-                Context7
-              </span>
-            </div>
+        <section className="rounded-xl border border-neutral-200/80 bg-neutral-50/50 p-3 dark:border-neutral-800 dark:bg-neutral-900/40">
+          <Toggle
+            icon={<Sparkles className="h-4 w-4" />}
+            checked={options.enableSmartOptimization}
+            onChange={(checked) => onChange('enableSmartOptimization', checked)}
+            label="Smart context optimizer"
+            description="Prioritize and compress files to fit a token budget"
+          />
 
-            <div className="flex gap-2">
-              <div className="relative flex-1">
-                <LinkIcon className="w-4 h-4 text-neutral-400 dark:text-neutral-500 absolute left-3 top-1/2 -translate-y-1/2" />
+          {options.enableSmartOptimization && (
+            <div className="mt-4 space-y-4 border-t border-neutral-200/80 pt-4 dark:border-neutral-800">
+              <div>
+                <div className="flex items-center justify-between text-xs">
+                  <label
+                    htmlFor="token-budget"
+                    className="font-medium text-neutral-600 dark:text-neutral-400"
+                  >
+                    Max token budget
+                  </label>
+                  <span className="font-mono text-xs font-semibold text-emerald-700 dark:text-emerald-400">
+                    {options.maxTotalTokens.toLocaleString()}
+                  </span>
+                </div>
                 <input
-                  type="url"
-                  placeholder="https://context7.ai/docs/..."
-                  value={context7Url}
-                  onChange={(e) => { setContext7Url(e.target.value); setDocError(''); }}
-                  className={`${inputBase} pl-10`}
-                  disabled={isLoadingDoc}
+                  id="token-budget"
+                  type="range"
+                  min="10000"
+                  max="2000000"
+                  step="1000"
+                  value={options.maxTotalTokens}
+                  onChange={(e) =>
+                    onChange('maxTotalTokens', parseInt(e.target.value, 10))
+                  }
+                  className="range-input mt-2"
+                />
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] text-neutral-500 dark:text-neutral-400">
+                    10k
+                  </span>
+                  <span className="text-[10px] text-neutral-500 dark:text-neutral-400">
+                    2M
+                  </span>
+                </div>
+                <div className="mt-2 flex flex-wrap gap-1.5">
+                  {TOKEN_PRESETS.map(({ label, value }) => (
+                    <button
+                      key={value}
+                      type="button"
+                      onClick={() => onChange('maxTotalTokens', value)}
+                      aria-pressed={options.maxTotalTokens === value}
+                      className={`rounded-md px-2 py-1 text-[10px] font-medium transition-colors ${
+                        options.maxTotalTokens === value
+                          ? 'bg-emerald-600 text-white dark:bg-emerald-500 dark:text-emerald-950'
+                          : 'bg-white text-neutral-600 ring-1 ring-neutral-200/80 hover:bg-neutral-100 dark:bg-neutral-900 dark:text-neutral-400 dark:ring-neutral-700 dark:hover:bg-neutral-800'
+                      }`}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="space-y-1">
+                <Toggle
+                  checked={options.prioritizeDocumentation}
+                  onChange={(checked) =>
+                    onChange('prioritizeDocumentation', checked)
+                  }
+                  label="Prioritize documentation"
+                  description="Surface README and docs first"
+                />
+                <Toggle
+                  checked={options.includeStructureMap}
+                  onChange={(checked) =>
+                    onChange('includeStructureMap', checked)
+                  }
+                  label="Project structure map"
+                  description="Add a tree overview of the project"
+                />
+                <Toggle
+                  checked={options.adaptiveCompression}
+                  onChange={(checked) =>
+                    onChange('adaptiveCompression', checked)
+                  }
+                  label="Adaptive compression"
+                  description="Summarize low-priority files"
                 />
               </div>
-              <Button
-                onClick={handleAddContext7Doc}
-                disabled={!context7Url.trim() || isLoadingDoc}
-                variant="primary"
-                className="px-4 py-2 text-sm whitespace-nowrap"
-              >
-                {isLoadingDoc ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Add'}
-              </Button>
-            </div>
 
-            {docError && (
-              <p className="text-xs text-red-600 dark:text-red-400">{docError}</p>
-            )}
-
-            {options.context7Docs.length > 0 && (
-              <div className="space-y-1.5">
-                {options.context7Docs.map((doc, index) => (
-                  <div
-                    key={doc.url}
-                    className="flex items-center justify-between p-2.5 bg-white/80 dark:bg-neutral-800/60 rounded-lg ring-1 ring-neutral-200/60 dark:ring-neutral-700/40"
-                  >
-                    <div className="flex-1 min-w-0 mr-2">
-                      <div className="flex items-center gap-1.5">
-                        <FileText className="w-3.5 h-3.5 text-violet-500 dark:text-violet-400 flex-shrink-0" />
-                        <p className="text-sm font-medium text-neutral-700 dark:text-neutral-300 truncate">
-                          {doc.title}
-                        </p>
-                      </div>
-                      <a
-                        href={doc.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-[10px] text-neutral-400 dark:text-neutral-500 hover:text-violet-600 dark:hover:text-violet-400 truncate block ml-5"
-                      >
-                        {doc.url}
-                      </a>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveDoc(index)}
-                      className="p-1 text-neutral-400 hover:text-red-500 dark:hover:text-red-400 transition-colors rounded"
-                      aria-label={`Remove ${doc.title}`}
-                    >
-                      <X className="w-4 h-4" />
-                    </button>
-                  </div>
-                ))}
+              <div className="space-y-1 border-t border-neutral-200/80 pt-3 dark:border-neutral-800">
+                <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-neutral-500 dark:text-neutral-400">
+                  Transformations
+                </p>
+                <Toggle
+                  checked={options.removeComments}
+                  onChange={(checked) => onChange('removeComments', checked)}
+                  label="Strip comments"
+                  description="Remove comments to save tokens"
+                />
+                <Toggle
+                  checked={options.minifyOutput}
+                  onChange={(checked) => onChange('minifyOutput', checked)}
+                  label="Minify code"
+                  description="Collapse whitespace in the output"
+                />
               </div>
-            )}
+            </div>
+          )}
+        </section>
+
+        <section className="space-y-3 border-t border-neutral-200/80 pt-5 dark:border-neutral-800">
+          <SectionLabel
+            icon={BookOpen}
+            title="Reference docs"
+            badge="Context7"
+          />
+          <div className="flex gap-2">
+            <div className="relative min-w-0 flex-1">
+              <LinkIcon
+                aria-hidden="true"
+                className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-500 dark:text-neutral-400"
+              />
+              <input
+                type="url"
+                placeholder="https://context7.com/…"
+                value={context7Url}
+                onChange={(e) => {
+                  setContext7Url(e.target.value);
+                  setDocError('');
+                }}
+                className={`${inputBase} pl-9`}
+                disabled={isLoadingDoc}
+                aria-label="Context7 documentation URL"
+              />
+            </div>
+            <Button
+              onClick={handleAddContext7Doc}
+              disabled={!context7Url.trim() || isLoadingDoc}
+              variant="secondary"
+              className="px-3 py-2"
+            >
+              {isLoadingDoc ? (
+                <Loader2 aria-hidden="true" className="h-4 w-4 animate-spin" />
+              ) : (
+                'Add'
+              )}
+            </Button>
           </div>
-        </div>
+
+          {docError && (
+            <p role="alert" className="text-xs text-red-600 dark:text-red-400">
+              {docError}
+            </p>
+          )}
+
+          {options.context7Docs.length > 0 && (
+            <ul className="space-y-1.5">
+              {options.context7Docs.map((doc, index) => (
+                <li
+                  key={doc.url}
+                  className="flex items-center justify-between gap-2 rounded-lg border border-neutral-200/80 bg-white px-2.5 py-2 dark:border-neutral-800 dark:bg-neutral-900/60"
+                >
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-1.5">
+                      <FileText
+                        aria-hidden="true"
+                        className="h-3.5 w-3.5 flex-shrink-0 text-violet-500 dark:text-violet-400"
+                      />
+                      <p className="truncate text-xs font-medium text-neutral-700 dark:text-neutral-300">
+                        {doc.title}
+                      </p>
+                    </div>
+                    <a
+                      href={doc.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="ml-5 block truncate text-[10px] text-neutral-500 transition-colors hover:text-violet-600 dark:text-neutral-400 dark:hover:text-violet-400"
+                    >
+                      {doc.url}
+                    </a>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveDoc(index)}
+                    className="rounded p-1 text-neutral-500 transition-colors hover:text-red-500 dark:text-neutral-400 dark:hover:text-red-400"
+                    aria-label={`Remove ${doc.title}`}
+                  >
+                    <X aria-hidden="true" className="h-3.5 w-3.5" />
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
       </div>
     );
   },

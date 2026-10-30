@@ -1,4 +1,4 @@
-import { AlertCircle, CheckCircle, Loader2 } from 'lucide-react';
+import { AlertCircle, CheckCircle2, Loader2, ShieldCheck } from 'lucide-react';
 import type React from 'react';
 import { useCallback, useState } from 'react';
 import { type GitHubRepoInfo, GitHubService } from '../services/githubService';
@@ -16,6 +16,12 @@ interface GitHubLoaderProps {
   isLoading: boolean;
 }
 
+const NOTES = [
+  'Public repositories only',
+  'Text files are loaded: code, config, documentation',
+  'Repository metadata is cached for 1 hour',
+];
+
 const GitHubLoader: React.FC<GitHubLoaderProps> = ({
   onRepositoryLoaded,
   onError,
@@ -24,6 +30,7 @@ const GitHubLoader: React.FC<GitHubLoaderProps> = ({
   const [githubUrl, setGithubUrl] = useState<string>('');
   const [branch, setBranch] = useState<string>('');
   const [isValidating, setIsValidating] = useState<boolean>(false);
+  const [isFetching, setIsFetching] = useState<boolean>(false);
   const [validationStatus, setValidationStatus] = useState<
     'idle' | 'validating' | 'valid' | 'invalid'
   >('idle');
@@ -51,7 +58,6 @@ const GitHubLoader: React.FC<GitHubLoaderProps> = ({
         return;
       }
 
-      // Check if repository exists and get default branch
       const repoCheck = await GitHubService.getRepositoryInfo(
         parsed.owner,
         parsed.repo,
@@ -63,7 +69,6 @@ const GitHubLoader: React.FC<GitHubLoaderProps> = ({
         return;
       }
 
-      // Use provided branch or default branch
       const finalBranch = branch.trim() || repoCheck.defaultBranch;
       const finalRepoInfo = { ...parsed, branch: finalBranch };
 
@@ -99,26 +104,23 @@ const GitHubLoader: React.FC<GitHubLoaderProps> = ({
   );
 
   const handleLoadRepository = useCallback(async () => {
-    if (!repoInfo?.branch.trim() || isLoading) return;
+    if (!repoInfo?.branch.trim() || isLoading || isFetching) return;
 
     try {
-      onError(''); // Clear any previous errors
+      onError('');
+      setIsFetching(true);
       setLoadingProgress({ current: 0, total: 0 });
 
-      // Fetch all repository files using optimized Tree API
       const githubFiles = await GitHubService.fetchRepositoryContents(
         repoInfo.owner,
         repoInfo.repo,
         repoInfo.branch,
       );
 
-      // Filter to text files only
       const textFiles = githubFiles.filter(
         (file) => file.type === 'file' && isTextFileName(file.name),
       );
 
-      // Use batch processing with progress tracking
-      // Increased concurrency to 50 for faster metadata fetching
       const fileDetails = await GitHubService.batchProcessFiles(
         textFiles,
         async (file) => {
@@ -133,7 +135,7 @@ const GitHubLoader: React.FC<GitHubLoaderProps> = ({
         (current, total, currentFile) => {
           setLoadingProgress({ current, total, file: currentFile });
         },
-        50, // Process 50 files concurrently for faster loading
+        50,
       );
 
       setLoadingProgress({ current: 0, total: 0 });
@@ -143,164 +145,197 @@ const GitHubLoader: React.FC<GitHubLoaderProps> = ({
         error instanceof Error ? error.message : 'Failed to load repository';
       onError(errorMessage);
       setLoadingProgress({ current: 0, total: 0 });
+    } finally {
+      setIsFetching(false);
     }
-  }, [repoInfo, isLoading, onRepositoryLoaded, onError]);
+  }, [repoInfo, isLoading, isFetching, onRepositoryLoaded, onError]);
+
+  const isBusy = isLoading || isFetching;
 
   const getValidationIcon = () => {
     switch (validationStatus) {
       case 'validating':
-        return <Loader2 className="h-4 w-4 animate-spin text-blue-500" />;
+        return (
+          <Loader2
+            aria-hidden="true"
+            className="h-4 w-4 animate-spin text-sky-500"
+          />
+        );
       case 'valid':
-        return <CheckCircle className="h-4 w-4 text-green-500" />;
+        return (
+          <CheckCircle2
+            aria-hidden="true"
+            className="h-4 w-4 text-emerald-500"
+          />
+        );
       case 'invalid':
-        return <AlertCircle className="h-4 w-4 text-red-500" />;
+        return (
+          <AlertCircle aria-hidden="true" className="h-4 w-4 text-red-500" />
+        );
       default:
         return null;
     }
   };
 
-  const getValidationMessage = () => {
-    switch (validationStatus) {
-      case 'valid':
-        return repoInfo
-          ? `Repository: ${repoInfo.owner}/${repoInfo.repo} (${repoInfo.branch})`
-          : '';
-      case 'invalid':
-        return 'Invalid repository URL or repository not found';
-      default:
-        return '';
-    }
-  };
+  const validationMessage =
+    validationStatus === 'valid' && repoInfo
+      ? `Connected to ${repoInfo.owner}/${repoInfo.repo} (${repoInfo.branch})`
+      : validationStatus === 'invalid'
+        ? 'Invalid repository URL or repository not found'
+        : '';
+
+  const inputClasses =
+    'w-full rounded-lg border border-neutral-300 bg-white py-2 pl-9 pr-9 text-sm text-neutral-900 shadow-sm outline-none transition-colors placeholder:text-neutral-500 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 dark:border-neutral-700 dark:bg-neutral-900/60 dark:text-neutral-100 dark:placeholder:text-neutral-400';
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center space-x-2 mb-4">
-        <GitHubIcon className="h-5 w-5 text-neutral-600 dark:text-neutral-400" />
-        <h3 className="text-lg font-medium text-neutral-900 dark:text-neutral-100">
-          Load from GitHub
-        </h3>
-      </div>
-
-      <div className="space-y-4">
+      <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_9rem]">
         <div>
           <label
             htmlFor="github-url"
-            className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2"
+            className="mb-1.5 block text-xs font-medium text-neutral-700 dark:text-neutral-300"
           >
-            GitHub Repository URL
+            Repository URL
           </label>
           <div className="relative">
+            <GitHubIcon
+              aria-hidden="true"
+              className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-500 dark:text-neutral-400"
+            />
             <input
               id="github-url"
               type="url"
               placeholder="https://github.com/owner/repo"
               value={githubUrl}
               onChange={handleUrlChange}
-              className="w-full px-4 py-2.5 border border-neutral-300 dark:border-neutral-600 rounded-lg bg-white dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100 placeholder-neutral-400 dark:placeholder-neutral-500 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors"
-              disabled={isLoading || isValidating}
+              className={inputClasses}
+              disabled={isBusy || isValidating}
+              aria-invalid={validationStatus === 'invalid'}
+              aria-describedby={
+                validationMessage ? 'github-validation-message' : undefined
+              }
             />
             {validationStatus !== 'idle' && (
-              <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
+              <div className="absolute inset-y-0 right-0 flex items-center pr-3">
                 {getValidationIcon()}
               </div>
             )}
           </div>
-          {getValidationMessage() && (
-            <p
-              className={`mt-1 text-sm ${validationStatus === 'valid' ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}
-            >
-              {getValidationMessage()}
-            </p>
-          )}
         </div>
 
         <div>
           <label
             htmlFor="branch"
-            className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2"
+            className="mb-1.5 block text-xs font-medium text-neutral-700 dark:text-neutral-300"
           >
-            Branch (optional)
+            Branch
           </label>
           <input
             id="branch"
             type="text"
-            placeholder="main, develop, etc."
+            placeholder="main"
             value={branch}
             onChange={handleBranchChange}
-            className="w-full px-4 py-2.5 border border-neutral-300 dark:border-neutral-600 rounded-lg bg-white dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100 placeholder-neutral-400 dark:placeholder-neutral-500 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors"
-            disabled={isLoading || isValidating}
+            className="w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 font-mono text-sm text-neutral-900 shadow-sm outline-none transition-colors placeholder:font-sans placeholder:text-neutral-500 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 dark:border-neutral-700 dark:bg-neutral-900/60 dark:text-neutral-100 dark:placeholder:text-neutral-400"
+            disabled={isBusy || isValidating}
           />
-          <p className="mt-1 text-xs text-neutral-500 dark:text-neutral-400">
-            Leave empty to use the default branch
-          </p>
-        </div>
-
-        <div className="flex space-x-3">
-          <Button
-            onClick={validateRepository}
-            disabled={!githubUrl.trim() || isLoading || isValidating}
-            variant="secondary"
-            className="flex-1 sm:flex-none"
-          >
-            {isValidating ? (
-              <>
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                Validating...
-              </>
-            ) : (
-              'Validate Repository'
-            )}
-          </Button>
-
-          <Button
-            onClick={handleLoadRepository}
-            disabled={validationStatus !== 'valid' || isLoading || !repoInfo}
-            variant="primary"
-            className="flex-1"
-          >
-            {isLoading ? (
-              <>
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                Loading Repository...
-              </>
-            ) : (
-              'Load Repository'
-            )}
-          </Button>
         </div>
       </div>
 
-      {isLoading && loadingProgress.total > 0 && (
-        <div className="bg-neutral-50 dark:bg-neutral-800 rounded-lg p-4 border border-neutral-200 dark:border-neutral-700">
-          <div className="space-y-2">
-            <div className="flex justify-between text-sm text-neutral-700 dark:text-neutral-300">
-              <span>Processing files...</span>
-              <span className="font-medium">
-                {loadingProgress.current} / {loadingProgress.total}
-              </span>
-            </div>
-            <div className="w-full bg-neutral-200 dark:bg-neutral-700 rounded-full h-2 overflow-hidden">
-              <div
-                className="bg-emerald-500 h-2 transition-all duration-300 ease-out"
-                style={{
-                  width: `${(loadingProgress.current / loadingProgress.total) * 100}%`,
-                }}
+      {validationMessage && (
+        <p
+          id="github-validation-message"
+          className={`flex items-center gap-1.5 text-xs ${
+            validationStatus === 'valid'
+              ? 'text-emerald-700 dark:text-emerald-400'
+              : 'text-red-600 dark:text-red-400'
+          }`}
+        >
+          {validationStatus === 'valid' ? (
+            <CheckCircle2 aria-hidden="true" className="h-3.5 w-3.5" />
+          ) : (
+            <AlertCircle aria-hidden="true" className="h-3.5 w-3.5" />
+          )}
+          {validationMessage}
+        </p>
+      )}
+
+      <div className="flex flex-col gap-2 sm:flex-row">
+        <Button
+          onClick={validateRepository}
+          disabled={!githubUrl.trim() || isBusy || isValidating}
+          variant="secondary"
+          className="px-4 py-2 text-xs"
+        >
+          {isValidating ? (
+            <>
+              <Loader2
+                aria-hidden="true"
+                className="h-3.5 w-3.5 animate-spin"
               />
-            </div>
-            {loadingProgress.file && (
-              <p className="text-xs text-neutral-500 dark:text-neutral-400 truncate">
-                {loadingProgress.file}
-              </p>
-            )}
+              Validating…
+            </>
+          ) : (
+            'Validate repository'
+          )}
+        </Button>
+
+        <Button
+          onClick={handleLoadRepository}
+          disabled={validationStatus !== 'valid' || isBusy || !repoInfo}
+          variant="primary"
+          className="flex-1 px-4 py-2 text-xs"
+          aria-busy={isFetching}
+        >
+          {isFetching ? (
+            <>
+              <Loader2
+                aria-hidden="true"
+                className="h-3.5 w-3.5 animate-spin"
+              />
+              Loading repository…
+            </>
+          ) : (
+            'Load repository'
+          )}
+        </Button>
+      </div>
+
+      {isFetching && loadingProgress.total > 0 && (
+        <div className="rounded-xl border border-neutral-200/80 bg-neutral-50/60 p-3 dark:border-neutral-800 dark:bg-neutral-900/40">
+          <div className="flex justify-between text-xs text-neutral-600 dark:text-neutral-300">
+            <span>Processing files…</span>
+            <span className="font-medium tabular-nums">
+              {loadingProgress.current} / {loadingProgress.total}
+            </span>
           </div>
+          <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-neutral-200 dark:bg-neutral-800">
+            <div
+              className="h-full rounded-full bg-emerald-500 transition-all duration-300 ease-out"
+              style={{
+                width: `${(loadingProgress.current / loadingProgress.total) * 100}%`,
+              }}
+            />
+          </div>
+          {loadingProgress.file && (
+            <p className="mt-1.5 truncate font-mono text-[10px] text-neutral-500 dark:text-neutral-400">
+              {loadingProgress.file}
+            </p>
+          )}
         </div>
       )}
 
-      <div className="text-xs text-neutral-500 dark:text-neutral-400 space-y-1">
-        <p>- Supports public GitHub repositories</p>
-        <p>- Only text files are loaded (code, config, documentation)</p>
-        <p>- Results are cached for 1 hour for faster reloading</p>
-      </div>
+      <ul className="space-y-1 text-[11px] text-neutral-500 dark:text-neutral-400">
+        {NOTES.map((note) => (
+          <li key={note} className="flex items-start gap-1.5">
+            <ShieldCheck
+              aria-hidden="true"
+              className="mt-0.5 h-3 w-3 flex-shrink-0 text-emerald-500/80"
+            />
+            {note}
+          </li>
+        ))}
+      </ul>
     </div>
   );
 };

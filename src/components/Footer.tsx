@@ -1,51 +1,97 @@
-import { Code2, Heart, Mail } from 'lucide-react';
+import { Code2, Heart, Mail, ShieldCheck } from 'lucide-react';
 import type React from 'react';
 import { GitHubIcon } from './icons/BrandIcons';
 
-const Footer: React.FC = () => {
-  return (
-    <footer className="border-t border-neutral-200 dark:border-neutral-800 bg-white/80 dark:bg-neutral-900/80 backdrop-blur-sm">
-      <div className="max-w-[1920px] mx-auto px-4 sm:px-6 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
-          {/* Brand Section */}
-          <div className="col-span-1 md:col-span-2">
-            <div className="flex items-center space-x-3 mb-4">
-              <img
-                src="/codeharborai_logo.svg"
-                alt="CodeHarborAI Logo"
-                className="h-10 w-10"
+interface FooterProps {
+  compact?: boolean;
+}
+
+const Footer: React.FC<FooterProps> = ({ compact = false }) => {
+  if (compact) {
+    return (
+      <footer className="border-t border-neutral-200/80 bg-white/60 dark:border-neutral-800/80 dark:bg-neutral-950/60">
+        <div className="mx-auto flex w-full max-w-[1800px] flex-col items-center justify-between gap-3 px-5 pb-24 pt-5 text-xs text-neutral-500 sm:flex-row sm:px-6 xl:py-5 dark:text-neutral-400">
+          <div className="flex items-center gap-2.5">
+            <img src="/codeharborai_logo.svg" alt="" className="h-5 w-5" />
+            <span className="font-medium text-neutral-700 dark:text-neutral-300">
+              CodeHarborAI
+            </span>
+            <span
+              aria-hidden="true"
+              className="text-neutral-300 dark:text-neutral-700"
+            >
+              /
+            </span>
+            <span className="inline-flex items-center gap-1">
+              <ShieldCheck
+                aria-hidden="true"
+                className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400"
               />
-              <h3 className="text-xl font-bold text-neutral-900 dark:text-white">
-                CodeHarborAI
-              </h3>
+              Local-only processing
+            </span>
+          </div>
+          <div className="flex items-center gap-5">
+            <a
+              href="https://github.com/MontaCoder/CodeHarborAI"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="transition-colors hover:text-neutral-900 dark:hover:text-white"
+            >
+              GitHub
+            </a>
+            <a
+              href="https://github.com/MontaCoder/CodeHarborAI/blob/main/LICENSE"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="transition-colors hover:text-neutral-900 dark:hover:text-white"
+            >
+              License
+            </a>
+            <span>© {new Date().getFullYear()} Montassar Hajri</span>
+          </div>
+        </div>
+      </footer>
+    );
+  }
+
+  return (
+    <footer className="border-t border-neutral-200/80 bg-white/70 dark:border-neutral-800/80 dark:bg-neutral-950/70">
+      <div className="mx-auto w-full max-w-7xl px-5 py-14 sm:px-8">
+        <div className="grid gap-10 md:grid-cols-[1.6fr_1fr_1fr]">
+          <div>
+            <div className="flex items-center gap-2.5">
+              <img src="/codeharborai_logo.svg" alt="" className="h-9 w-9" />
+              <span className="text-lg font-semibold tracking-tight text-neutral-900 dark:text-white">
+                CodeHarbor
+                <span className="text-emerald-700 dark:text-emerald-400">
+                  AI
+                </span>
+              </span>
             </div>
-            <p className="text-neutral-600 dark:text-neutral-400 text-sm leading-relaxed max-w-md mb-4">
-              Transform your codebase into AI-ready context. Securely process
-              files locally, optimize for any AI model, and streamline your
-              development workflow.
+            <p className="mt-4 max-w-sm text-sm leading-relaxed text-neutral-600 dark:text-neutral-400">
+              Turn your codebase into AI-ready context. Files stay on your
+              device, and every prompt is shaped with your budget in mind.
             </p>
-            <div className="flex items-center space-x-2 text-sm text-neutral-600 dark:text-neutral-400">
-              <span>Made with</span>
-              <Heart className="h-4 w-4 text-red-500 fill-current" />
-              <span>by developer for developers</span>
+            <div className="mt-5 inline-flex items-center gap-2 rounded-full border border-emerald-200/70 bg-emerald-50/70 px-3 py-1 text-xs font-medium text-emerald-800 dark:border-emerald-500/20 dark:bg-emerald-500/10 dark:text-emerald-300">
+              <ShieldCheck aria-hidden="true" className="h-3.5 w-3.5" />
+              100% local processing
             </div>
           </div>
 
-          {/* Quick Links */}
           <div>
-            <h4 className="font-semibold text-neutral-900 dark:text-white mb-4">
-              Quick Links
-            </h4>
-            <ul className="space-y-2.5 text-sm">
+            <h2 className="text-xs font-semibold uppercase tracking-[0.16em] text-neutral-500 dark:text-neutral-400">
+              Project
+            </h2>
+            <ul className="mt-4 space-y-2.5 text-sm">
               <li>
                 <a
                   href="https://github.com/MontaCoder/CodeHarborAI"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-neutral-600 dark:text-neutral-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors inline-flex items-center group"
+                  className="inline-flex items-center gap-2 text-neutral-600 transition-colors hover:text-emerald-700 dark:text-neutral-400 dark:hover:text-emerald-400"
                 >
-                  <Code2 className="h-3.5 w-3.5 mr-1.5 opacity-0 group-hover:opacity-100 transition-opacity" />
-                  GitHub Repository
+                  <Code2 aria-hidden="true" className="h-4 w-4" />
+                  GitHub repository
                 </a>
               </li>
               <li>
@@ -53,74 +99,64 @@ const Footer: React.FC = () => {
                   href="https://github.com/MontaCoder/CodeHarborAI#readme"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-neutral-600 dark:text-neutral-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors inline-flex items-center group"
+                  className="inline-flex items-center gap-2 text-neutral-600 transition-colors hover:text-emerald-700 dark:text-neutral-400 dark:hover:text-emerald-400"
                 >
-                  <Code2 className="h-3.5 w-3.5 mr-1.5 opacity-0 group-hover:opacity-100 transition-opacity" />
+                  <Code2 aria-hidden="true" className="h-4 w-4" />
                   Documentation
+                </a>
+              </li>
+              <li>
+                <a
+                  href="https://github.com/MontaCoder/CodeHarborAI/blob/main/LICENSE"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 text-neutral-600 transition-colors hover:text-emerald-700 dark:text-neutral-400 dark:hover:text-emerald-400"
+                >
+                  <Code2 aria-hidden="true" className="h-4 w-4" />
+                  MIT license
                 </a>
               </li>
             </ul>
           </div>
 
-          {/* Connect Section */}
           <div>
-            <h4 className="font-semibold text-neutral-900 dark:text-white mb-4">
+            <h2 className="text-xs font-semibold uppercase tracking-[0.16em] text-neutral-500 dark:text-neutral-400">
               Connect
-            </h4>
-            <div className="flex flex-col space-y-3">
+            </h2>
+            <div className="mt-4 space-y-2.5 text-sm">
               <a
                 href="https://github.com/MontaCoder"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center space-x-2 text-neutral-600 dark:text-neutral-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors group"
+                className="inline-flex items-center gap-2 text-neutral-600 transition-colors hover:text-emerald-700 dark:text-neutral-400 dark:hover:text-emerald-400"
               >
-                <div className="p-2 rounded-lg bg-neutral-100 dark:bg-neutral-800 group-hover:bg-emerald-50 dark:group-hover:bg-emerald-500/10 transition-colors">
-                  <GitHubIcon className="h-4 w-4" />
-                </div>
-                <span className="text-sm font-medium">GitHub</span>
+                <GitHubIcon aria-hidden="true" className="h-4 w-4" />
+                GitHub
               </a>
               <a
                 href="mailto:contact@montassar.dev"
-                className="inline-flex items-center space-x-2 text-neutral-600 dark:text-neutral-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors group"
+                className="flex items-center gap-2 text-neutral-600 transition-colors hover:text-emerald-700 dark:text-neutral-400 dark:hover:text-emerald-400"
               >
-                <div className="p-2 rounded-lg bg-neutral-100 dark:bg-neutral-800 group-hover:bg-emerald-50 dark:group-hover:bg-emerald-500/10 transition-colors">
-                  <Mail className="h-4 w-4" />
-                </div>
-                <span className="text-sm font-medium">Email</span>
+                <Mail aria-hidden="true" className="h-4 w-4" />
+                contact@montassar.dev
               </a>
             </div>
           </div>
         </div>
 
-        {/* Bottom Bar */}
-        <div className="pt-8 border-t border-neutral-200 dark:border-neutral-800">
-          <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
-            <div className="text-sm text-neutral-500 dark:text-neutral-400">
-              <p>
-                &copy; {new Date().getFullYear()} Montassar Hajri. All rights
-                reserved.
-              </p>
-            </div>
-            <div className="flex items-center space-x-6 text-xs text-neutral-500 dark:text-neutral-400">
-              <a
-                href="https://github.com/MontaCoder/CodeHarborAI/blob/main/LICENSE"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors"
-              >
-                License
-              </a>
-              <span className="text-neutral-300 dark:text-neutral-700">•</span>
-              <a
-                href="https://github.com/MontaCoder"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors"
-              >
-                Open Source
-              </a>
-            </div>
-          </div>
+        <div className="mt-12 flex flex-col items-center justify-between gap-4 border-t border-neutral-200/80 pt-6 text-xs text-neutral-500 sm:flex-row dark:border-neutral-800 dark:text-neutral-400">
+          <p>
+            © {new Date().getFullYear()} Montassar Hajri. All rights reserved.
+          </p>
+          <p className="inline-flex items-center gap-1.5">
+            Built with
+            <span className="sr-only">love</span>
+            <Heart
+              aria-hidden="true"
+              className="h-3.5 w-3.5 fill-current text-red-500"
+            />
+            for developers
+          </p>
         </div>
       </div>
     </footer>
